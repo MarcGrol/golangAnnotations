@@ -25,42 +25,42 @@ A regular golang struct definition (including pointers and slices)
         Name:"MyStruct",
         Fields:[]Field{
             {
-                DocLines:["// StringField is used to ..."] 
-                Name:StringField 
-                TypeName:string 
-                IsSlice:false 
-                IsPointer:false 
-                Tag: 
-                CommentLines:[]
+                DocLines:     ["// StringField is used to ..."], 
+                Name:         "StringField", 
+                TypeName:     "string", 
+                IsSlice:      false ,
+                IsPointer:    false,
+                Tag:          "",
+                CommentLines: [],
             },
             {
-                DocLines:[] 
-                Name:IntField 
-                TypeName:int 
-                IsSlice:false 
-                IsPointer:false 
-                Tag: 
-                CommentLines:["// bli bla bloe"]
+                DocLines:     [], 
+                Name:         "IntField", 
+                TypeName:     "int", 
+                IsSlice:      false, 
+                IsPointer:    false, 
+                Tag:          "",
+                CommentLines: ["// bli bla bloe"],
             },
             {
-                DocLines:[] 
-                Name:StructField 
-                TypeName:MyStruct 
-                IsSlice:false 
-                IsPointer:true 
-                Tag: 
-                CommentLines:[]
+                DocLines:     [], 
+                Name:         "StructField", 
+                TypeName:     "MyStruct", 
+                IsSlice:      false, 
+                IsPointer:    true, 
+                Tag:          "",
+                CommentLines: [],
             },
             {
-                DocLines:[] 
-                Name:SliceField 
-                TypeName:MyStruct 
-                IsSlice:true 
-                IsPointer:false 
-                Tag: 
-                CommentLines:[]
+                DocLines:     [], 
+                Name:         "SliceField", 
+                TypeName:     "MyStruct", 
+                IsSlice:      true, 
+                IsPointer:    false, 
+                Tag:          "",
+                CommentLines: [],
             }
-        ] CommentLines:[]
+        ] CommentLines:       [],
     }
     
 ### result 
