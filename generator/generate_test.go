@@ -3,16 +3,16 @@ package generator
 import (
 	"testing"
 
-	"github.com/MarcGrol/astTools/parser"
+	"github.com/MarcGrol/astTools/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateForStruct(t *testing.T) {
 
-	s := parser.Struct{
+	s := model.Struct{
 		PackageName: "generator",
 		Name:        "MyStruct",
-		Fields: []parser.Field{
+		Fields: []model.Field{
 			{Name: "StringField", TypeName: "string", IsPointer: false, IsSlice: false},
 			{Name: "IntField", TypeName: "int", IsPointer: false, IsSlice: false},
 			{Name: "StructField", TypeName: "MyStruct", IsPointer: true, IsSlice: false},

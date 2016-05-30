@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/MarcGrol/astTools/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +14,7 @@ func TestParseStructsInFile(t *testing.T) {
 	assert.Equal(t, 2, len(structs))
 
 	assertStruct(t,
-		Struct{Name: "Person", DocLines: []string{"// Struct comment before type"}},
+		model.Struct{Name: "Person", DocLines: []string{"// Struct comment before type"}},
 		structs[0])
 	assert.Equal(t, 9, len(structs[0].Fields))
 
@@ -21,39 +22,39 @@ func TestParseStructsInFile(t *testing.T) {
 		s := structs[0]
 
 		assertField(t,
-			Field{Name: "FirstName", TypeName: "string", IsPointer: false, IsSlice: false},
+			model.Field{Name: "FirstName", TypeName: "string", IsPointer: false, IsSlice: false},
 			s.Fields[0])
 
 		assertField(t,
-			Field{Name: "LastName", TypeName: "string", IsPointer: false, IsSlice: false},
+			model.Field{Name: "LastName", TypeName: "string", IsPointer: false, IsSlice: false},
 			s.Fields[1])
 
 		assertField(t,
-			Field{Name: "Age", TypeName: "int", IsPointer: false, IsSlice: false, CommentLines: []string{"// Age comment"}},
+			model.Field{Name: "Age", TypeName: "int", IsPointer: false, IsSlice: false, CommentLines: []string{"// Age comment"}},
 			s.Fields[2])
 
 		assertField(t,
-			Field{Name: "Nice", TypeName: "bool", IsPointer: true, IsSlice: false, DocLines: []string{"// Before nice comment"}, CommentLines: []string{"// After Nice comment"}},
+			model.Field{Name: "Nice", TypeName: "bool", IsPointer: true, IsSlice: false, DocLines: []string{"// Before nice comment"}, CommentLines: []string{"// After Nice comment"}},
 			s.Fields[3])
 
 		assertField(t,
-			Field{Name: "Color", TypeName: "ColorType", IsPointer: false, IsSlice: false, DocLines: []string{"// Before Color comment"}, Tag: "`json:\"COLOR_TYPE\"`"},
+			model.Field{Name: "Color", TypeName: "ColorType", IsPointer: false, IsSlice: false, DocLines: []string{"// Before Color comment"}, Tag: "`json:\"COLOR_TYPE\"`"},
 			s.Fields[4])
 
 		assertField(t,
-			Field{Name: "OptionalColor", TypeName: "ColorType", IsPointer: true, IsSlice: false},
+			model.Field{Name: "OptionalColor", TypeName: "ColorType", IsPointer: true, IsSlice: false},
 			s.Fields[5])
 
 		assertField(t,
-			Field{Name: "Father", TypeName: "Person", IsPointer: true, IsSlice: false},
+			model.Field{Name: "Father", TypeName: "Person", IsPointer: true, IsSlice: false},
 			s.Fields[6])
 
 		assertField(t,
-			Field{Name: "Uncles", TypeName: "Person", IsPointer: true, IsSlice: true},
+			model.Field{Name: "Uncles", TypeName: "Person", IsPointer: true, IsSlice: true},
 			s.Fields[7])
 
 		assertField(t,
-			Field{Name: "Children", TypeName: "Person", IsPointer: false, IsSlice: true},
+			model.Field{Name: "Children", TypeName: "Person", IsPointer: false, IsSlice: true},
 			s.Fields[8])
 
 	}
@@ -78,14 +79,14 @@ func TestParseStructsInDir(t *testing.T) {
 	}
 }
 
-func assertStruct(t *testing.T, expected Struct, actual Struct) {
+func assertStruct(t *testing.T, expected model.Struct, actual model.Struct) {
 	t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
 	assert.Equal(t, expected.Name, actual.Name)
 	assertStringSlice(t, expected.CommentLines, actual.CommentLines)
 }
 
-func assertField(t *testing.T, expected Field, actual Field) {
+func assertField(t *testing.T, expected model.Field, actual model.Field) {
 	t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
 

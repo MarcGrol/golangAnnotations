@@ -7,32 +7,16 @@ import (
 	"log"
 	"os"
 	"regexp"
+
+	"github.com/MarcGrol/astTools/model"
 )
 
-type Struct struct {
-	DocLines     []string
-	PackageName  string
-	Name         string
-	Fields       []Field
-	CommentLines []string
-}
-
-type Field struct {
-	DocLines     []string
-	Name         string
-	TypeName     string
-	IsSlice      bool
-	IsPointer    bool
-	Tag          string
-	CommentLines []string
-}
-
-func FindStructsInFile(srcFilename string) ([]Struct, error) {
+func FindStructsInFile(srcFilename string) ([]model.Struct, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
-		return []Struct{}, err
+		return []model.Struct{}, err
 	}
 	ast.Print(fset, f)
 	v := structVisitor{}
@@ -40,7 +24,7 @@ func FindStructsInFile(srcFilename string) ([]Struct, error) {
 	return v.structs, nil
 }
 
-func findStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
+func findStructsInDir(dirName string, filenameRegex string) ([]model.Struct, error) {
 	var pattern = regexp.MustCompile(filenameRegex)
 
 	fset := token.NewFileSet()
@@ -54,7 +38,7 @@ func findStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
 		0)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return []Struct{}, err
+		return []model.Struct{}, err
 	}
 
 	v := structVisitor{}
@@ -69,7 +53,7 @@ func findStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
 type structVisitor struct {
 	docLines []string
 	name     string
-	structs  []Struct
+	structs  []model.Struct
 }
 
 func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
@@ -110,10 +94,10 @@ func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-func handleStruct(name string, docLines []string, node *ast.StructType) Struct {
-	myStruct := Struct{
+func handleStruct(name string, docLines []string, node *ast.StructType) model.Struct {
+	myStruct := model.Struct{
 		Name:   name,
-		Fields: make([]Field, 0, 10),
+		Fields: make([]model.Field, 0, 10),
 	}
 
 	for _, rawField := range node.Fields.List {
@@ -128,12 +112,12 @@ func handleStruct(name string, docLines []string, node *ast.StructType) Struct {
 	return myStruct
 }
 
-func handleFields(node ast.Node) ([]Field, bool) {
+func handleFields(node ast.Node) ([]model.Field, bool) {
 
 	// we are looking for a node of type ield
 	ts, ok := node.(*ast.Field)
 	if !ok {
-		return []Field{}, false
+		return []model.Field{}, false
 	}
 
 	docLines := []string{}
@@ -202,9 +186,9 @@ func handleFields(node ast.Node) ([]Field, bool) {
 		}
 	}
 
-	fields := make([]Field, 0, 10)
+	fields := make([]model.Field, 0, 10)
 	for _, f := range ts.Names {
-		field := Field{
+		field := model.Field{
 			DocLines:     docLines,
 			Name:         f.Name,
 			TypeName:     dataType,

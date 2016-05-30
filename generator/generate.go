@@ -8,10 +8,10 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/MarcGrol/astTools/parser"
+	"github.com/MarcGrol/astTools/model"
 )
 
-func GenerateForStruct(myStruct parser.Struct) error {
+func GenerateForStruct(myStruct model.Struct) error {
 	err := generateEnvelope(myStruct, ".")
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func GenerateForStruct(myStruct parser.Struct) error {
 	return nil
 }
 
-func generateEnvelope(str parser.Struct, templateDir string) error {
+func generateEnvelope(str model.Struct, templateDir string) error {
 	targetDir := str.PackageName
 	dir, _ := path.Split(str.PackageName)
 	if dir == "" {
@@ -42,7 +42,7 @@ func generateEnvelope(str parser.Struct, templateDir string) error {
 	return nil
 }
 
-func generateWrapperForStruct(str parser.Struct, templateDir string) error {
+func generateWrapperForStruct(str model.Struct, templateDir string) error {
 	targetDir := str.PackageName
 	dir, _ := path.Split(str.PackageName)
 	if dir == "" {
