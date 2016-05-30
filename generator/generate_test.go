@@ -9,17 +9,18 @@ import (
 
 func TestGenerateForStruct(t *testing.T) {
 
-	err := GenerateForStruct(
-		parser.Struct{
-			PackageName: "generator",
-			Name:        "MyStruct",
-			Fields: []parser.Field{
-				{Name: "StringField", TypeName: "string", IsPointer: false, IsSlice: false},
-				{Name: "IntField", TypeName: "int", IsPointer: false, IsSlice: false},
-				{Name: "StructField", TypeName: "MyStruct", IsPointer: true, IsSlice: false},
-				{Name: "SliceField", TypeName: "MyStruct", IsPointer: false, IsSlice: true},
-			},
-		})
+	s := parser.Struct{
+		PackageName: "generator",
+		Name:        "MyStruct",
+		Fields: []parser.Field{
+			{Name: "StringField", TypeName: "string", IsPointer: false, IsSlice: false},
+			{Name: "IntField", TypeName: "int", IsPointer: false, IsSlice: false},
+			{Name: "StructField", TypeName: "MyStruct", IsPointer: true, IsSlice: false},
+			{Name: "SliceField", TypeName: "MyStruct", IsPointer: false, IsSlice: true},
+		},
+	}
+	t.Logf("struct to generate:%+v", s)
+	err := GenerateForStruct(s)
 	assert.Nil(t, err)
 
 }
