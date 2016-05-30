@@ -14,16 +14,18 @@ func MyFunc(value int, yes bool) (string, error) {
 	return fmt.Sprintf("%d", value), nil
 }
 
-// Struct Person todo
+// Struct comment before type
 type Person struct {
-	FirstName, LastName string // FirstName
-	Age                 int    // Age
-	Nice                *bool  // Nice
-	Color               ColorType
-	OptionalColor       *ColorType
-	Father              *Person
-	Uncles              []*Person
-	Children            []Person
+	FirstName, LastName string
+	Age                 int // Age comment
+	// Before nice comment
+	Nice *bool // After Nice comment
+	// Before Color comment
+	Color         ColorType `json:"COLOR_TYPE"`
+	OptionalColor *ColorType
+	Father        *Person
+	Uncles        []*Person
+	Children      []Person
 }
 
 func (p Person) Dump() string {

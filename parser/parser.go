@@ -10,16 +10,21 @@ import (
 )
 
 type Struct struct {
-	PackageName string
-	Name        string
-	Fields      []Field
+	DocLines     []string
+	PackageName  string
+	Name         string
+	Fields       []Field
+	CommentLines []string
 }
 
 type Field struct {
-	Name      string
-	TypeName  string
-	IsSlice   bool
-	IsPointer bool
+	DocLines     []string
+	Name         string
+	TypeName     string
+	IsSlice      bool
+	IsPointer    bool
+	Tag          string
+	CommentLines []string
 }
 
 func FindStructsInFile(srcFilename string) ([]Struct, error) {
@@ -29,13 +34,13 @@ func FindStructsInFile(srcFilename string) ([]Struct, error) {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return []Struct{}, err
 	}
-	//ast.Print(fset, f)
+	ast.Print(fset, f)
 	v := structVisitor{}
 	ast.Walk(&v, f)
-	return v.Structs, nil
+	return v.structs, nil
 }
 
-func FindStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
+func findStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
 	var pattern = regexp.MustCompile(filenameRegex)
 
 	fset := token.NewFileSet()
@@ -58,28 +63,45 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]Struct, error) {
 			ast.Walk(&v, f)
 		}
 	}
-	return v.Structs, nil
+	return v.structs, nil
 }
 
 type structVisitor struct {
-	Name    string
-	Structs []Struct
+	docLines []string
+	name     string
+	structs  []Struct
 }
 
 func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 		{
+			ts, ok := node.(*ast.GenDecl)
+			if ok {
+				if ts.Doc != nil && ts.Doc.List != nil && len(ts.Doc.List) > 0 {
+					for _, d := range ts.Doc.List {
+						v.docLines = append(v.docLines, d.Text)
+					}
+				}
+				return v
+			}
+		}
+		{
 			ts, ok := node.(*ast.TypeSpec)
 			if ok {
-				v.Name = ts.Name.Name
+				v.name = ts.Name.Name
 				return v
 			}
 		}
 		{
 			ts, ok := node.(*ast.StructType)
 			if ok {
-				v.Structs = append(v.Structs, handleStruct(v.Name, ts))
-				v.Name = ""
+				strct := handleStruct(v.name, v.docLines, ts)
+				if len(v.docLines) > 0 {
+					strct.DocLines = v.docLines
+				}
+				v.structs = append(v.structs, strct)
+				v.name = ""
+				v.docLines = []string{}
 			}
 			return v
 		}
@@ -88,7 +110,7 @@ func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-func handleStruct(name string, node *ast.StructType) Struct {
+func handleStruct(name string, docLines []string, node *ast.StructType) Struct {
 	myStruct := Struct{
 		Name:   name,
 		Fields: make([]Field, 0, 10),
@@ -114,9 +136,28 @@ func handleFields(node ast.Node) ([]Field, bool) {
 		return []Field{}, false
 	}
 
+	docLines := []string{}
+	tag := ""
 	dataType := ""
 	isPointer := false
 	isSlice := false
+	commentLines := []string{}
+
+	if ts.Doc != nil && len(ts.Doc.List) > 0 {
+		for _, d := range ts.Doc.List {
+			docLines = append(docLines, d.Text)
+		}
+	}
+
+	if ts.Comment != nil && len(ts.Comment.List) > 0 {
+		for _, c := range ts.Comment.List {
+			commentLines = append(commentLines, c.Text)
+		}
+	}
+
+	if ts.Tag != nil {
+		tag = ts.Tag.Value
+	}
 
 	{
 		// array
@@ -164,10 +205,13 @@ func handleFields(node ast.Node) ([]Field, bool) {
 	fields := make([]Field, 0, 10)
 	for _, f := range ts.Names {
 		field := Field{
-			Name:      f.Name,
-			TypeName:  dataType,
-			IsSlice:   isSlice,
-			IsPointer: isPointer,
+			DocLines:     docLines,
+			Name:         f.Name,
+			TypeName:     dataType,
+			IsSlice:      isSlice,
+			IsPointer:    isPointer,
+			Tag:          tag,
+			CommentLines: commentLines,
 		}
 		fields = append(fields, field)
 	}

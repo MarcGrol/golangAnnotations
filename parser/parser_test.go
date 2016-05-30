@@ -12,10 +12,13 @@ func TestParseStructsInFile(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 2, len(structs))
 
+	assertStruct(t,
+		Struct{Name: "Person", DocLines: []string{"// Struct comment before type"}},
+		structs[0])
+	assert.Equal(t, 9, len(structs[0].Fields))
+
 	{
 		s := structs[0]
-		assert.Equal(t, "Person", s.Name)
-		assert.Equal(t, 9, len(s.Fields))
 
 		assertField(t,
 			Field{Name: "FirstName", TypeName: "string", IsPointer: false, IsSlice: false},
@@ -26,15 +29,15 @@ func TestParseStructsInFile(t *testing.T) {
 			s.Fields[1])
 
 		assertField(t,
-			Field{Name: "Age", TypeName: "int", IsPointer: false, IsSlice: false},
+			Field{Name: "Age", TypeName: "int", IsPointer: false, IsSlice: false, CommentLines: []string{"// Age comment"}},
 			s.Fields[2])
 
 		assertField(t,
-			Field{Name: "Nice", TypeName: "bool", IsPointer: true, IsSlice: false},
+			Field{Name: "Nice", TypeName: "bool", IsPointer: true, IsSlice: false, DocLines: []string{"// Before nice comment"}, CommentLines: []string{"// After Nice comment"}},
 			s.Fields[3])
 
 		assertField(t,
-			Field{Name: "Color", TypeName: "ColorType", IsPointer: false, IsSlice: false},
+			Field{Name: "Color", TypeName: "ColorType", IsPointer: false, IsSlice: false, DocLines: []string{"// Before Color comment"}, Tag: "`json:\"COLOR_TYPE\"`"},
 			s.Fields[4])
 
 		assertField(t,
@@ -57,8 +60,7 @@ func TestParseStructsInFile(t *testing.T) {
 }
 
 func TestParseStructsInDir(t *testing.T) {
-
-	structs, err := FindStructsInDir("testData", ".*xample.*")
+	structs, err := findStructsInDir("testData", ".*xample.*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 3, len(structs))
 
@@ -76,9 +78,42 @@ func TestParseStructsInDir(t *testing.T) {
 	}
 }
 
+func assertStruct(t *testing.T, expected Struct, actual Struct) {
+	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	assertStringSlice(t, expected.DocLines, actual.DocLines)
+	assert.Equal(t, expected.Name, actual.Name)
+	assertStringSlice(t, expected.CommentLines, actual.CommentLines)
+}
+
 func assertField(t *testing.T, expected Field, actual Field) {
+	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	assertStringSlice(t, expected.DocLines, actual.DocLines)
+
 	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, expected.TypeName, actual.TypeName)
 	assert.Equal(t, expected.IsPointer, actual.IsPointer)
 	assert.Equal(t, expected.IsSlice, actual.IsSlice)
+	assert.Equal(t, expected.Tag, actual.Tag)
+	assert.Equal(t, len(expected.CommentLines), len(actual.CommentLines))
+	assertStringSlice(t, expected.CommentLines, actual.CommentLines)
+}
+
+func assertStringSlice(t *testing.T, expected []string, actual []string) {
+	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	actualHas := false
+	if actual != nil && len(actual) > 0 {
+		actualHas = true
+	}
+	expectedHas := false
+	if expected != nil && len(expected) > 0 {
+		expectedHas = true
+	}
+
+	assert.Equal(t, expectedHas, actualHas)
+	if expected != nil && actual != nil {
+		assert.Equal(t, len(expected), len(actual))
+		for idx, s := range expected {
+			assert.Equal(t, s, actual[idx])
+		}
+	}
 }
