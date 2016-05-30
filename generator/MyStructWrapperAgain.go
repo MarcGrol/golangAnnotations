@@ -2,6 +2,8 @@
 
 package generator
 
+
+
 import (
   "encoding/json"
   "log"
@@ -10,14 +12,15 @@ import (
   "code.google.com/p/go-uuid/uuid"
 )
 
-func (s *MyStruct) Wrap(aggregateName string, aggegateUid string) *Envelope {
+func (s *MyStruct) Wrap() *Envelope {
+    //[// &#43;event -&gt; aggregate: person]
     var err error
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = aggregateName
-    envelope.AggregateUid = aggegateUid
+    envelope.AggregateName = "person"
+    envelope.AggregateUid = s.GetUid()
     envelope.EventTypeName = "MyStruct"
     blob, err := json.Marshal(s)
     if err != nil {
@@ -54,4 +57,6 @@ func UnWrapMyStruct(envelop *Envelope) *MyStruct {
 
     return &event
 }
+
+
 

@@ -2,6 +2,8 @@
 
 package {{.PackageName}}
 
+{{if .IsEvent}}
+
 import (
   "encoding/json"
   "log"
@@ -10,14 +12,15 @@ import (
   "code.google.com/p/go-uuid/uuid"
 )
 
-func (s *{{.Name}}) Wrap(aggregateName string, aggegateUid string) *Envelope {
+func (s *{{.Name}}) Wrap() *Envelope {
+    //{{.DocLines}}
     var err error
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = aggregateName
-    envelope.AggregateUid = aggegateUid
+    envelope.AggregateName = "{{.GetAggregateName}}"
+    envelope.AggregateUid = s.GetUid()
     envelope.EventTypeName = "{{.Name}}"
     blob, err := json.Marshal(s)
     if err != nil {
@@ -54,4 +57,6 @@ func UnWrap{{.Name}}(envelop *Envelope) *{{.Name}} {
 
     return &event
 }
+
+{{end}}
 

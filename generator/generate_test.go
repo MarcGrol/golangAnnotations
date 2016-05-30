@@ -10,6 +10,7 @@ import (
 func TestGenerateForStruct(t *testing.T) {
 
 	s := model.Struct{
+		DocLines:    []string{"// +event -> aggregate: person"},
 		PackageName: "generator",
 		Name:        "MyStruct",
 		Fields: []model.Field{

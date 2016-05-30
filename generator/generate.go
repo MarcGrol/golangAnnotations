@@ -43,20 +43,22 @@ func generateEnvelope(str model.Struct, templateDir string) error {
 }
 
 func generateWrapperForStruct(str model.Struct, templateDir string) error {
-	targetDir := str.PackageName
-	dir, _ := path.Split(str.PackageName)
-	if dir == "" {
-		targetDir = "."
-	} else {
-		str.PackageName = path.Dir(str.PackageName)
-	}
-	src := fmt.Sprintf("%s/wrapper.go.tmpl", templateDir)
-	target := fmt.Sprintf("%s/%sWrapperAgain.go", targetDir, str.Name)
+	if str.IsEvent() {
+		targetDir := str.PackageName
+		dir, _ := path.Split(str.PackageName)
+		if dir == "" {
+			targetDir = "."
+		} else {
+			str.PackageName = path.Dir(str.PackageName)
+		}
+		src := fmt.Sprintf("%s/wrapper.go.tmpl", templateDir)
+		target := fmt.Sprintf("%s/%sWrapperAgain.go", targetDir, str.Name)
 
-	err := generateFileFromTemplate(str, src, target)
-	if err != nil {
-		log.Fatalf("Error generating events (%s)", err)
-		return err
+		err := generateFileFromTemplate(str, src, target)
+		if err != nil {
+			log.Fatalf("Error generating events (%s)", err)
+			return err
+		}
 	}
 	return nil
 }

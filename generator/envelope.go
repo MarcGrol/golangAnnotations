@@ -6,6 +6,10 @@ import (
     "time"
 )
 
+type Uider interface {
+    GetUid() string  
+}
+
 type Envelope struct {
     Uuid           string    `json:"uuid"`
     SequenceNumber uint64    `json:"sequenceNumber"`
