@@ -20,10 +20,10 @@ A regular golang struct definition (including pointers and slices)
 ### Intermediate representation
 
     Struct{
-        DocLines:["// Struct MyStruct is just an example ..."],
-        PackageName:"generator",
-        Name:"MyStruct",
-        Fields:[]Field{
+        DocLines:       ["// Struct MyStruct is just an example ..."],
+        PackageName:    "generator",
+        Name:           "MyStruct",
+        Fields:         []Field{
             {
                 DocLines:     ["// StringField is used to ..."], 
                 Name:         "StringField", 
