@@ -1,0 +1,57 @@
+// Generated automatically: do not edit manually
+
+package {{.PackageName}}
+
+import (
+  "encoding/json"
+  "log"
+  "time"
+
+  "code.google.com/p/go-uuid/uuid"
+)
+
+func (s *{{.Name}}) Wrap(aggregateName string, aggegateUid string) *Envelope {
+    var err error
+    envelope := new(Envelope)
+    envelope.Uuid = uuid.New()
+    envelope.SequenceNumber = 0 // Set later by event-store
+    envelope.Timestamp = time.Now()
+    envelope.AggregateName = aggregateName
+    envelope.AggregateUid = aggegateUid
+    envelope.EventTypeName = "{{.Name}}"
+    blob, err := json.Marshal(s)
+    if err != nil {
+        log.Printf("Error marshalling {{.Name}} payload %+v", err)
+        return nil //, err
+    }
+    envelope.EventData = string(blob)
+
+    return envelope
+}
+
+func Is{{.Name}}(envelope *Envelope) bool {
+    return envelope.EventTypeName == "{{.Name}}"
+}
+
+func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
+    if Is{{.Name}}(envelop) == false {
+        return nil, false
+    }
+    event := UnWrap{{.Name}}(envelop)
+    return event, true
+}
+
+func UnWrap{{.Name}}(envelop *Envelope) *{{.Name}} {
+    if Is{{.Name}}(envelop) == false {
+        return nil
+    }
+    var event {{.Name}}
+    err := json.Unmarshal([]byte(envelop.EventData), &event)
+    if err != nil {
+        log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
+        return nil
+    }
+
+    return &event
+}
+
