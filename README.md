@@ -6,7 +6,8 @@ From this intermediate representation, we can easily generate boring and error-p
 ## Example:
 
 ### input:
-A regular golang struct definition (including pointers and slices)
+A regular golang struct definition with our own "+event"-annotation. 
+This annotation is used to trigger code-generation
 
     // +event -> aggregate: tour
     type EtappeCreated struct {
@@ -20,7 +21,7 @@ A regular golang struct definition (including pointers and slices)
     }
 
 ### result 
-myStructWrapper.go (50 lines of code):
+etappeCreatedWrapper.go (approx. 60 lines of code):
 
     func (s *EtappeCreated) Wrap(aggregateName string, aggegateUid string) (*Envelope,error) {
         ....
