@@ -19,8 +19,8 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     cd ${GOPATH/src/github.com/MarcGrol/astTools/example
     rm wrappers.go aggregates.go
     go generate
-
-Observe that for each annotated struct wrapping functions have been created in [example]( example/)
+    
+Observe that wrappers.go aggregates.go have been created in [example]( example/)
 
 
 ## Raw example:
