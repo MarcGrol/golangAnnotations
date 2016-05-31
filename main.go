@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/MarcGrol/astTools/generator"
-
 	"github.com/MarcGrol/astTools/parser"
 )
 
