@@ -14,25 +14,25 @@ var AggregateEvents map[string][]string = map[string][]string{
 
 	GamblerAggregateName: []string{
 
-		"GamblerCreated",
+		GamblerCreatedEventName,
 
-		"GamblerTeamCreated",
+		GamblerTeamCreatedEventName,
 	},
 
 	NewsAggregateName: []string{
 
-		"NewsItemCreated",
+		NewsItemCreatedEventName,
 	},
 
 	TourAggregateName: []string{
 
-		"CyclistCreated",
+		CyclistCreatedEventName,
 
-		"EtappeCreated",
+		EtappeCreatedEventName,
 
-		"EtappeResultsCreated",
+		EtappeResultsCreatedEventName,
 
-		"TourCreated",
+		TourCreatedEventName,
 	},
 }
 

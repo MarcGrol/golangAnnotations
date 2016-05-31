@@ -160,7 +160,7 @@ var AggregateEvents map[string][]string = map[string][]string{
 {{range $key, $value := .AggregateMap}}
 	{{$key}}AggregateName: []string {
 	{{range $key2, $value2 := $value}}
-		"{{$value2}}",
+		{{$value2}}EventName,
 	{{end}}
 	},
 {{end}}
