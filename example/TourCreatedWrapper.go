@@ -1,7 +1,7 @@
 
 // Generated automatically: do not edit manually
 
-package generator
+package example
 
 import (
   "encoding/json"
@@ -12,17 +12,17 @@ import (
   "code.google.com/p/go-uuid/uuid"
 )
 
-func (s *MyStruct) Wrap(uid string) (*Envelope,error) {
+func (s *TourCreated) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = "person"
+    envelope.AggregateName = "tour"
     envelope.AggregateUid = uid
-    envelope.EventTypeName = "MyStruct"
+    envelope.EventTypeName = "TourCreated"
     blob, err := json.Marshal(s)
     if err != nil {
-        log.Printf("Error marshalling MyStruct payload %+v", err)
+        log.Printf("Error marshalling TourCreated payload %+v", err)
         return nil, err
     }
     envelope.EventData = string(blob)
@@ -30,29 +30,29 @@ func (s *MyStruct) Wrap(uid string) (*Envelope,error) {
     return envelope, nil
 }
 
-func IsMyStruct(envelope *Envelope) bool {
-    return envelope.EventTypeName == "MyStruct"
+func IsTourCreated(envelope *Envelope) bool {
+    return envelope.EventTypeName == "TourCreated"
 }
 
-func GetIfIsMyStruct(envelop *Envelope) (*MyStruct, bool) {
-    if IsMyStruct(envelop) == false {
+func GetIfIsTourCreated(envelop *Envelope) (*TourCreated, bool) {
+    if IsTourCreated(envelop) == false {
         return nil, false
     }
-    event,err := UnWrapMyStruct(envelop)
+    event,err := UnWrapTourCreated(envelop)
     if err != nil {
     	return nil, false
     }
     return event, true
 }
 
-func UnWrapMyStruct(envelop *Envelope) (*MyStruct,error) {
-    if IsMyStruct(envelop) == false {
-        return nil, fmt.Errorf("Not a MyStruct")
+func UnWrapTourCreated(envelop *Envelope) (*TourCreated,error) {
+    if IsTourCreated(envelop) == false {
+        return nil, fmt.Errorf("Not a TourCreated")
     }
-    var event MyStruct
+    var event TourCreated
     err := json.Unmarshal([]byte(envelop.EventData), &event)
     if err != nil {
-        log.Printf("Error unmarshalling MyStruct payload %+v", err)
+        log.Printf("Error unmarshalling TourCreated payload %+v", err)
         return nil, err
     }
 

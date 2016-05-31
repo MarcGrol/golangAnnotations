@@ -1,17 +1,10 @@
 package example
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 // +event -> aggregate: tour
 type TourCreated struct {
 	Year int `json:"year"`
-}
-
-func (e TourCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.Year)
 }
 
 // +event -> aggregate: tour
@@ -20,10 +13,6 @@ type CyclistCreated struct {
 	CyclistId   int    `json:"cyclistId"`
 	CyclistName string `json:"cyclistName"`
 	CyclistTeam string `json:"cyclistTeam"`
-}
-
-func (e CyclistCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.Year)
 }
 
 // +event -> aggregate: tour
@@ -37,10 +26,6 @@ type EtappeCreated struct {
 	EtappeKind           int       `json:"etappeKind"`
 }
 
-func (e EtappeCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.Year)
-}
-
 // +event -> aggregate: tour
 type EtappeResultsCreated struct {
 	Year                     int   `json:"year"`
@@ -51,20 +36,12 @@ type EtappeResultsCreated struct {
 	BestClimberCyclistIds    []int `json:"bestClimberCyclistIds"`
 }
 
-func (e EtappeResultsCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.Year)
-}
-
 // +event -> aggregate: gambler
 type GamblerCreated struct {
 	GamblerUid       string `json:"gamblerUid"`
 	GamblerName      string `json:"gamblerName"`
 	GamblerEmail     string `json:"gamblerEmail"`
 	GamblerImageIUrl string `json:"gamblerImageIUrl"`
-}
-
-func (e GamblerCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.GamblerUid)
 }
 
 // +event -> aggregate: gambler
@@ -74,18 +51,10 @@ type GamblerTeamCreated struct {
 	GamblerCyclists []int  `json:"gamblerCyclists"`
 }
 
-func (e GamblerTeamCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.GamblerUid)
-}
-
 // +event -> aggregate: news
 type NewsItemCreated struct {
 	Year      int       `json:"year"`
 	Timestamp time.Time `json:"timestamp"`
 	Message   string    `json:"message"`
 	Sender    string    `json:"sender"`
-}
-
-func (e NewsItemCreated) GetUid() string {
-	return fmt.Sprintf("%d", e.Year)
 }

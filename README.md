@@ -8,7 +8,7 @@ From this intermediate representation, we can easily generate boring and error-p
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
 
-### input-file: [example.go](./tool/example/example.go)
+### input-file: [example.go](./example/example.go)
 A regular golang struct definition with our own "+event"-annotation. 
 This annotation is used to trigger code-generation
 
@@ -24,29 +24,29 @@ This annotation is used to trigger code-generation
     }
 
 ### command:
-    ${GOPATH}/bin/tool -input-dir ./tool/example/
+    ${GOPATH}/bin/astTools -input-dir ./tool/example/
 
 
-### result: files in dir [./tool/example](./tool/example/)
-[tool/example/envelope.go]  (tool/example/envelope.go)
+### result: files in dir [example](example/)
+[example/envelope.go]  (tool/example/envelope.go)
 
-[tool/example/TourCreatedWrapper.go]  (tool/example/TourCreatedWrapper.go)
+[example/TourCreatedWrapper.go]  (example/TourCreatedWrapper.go)
 
-[tool/example/EtappeCreatedWrapper.go] (tool/example/EtappeCreatedWrapper.go)
+[example/EtappeCreatedWrapper.go] (example/EtappeCreatedWrapper.go)
 
-[tool/example/CyclistCreatedWrapper.go] (tool/example/CyclistCreatedWrapper.go)
+[example/CyclistCreatedWrapper.go] (example/CyclistCreatedWrapper.go)
 
-[tool/example/EtappeResultsCreatedWrapper.go] (tool/example/EtappeResultsCreatedWrapper.go) 
+[example/EtappeResultsCreatedWrapper.go] (example/EtappeResultsCreatedWrapper.go) 
 
-[tool/example/GamblerCreatedWrapper.go]  (tool/example/GamblerCreatedWrapper.go)
+[example/GamblerCreatedWrapper.go]  (example/GamblerCreatedWrapper.go)
 
-[tool/example/GamblerTeamCreatedWrapper.go]  (tool/example/GamblerTeamCreatedWrapper.go)
+[example/GamblerTeamCreatedWrapper.go]  (example/GamblerTeamCreatedWrapper.go)
 
-[tool/example/NewsItemCreatedWrapper.go]  (tool/example/NewsItemCreatedWrapper.go)
+[example/NewsItemCreatedWrapper.go]  (example/NewsItemCreatedWrapper.go)
 
 Each file has the following functions:
 
-    func (s *EtappeCreated) Wrap(aggregateName string, aggegateUid string) (*Envelope,error) {
+    func (s *EtappeCreated) Wrap(uid string) (*Envelope,error) {
         ....
     }
     

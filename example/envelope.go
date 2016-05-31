@@ -1,7 +1,7 @@
 
 // Generated automatically: do not edit manually
 
-package generator
+package example
 
 import (
     "time"

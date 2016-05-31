@@ -124,10 +124,6 @@ import (
     "time"
 )
 
-type Uider interface {
-    GetUid() string  
-}
-
 type Envelope struct {
     Uuid           string 
     SequenceNumber uint64 
@@ -153,13 +149,13 @@ import (
   "code.google.com/p/go-uuid/uuid"
 )
 
-func (s *{{.Name}}) Wrap() (*Envelope,error) {
+func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
     envelope.AggregateName = "{{.GetAggregateName}}"
-    envelope.AggregateUid = s.GetUid()
+    envelope.AggregateUid = uid
     envelope.EventTypeName = "{{.Name}}"
     blob, err := json.Marshal(s)
     if err != nil {
