@@ -12,18 +12,88 @@ import (
 	"github.com/MarcGrol/astTools/model"
 )
 
-func GenerateForStruct(inputDir string, myStruct model.Struct) error {
-	err := generateEnvelope(inputDir, myStruct)
+// TODO create interface to build aggregate from events
+func GenerateForStructs(inputDir string, structs []model.Struct) error {
+	_, err := getPackageName(structs)
+	if err != nil {
+		return err
+	}
+	err = generateEventNamesForAggregates(inputDir, structs)
 	if err != nil {
 		return err
 	}
 
-	err = generateWrapperForStruct(inputDir, myStruct)
+	return nil
+}
+
+type AggregateMap struct {
+	PackageName  string
+	AggregateMap map[string]map[string]string
+}
+
+func generateEventNamesForAggregates(inputDir string, structs []model.Struct) error {
+	aggregates := make(map[string]map[string]string)
+	for _, s := range structs {
+		if s.IsEvent() {
+			log.Printf("struct:%s -> %+v", s.GetAggregateName(), s)
+			events, ok := aggregates[s.GetAggregateName()]
+			if !ok {
+				events = make(map[string]string)
+			}
+			events[s.Name] = s.Name
+			aggregates[s.GetAggregateName()] = events
+		}
+	}
+
+	packageName, err := getPackageName(structs)
+	if err != nil {
+		return err
+	}
+	targetDir, err := determineTargetPath(inputDir, packageName)
+	if err != nil {
+		return err
+	}
+	target := fmt.Sprintf("%s/AggregateMap.go", targetDir)
+
+	data := AggregateMap{
+		PackageName:  packageName,
+		AggregateMap: aggregates,
+	}
+
+	log.Printf("aggregates:%+v", data)
+	err = generateFileFromTemplate(data, "aggregateMap", target)
+	if err != nil {
+		log.Fatalf("Error generating events (%s)", err)
+		return err
+	}
+
+	return nil
+}
+
+func getPackageName(structs []model.Struct) (string, error) {
+	if len(structs) == 0 {
+		return "", fmt.Errorf("Need at least one struct to determine package-name")
+	}
+	packageName := structs[0].PackageName
+	for _, s := range structs {
+		if s.PackageName != packageName {
+			return "", fmt.Errorf("List of structs has multiple package-names")
+		}
+	}
+	return packageName, nil
+}
+
+// TODO build map of events per aggregate
+
+func GenerateForStruct(inputDir string, myStruct model.Struct) error {
+
+	err := generateWrapperForStruct(inputDir, myStruct)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func generateEnvelope(inputDir string, data model.Struct) error {
 	targetDir, err := determineTargetPath(inputDir, data.PackageName)
 	if err != nil {
@@ -111,9 +181,26 @@ func generateFileFromTemplate(data interface{}, templateName string, targetFileN
 }
 
 var templates map[string]string = map[string]string{
-	"envelope": envelopeTemplate,
-	"wrapper":  wrapperTemplate,
+	"envelope":     envelopeTemplate,
+	"wrapper":      wrapperTemplate,
+	"aggregateMap": aggregateTemplate,
 }
+
+var aggregateTemplate string = `
+// Generated automatically: do not edit manually
+
+package {{.PackageName}}
+
+var AggregateEvents map[string][]string = map[string][]string{
+{{range $key, $value := .AggregateMap}}
+	"{{$key}}": []string {
+	{{range $key2, $value2 := $value}}
+		"{{$value2}}",
+	{{end}}
+	},
+{{end}}
+}
+`
 
 var envelopeTemplate string = `
 // Generated automatically: do not edit manually
@@ -151,7 +238,7 @@ import (
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
-    envelope.Uuid = uuid.New()
+    envelope.Uuid = uuid.NewV1().String()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
     envelope.AggregateName = "{{.GetAggregateName}}"

@@ -13,7 +13,7 @@ import (
 
 func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.New()
+	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
 	envelope.AggregateName = "tour"

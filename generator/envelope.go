@@ -2,9 +2,7 @@
 
 package generator
 
-import (
-	"time"
-)
+import "time"
 
 type Envelope struct {
 	Uuid           string
