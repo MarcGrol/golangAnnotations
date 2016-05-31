@@ -146,7 +146,7 @@ import (
   "log"
   "time"
 
-  "code.google.com/p/go-uuid/uuid"
+  "github.com/satori/go.uuid"
 )
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {

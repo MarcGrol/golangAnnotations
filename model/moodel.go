@@ -6,6 +6,24 @@ import (
 	"strings"
 )
 
+type Service struct {
+	DocLines     []string
+	PackageName  string
+	Name         string
+	Methods      []Method
+	CommentLines []string
+}
+
+type Method struct {
+	DocLines     []string
+	PackageName  string
+	Service      *Service
+	Name         string
+	InputArgs    []Struct
+	OutputArgs   []Struct
+	CommentLines []string
+}
+
 type Struct struct {
 	DocLines     []string
 	PackageName  string
@@ -32,6 +50,22 @@ func (s Struct) IsEvent() bool {
 func (s Struct) GetAggregateName() string {
 	aggr, _ := s.getEventAggregateAnnotation()
 	return aggr
+}
+
+func (s Struct) IsRestService() bool {
+	return false
+}
+
+func (s Struct) GetRestServiceParamaters() (path string) {
+	return ""
+}
+
+func (m Method) IsRestMethod() bool {
+	return false
+}
+
+func (s Struct) GetRestMethodParamaters() (path string, method string) {
+	return "", "GET"
 }
 
 func (s Struct) getEventAggregateAnnotation() (string, bool) {
