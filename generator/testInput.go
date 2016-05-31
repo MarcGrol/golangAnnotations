@@ -1,6 +1,6 @@
 package generator
 
-// +event -> aggregate: tour
+// +event -> aggregate: Tour
 type MyStruct struct {
 	StringField string
 	IntField    int

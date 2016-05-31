@@ -5,24 +5,24 @@ package generator
 import "fmt"
 
 const (
-	personAggregateName = "person"
+	PersonAggregateName = "Person"
 )
 
 var AggregateEvents map[string][]string = map[string][]string{
 
-	personAggregateName: []string{
+	PersonAggregateName: []string{
 
 		MyStructEventName,
 	},
 }
 
-type Aggregateperson interface {
+type PersonAggregate interface {
 	ApplyAll(envelopes []Envelope)
 
 	ApplyMyStruct(event MyStruct)
 }
 
-func ApplypersonEvent(envelop Envelope, aggregateRoot Aggregateperson) error {
+func ApplyPersonEvent(envelop Envelope, aggregateRoot PersonAggregate) error {
 	switch envelop.EventTypeName {
 
 	case MyStructEventName:
@@ -34,15 +34,15 @@ func ApplypersonEvent(envelop Envelope, aggregateRoot Aggregateperson) error {
 		break
 
 	default:
-		return fmt.Errorf("ApplypersonEvent: Unexpected event %s", envelop.EventTypeName)
+		return fmt.Errorf("ApplyPersonEvent: Unexpected event %s", envelop.EventTypeName)
 	}
 	return nil
 }
 
-func ApplypersonEvents(envelopes []Envelope, aggregateRoot Aggregateperson) error {
+func ApplyPersonEvents(envelopes []Envelope, aggregateRoot PersonAggregate) error {
 	var err error
 	for _, envelop := range envelopes {
-		err = ApplypersonEvent(envelop, aggregateRoot)
+		err = ApplyPersonEvent(envelop, aggregateRoot)
 		if err != nil {
 			break
 		}
