@@ -26,13 +26,13 @@ func main() {
 		log.Printf("Error finding structs in %s:%s", *inputDir, err)
 		os.Exit(1)
 	}
-	log.Printf("structs found:%+v", structs)
 
 	err = generator.GenerateForStructs(*inputDir, structs)
 	if err != nil {
 		log.Printf("Error generating code:%s", err)
 		os.Exit(1)
 	}
+
 	os.Exit(0)
 }
 

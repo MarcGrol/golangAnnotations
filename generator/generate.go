@@ -30,7 +30,7 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 	aggregates := make(map[string]map[string]string)
 	for _, s := range structs {
 		if s.IsEvent() {
-			log.Printf("struct:%s -> %+v", s.GetAggregateName(), s)
+			//log.Printf("struct:%s -> %+v", s.GetAggregateName(), s)
 			events, ok := aggregates[s.GetAggregateName()]
 			if !ok {
 				events = make(map[string]string)
@@ -52,7 +52,7 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 			AggregateMap: aggregates,
 		}
 
-		log.Printf("aggregates:%+v", data)
+		//log.Printf("aggregates:%+v", data)
 		err = generateFileFromTemplate(data, "aggregates", target)
 		if err != nil {
 			log.Fatalf("Error generating aggregates (%s)", err)
@@ -89,20 +89,20 @@ func getPackageName(structs []model.Struct) (string, error) {
 }
 
 func determineTargetPath(inputDir string, packageName string) (string, error) {
-	log.Printf("inputDir:%s", inputDir)
-	log.Printf("package:%s", packageName)
+	//log.Printf("inputDir:%s", inputDir)
+	//log.Printf("package:%s", packageName)
 
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
 		return "", fmt.Errorf("GOPATH not set")
 	}
-	log.Printf("GOPATH:%s", goPath)
+	//log.Printf("GOPATH:%s", goPath)
 
 	workDir, err := os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("Error getting working dir:%s", err)
 	}
-	log.Printf("work-dir:%s", workDir)
+	//log.Printf("work-dir:%s", workDir)
 
 	if !strings.Contains(workDir, goPath) {
 		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)

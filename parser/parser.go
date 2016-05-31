@@ -18,7 +18,7 @@ func FindStructsInFile(srcFilename string) ([]model.Struct, error) {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return []model.Struct{}, err
 	}
-	ast.Print(fset, f)
+	//ast.Print(fset, f)
 	v := structVisitor{}
 	ast.Walk(&v, f)
 	return v.structs, nil
@@ -32,7 +32,7 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 		fset,
 		dirName,
 		func(fi os.FileInfo) bool {
-			log.Printf("filename:%s: matches %v", fi.Name(), pattern.MatchString(fi.Name()))
+			//log.Printf("filename:%s: matches %v", fi.Name(), pattern.MatchString(fi.Name()))
 			return pattern.MatchString(fi.Name())
 		},
 		parser.ParseComments)
@@ -44,7 +44,7 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 	v := structVisitor{}
 	for _, p := range packages {
 		for _, f := range p.Files {
-			ast.Print(fset, f)
+			//ast.Print(fset, f)
 			ast.Walk(&v, f)
 		}
 	}
