@@ -25,10 +25,15 @@ func main() {
 	structs, err := parser.FindStructsInDir(*inputDir, ".*.go")
 	if err != nil {
 		log.Printf("Error finding structs in %s:%s", *inputDir, err)
+		os.Exit(1)
 	}
 	log.Printf("structs found:%+v", structs)
 
-	generator.GenerateForStructs(*inputDir, structs)
+	err = generator.GenerateForStructs(*inputDir, structs)
+	if err != nil {
+		log.Printf("Error generating code:%s",err)
+		os.Exit(1)
+	}
 }
 
 func printUsage() {
