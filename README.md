@@ -1,6 +1,6 @@
 # Golang ast-tool
 
-Tool to help parsing your own golang source-code from ast (=abstract syntax tree) tools from the standard library into an intermediate representation.
+Tool to help parsing your own golang source-code (using the abstract-syntax-tree tools from the standard library) into an intermediate representation.
 From this intermediate representation, we can easily generate boring and error-phrone boilerplate source-code.
 
 This first implementation focuses on essing the work related to event-sourcing:
