@@ -30,7 +30,7 @@ func (s *MyStruct) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = personAggregateName
+	envelope.AggregateName = personAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = MyStructEventName
 	blob, err := json.Marshal(s)

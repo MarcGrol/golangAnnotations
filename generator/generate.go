@@ -247,7 +247,7 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope.Uuid = uuid.NewV1().String()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = {{.GetAggregateName}}AggregateName
+    envelope.AggregateName = {{.GetAggregateName}}AggregateName // from annotation!
     envelope.AggregateUid = uid
     envelope.EventTypeName = {{.Name}}EventName
     blob, err := json.Marshal(s)
