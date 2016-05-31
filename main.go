@@ -29,9 +29,9 @@ func main() {
 	log.Printf("structs found:%+v", structs)
 
 	generator.GenerateForStructs(*inputDir, structs)
-	for _, s := range structs {
-		generator.GenerateForStruct(*inputDir, s)
-	}
+	// for _, s := range structs {
+	// 	generator.GenerateForStruct(*inputDir, s)
+	// }
 }
 
 func printUsage() {

@@ -12,26 +12,21 @@ import (
 	"github.com/MarcGrol/astTools/model"
 )
 
-// TODO create interface to build aggregate from events
-func GenerateForStructs(inputDir string, structs []model.Struct) error {
-	_, err := getPackageName(structs)
-	if err != nil {
-		return err
-	}
-	err = generateEventNamesForAggregates(inputDir, structs)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type AggregateMap struct {
 	PackageName  string
 	AggregateMap map[string]map[string]string
 }
 
-func generateEventNamesForAggregates(inputDir string, structs []model.Struct) error {
+type Structs struct {
+	PackageName string
+	Structs     []model.Struct
+}
+
+func GenerateForStructs(inputDir string, structs []model.Struct) error {
+	packageName, err := getPackageName(structs)
+	if err != nil {
+		return err
+	}
 	aggregates := make(map[string]map[string]string)
 	for _, s := range structs {
 		if s.IsEvent() {
@@ -45,16 +40,12 @@ func generateEventNamesForAggregates(inputDir string, structs []model.Struct) er
 		}
 	}
 
-	packageName, err := getPackageName(structs)
-	if err != nil {
-		return err
-	}
 	targetDir, err := determineTargetPath(inputDir, packageName)
 	if err != nil {
 		return err
 	}
 	{
-		target := fmt.Sprintf("%s/AggregateMap.go", targetDir)
+		target := fmt.Sprintf("%s/aggregates.go", targetDir)
 
 		data := AggregateMap{
 			PackageName:  packageName,
@@ -62,9 +53,22 @@ func generateEventNamesForAggregates(inputDir string, structs []model.Struct) er
 		}
 
 		log.Printf("aggregates:%+v", data)
-		err = generateFileFromTemplate(data, "aggregateMap", target)
+		err = generateFileFromTemplate(data, "aggregates", target)
 		if err != nil {
-			log.Fatalf("Error generating events (%s)", err)
+			log.Fatalf("Error generating aggregates (%s)", err)
+			return err
+		}
+	}
+	{
+		target := fmt.Sprintf("%s/wrappers.go", targetDir)
+
+		data := Structs{
+			PackageName: packageName,
+			Structs:     structs,
+		}
+		err = generateFileFromTemplate(data, "wrappers", target)
+		if err != nil {
+			log.Fatalf("Error generating wrappers for structs (%s)", err)
 			return err
 		}
 	}
@@ -82,50 +86,6 @@ func getPackageName(structs []model.Struct) (string, error) {
 		}
 	}
 	return packageName, nil
-}
-
-// TODO build map of events per aggregate
-
-func GenerateForStruct(inputDir string, myStruct model.Struct) error {
-
-	err := generateWrapperForStruct(inputDir, myStruct)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func generateEnvelope(inputDir string, data model.Struct) error {
-	targetDir, err := determineTargetPath(inputDir, data.PackageName)
-	if err != nil {
-		return err
-	}
-
-	target := fmt.Sprintf("%s/envelope.go", targetDir)
-
-	err = generateFileFromTemplate(data, "envelope", target)
-	if err != nil {
-		log.Fatalf("Error generating events (%s)", err)
-		return err
-	}
-	return nil
-}
-
-func generateWrapperForStruct(inputDir string, data model.Struct) error {
-	if data.IsEvent() {
-		targetDir, err := determineTargetPath(inputDir, data.PackageName)
-		if err != nil {
-			return err
-		}
-		target := fmt.Sprintf("%s/%sWrapper.go", targetDir, data.Name)
-
-		err = generateFileFromTemplate(data, "wrapper", target)
-		if err != nil {
-			log.Fatalf("Error generating events (%s)", err)
-			return err
-		}
-	}
-	return nil
 }
 
 func determineTargetPath(inputDir string, packageName string) (string, error) {
@@ -182,9 +142,8 @@ func generateFileFromTemplate(data interface{}, templateName string, targetFileN
 }
 
 var templates map[string]string = map[string]string{
-	"envelope":     envelopeTemplate,
-	"wrapper":      wrapperTemplate,
-	"aggregateMap": aggregateTemplate,
+	"aggregates": aggregateTemplate,
+	"wrappers":   wrappersTemplate,
 }
 
 var aggregateTemplate string = `
@@ -217,27 +176,7 @@ type Aggregate{{$key}} interface {
 {{end}} 
 `
 
-var envelopeTemplate string = `
-// Generated automatically: do not edit manually
-
-package {{.PackageName}}
-
-import (
-    "time"
-)
-
-type Envelope struct {
-    Uuid           string 
-    SequenceNumber uint64 
-    Timestamp      time.Time 
-    AggregateName  string 
-    AggregateUid   string  
-    EventTypeName  string 
-    EventData      string
-}
-`
-
-var wrapperTemplate string = `
+var wrappersTemplate string = `
 // Generated automatically: do not edit manually
 
 package {{.PackageName}}
@@ -251,6 +190,18 @@ import (
   "github.com/satori/go.uuid"
 )
 
+type Envelope struct {
+	Uuid           string
+	SequenceNumber uint64
+	Timestamp      time.Time
+	AggregateName  string
+	AggregateUid   string
+	EventTypeName  string
+	EventData      string
+}
+
+{{range .Structs}}
+{{if .IsEvent}}
 const {{.Name}}EventName = "{{.Name}}"
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
@@ -299,4 +250,6 @@ func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
 
     return &event, nil
 }
+{{end}}
+{{end}}
 `

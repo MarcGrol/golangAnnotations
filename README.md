@@ -17,7 +17,7 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
 
 ### command:
     cd example
-    rm *Wrapper.go
+    rm wrappers.go aggregates.go
     go generate
 
 Observe that for each annotated struct wrapping functions have been created in [example]( example/)
@@ -25,11 +25,11 @@ Observe that for each annotated struct wrapping functions have been created in [
 
 ## Raw example:
 
-### input-file: [example.go](./example/example.go)
+### input-file: [./example/example.go](./example/example.go)
 A regular golang struct definition with our own "+event"-annotation. 
 This annotation is used to trigger code-generation
 
-single example:
+Example of an annotated structure:
 
     // +event -> aggregate: tour
     type EtappeCreated struct {
@@ -43,40 +43,9 @@ single example:
     }
 
 ### command:
-    ${GOPATH}/bin/astTools -input-dir ./tool/example/
+    ${GOPATH}/bin/astTools -input-dir ./example/
 
 ### result: files in dir [example]( example/)
-[example/envelope.go]  (tool/example/envelope.go)
+[example/wrappers.go]  (tool/example/wrappers.go)
 
-[example/TourCreatedWrapper.go]  (example/TourCreatedWrapper.go)
-
-[example/EtappeCreatedWrapper.go] (example/EtappeCreatedWrapper.go)
-
-[example/CyclistCreatedWrapper.go] (example/CyclistCreatedWrapper.go)
-
-[example/EtappeResultsCreatedWrapper.go] (example/EtappeResultsCreatedWrapper.go) 
-
-[example/GamblerCreatedWrapper.go]  (example/GamblerCreatedWrapper.go)
-
-[example/GamblerTeamCreatedWrapper.go]  (example/GamblerTeamCreatedWrapper.go)
-
-[example/NewsItemCreatedWrapper.go]  (example/NewsItemCreatedWrapper.go)
-
-Each file has the following functions:
-
-    func (s *EtappeCreated) Wrap(uid string) (*Envelope,error) {
-        ....
-    }
-    
-    func IsEtappeCreated(envelope *Envelope) bool {
-        ...
-    }
-
-    func GetIfIsEtappeCreated(envelop *Envelope) (*EtappeCreated, bool) {
-        ...
-    }
-
-    func UnWrapEtappeCreated(envelop *Envelope) (*EtappeCreated,error) {
-        ...
-    }    
-    
+[example/aggregates.go]  (example/aggregates.go)
