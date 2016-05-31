@@ -20,7 +20,7 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     rm *Wrapper.go
     go generate
 
-Observe that for each annotated struct wrapping functions have been created    
+Observe that for each annotated struct wrapping functions have been created in [example]( example/)
 
 
 ## Raw example:
@@ -30,6 +30,7 @@ A regular golang struct definition with our own "+event"-annotation.
 This annotation is used to trigger code-generation
 
 single example:
+
     // +event -> aggregate: tour
     type EtappeCreated struct {
 	    Year                 int
