@@ -34,6 +34,7 @@ func main() {
 		log.Printf("Error generating code:%s",err)
 		os.Exit(1)
 	}
+	os.Exit(0)
 }
 
 func printUsage() {
