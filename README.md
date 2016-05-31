@@ -17,9 +17,7 @@ This annotation is used to trigger code-generation. See [./example/example.go](.
     cd ${GOPATH/src/github.com/MarcGrol/astTools/
     ${GOPATH}/bin/astTools -input-dir ./example/
 
-Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example]( example/)
-
-[example/aggregates.go]  (example/aggregates.go)
+Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example](example/)
 
 ## Example integrated in tool-chain
 
