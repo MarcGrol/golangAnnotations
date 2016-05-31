@@ -11,6 +11,10 @@ From this intermediate representation, we can easily generate boring and error-p
 
 ## Example integrated in tool-chain
 
+We use the "go:generate" mechanism to trigger our astTools. See [example.go](./example/example.go).
+
+    //go:generate astTools -input-dir .
+
 ### command:
     cd example
     rm *Wrapper.go
