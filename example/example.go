@@ -4,12 +4,12 @@ import "time"
 
 //go:generate astTools -input-dir .
 
-// +event -> aggregate: tour
+// +event -> aggregate: Tour
 type TourCreated struct {
 	Year int `json:"year"`
 }
 
-// +event -> aggregate: tour
+// +event -> aggregate: Tour
 type CyclistCreated struct {
 	Year        int    `json:"year"`
 	CyclistId   int    `json:"cyclistId"`
@@ -17,7 +17,7 @@ type CyclistCreated struct {
 	CyclistTeam string `json:"cyclistTeam"`
 }
 
-// +event -> aggregate: tour
+// +event -> aggregate: Tour
 type EtappeCreated struct {
 	Year                 int       `json:"year"`
 	EtappeId             int       `json:"etappeId"`
@@ -28,7 +28,7 @@ type EtappeCreated struct {
 	EtappeKind           int       `json:"etappeKind"`
 }
 
-// +event -> aggregate: tour
+// +event -> aggregate: Tour
 type EtappeResultsCreated struct {
 	Year                     int   `json:"year"`
 	LastEtappeId             int   `json:"lastEtappeId"`
@@ -38,7 +38,7 @@ type EtappeResultsCreated struct {
 	BestClimberCyclistIds    []int `json:"bestClimberCyclistIds"`
 }
 
-// +event -> aggregate: gambler
+// +event -> aggregate: Gambler
 type GamblerCreated struct {
 	GamblerUid       string `json:"gamblerUid"`
 	GamblerName      string `json:"gamblerName"`
@@ -46,14 +46,14 @@ type GamblerCreated struct {
 	GamblerImageIUrl string `json:"gamblerImageIUrl"`
 }
 
-// +event -> aggregate: gambler
+// +event -> aggregate: Gambler
 type GamblerTeamCreated struct {
 	GamblerUid      string `json:"gamblerUid"`
 	Year            int    `json:"year"`
 	GamblerCyclists []int  `json:"gamblerCyclists"`
 }
 
-// +event -> aggregate: news
+// +event -> aggregate: News
 type NewsItemCreated struct {
 	Year      int       `json:"year"`
 	Timestamp time.Time `json:"timestamp"`

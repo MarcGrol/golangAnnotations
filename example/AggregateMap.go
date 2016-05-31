@@ -2,21 +2,29 @@
 
 package example
 
+const (
+	GamblerAggregateName = "Gambler"
+
+	NewsAggregateName = "News"
+
+	TourAggregateName = "Tour"
+)
+
 var AggregateEvents map[string][]string = map[string][]string{
 
-	"gambler": []string{
+	GamblerAggregateName: []string{
 
 		"GamblerCreated",
 
 		"GamblerTeamCreated",
 	},
 
-	"news": []string{
+	NewsAggregateName: []string{
 
 		"NewsItemCreated",
 	},
 
-	"tour": []string{
+	TourAggregateName: []string{
 
 		"CyclistCreated",
 
@@ -26,4 +34,30 @@ var AggregateEvents map[string][]string = map[string][]string{
 
 		"TourCreated",
 	},
+}
+
+type AggregateGambler interface {
+	ApplyAll(envelopes []*Envelope)
+
+	ApplyGamblerCreated(event *GamblerCreated)
+
+	ApplyGamblerTeamCreated(event *GamblerTeamCreated)
+}
+
+type AggregateNews interface {
+	ApplyAll(envelopes []*Envelope)
+
+	ApplyNewsItemCreated(event *NewsItemCreated)
+}
+
+type AggregateTour interface {
+	ApplyAll(envelopes []*Envelope)
+
+	ApplyCyclistCreated(event *CyclistCreated)
+
+	ApplyEtappeCreated(event *EtappeCreated)
+
+	ApplyEtappeResultsCreated(event *EtappeResultsCreated)
+
+	ApplyTourCreated(event *TourCreated)
 }

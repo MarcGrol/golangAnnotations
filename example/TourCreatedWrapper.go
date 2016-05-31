@@ -11,14 +11,16 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+const TourCreatedEventName = "TourCreated"
+
 func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = "tour"
+	envelope.AggregateName = TourAggregateName
 	envelope.AggregateUid = uid
-	envelope.EventTypeName = "TourCreated"
+	envelope.EventTypeName = TourCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling TourCreated payload %+v", err)

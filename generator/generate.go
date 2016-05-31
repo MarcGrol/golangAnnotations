@@ -53,20 +53,21 @@ func generateEventNamesForAggregates(inputDir string, structs []model.Struct) er
 	if err != nil {
 		return err
 	}
-	target := fmt.Sprintf("%s/AggregateMap.go", targetDir)
+	{
+		target := fmt.Sprintf("%s/AggregateMap.go", targetDir)
 
-	data := AggregateMap{
-		PackageName:  packageName,
-		AggregateMap: aggregates,
+		data := AggregateMap{
+			PackageName:  packageName,
+			AggregateMap: aggregates,
+		}
+
+		log.Printf("aggregates:%+v", data)
+		err = generateFileFromTemplate(data, "aggregateMap", target)
+		if err != nil {
+			log.Fatalf("Error generating events (%s)", err)
+			return err
+		}
 	}
-
-	log.Printf("aggregates:%+v", data)
-	err = generateFileFromTemplate(data, "aggregateMap", target)
-	if err != nil {
-		log.Fatalf("Error generating events (%s)", err)
-		return err
-	}
-
 	return nil
 }
 
@@ -191,15 +192,29 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
+const (
+{{range $key, $value := .AggregateMap}}
+    {{$key}}AggregateName = "{{$key}}"
+{{end}}
+)
 var AggregateEvents map[string][]string = map[string][]string{
 {{range $key, $value := .AggregateMap}}
-	"{{$key}}": []string {
+	{{$key}}AggregateName: []string {
 	{{range $key2, $value2 := $value}}
 		"{{$value2}}",
 	{{end}}
 	},
 {{end}}
 }
+
+{{range $key, $value := .AggregateMap}}
+type Aggregate{{$key}} interface {
+	ApplyAll(envelopes []*Envelope)
+	{{range $key2, $value2 := $value}}
+		Apply{{$value2}}(event *{{$value2}})
+	{{end}}
+}
+{{end}} 
 `
 
 var envelopeTemplate string = `
@@ -236,14 +251,16 @@ import (
   "github.com/satori/go.uuid"
 )
 
+const {{.Name}}EventName = "{{.Name}}"
+
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
     envelope.Uuid = uuid.NewV1().String()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = "{{.GetAggregateName}}"
+    envelope.AggregateName = {{.GetAggregateName}}AggregateName
     envelope.AggregateUid = uid
-    envelope.EventTypeName = "{{.Name}}"
+    envelope.EventTypeName = {{.Name}}EventName
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
