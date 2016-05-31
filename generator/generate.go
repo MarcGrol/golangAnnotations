@@ -5,35 +5,29 @@ import (
 	"html/template"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/MarcGrol/astTools/model"
 )
 
 func GenerateForStruct(myStruct model.Struct) error {
-	err := generateEnvelope(myStruct, "envelope")
+	err := generateEnvelope(myStruct)
 	if err != nil {
 		return err
 	}
-	err = generateWrapperForStruct(myStruct, "wrapper")
+
+	err = generateWrapperForStruct(myStruct)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func generateEnvelope(str model.Struct, templateName string) error {
-	targetDir := str.PackageName
-	dir, _ := path.Split(str.PackageName)
-	if dir == "" {
-		targetDir = "."
-	} else {
-		str.PackageName = path.Dir(str.PackageName)
-	}
+func generateEnvelope(data model.Struct) error {
+	targetDir := data.PackageName
 	target := fmt.Sprintf("%s/envelope.go", targetDir)
 
-	err := generateFileFromTemplate(str, templateName, target)
+	err := generateFileFromTemplate(data, "envelope", target)
 	if err != nil {
 		log.Fatalf("Error generating events (%s)", err)
 		return err
@@ -41,18 +35,12 @@ func generateEnvelope(str model.Struct, templateName string) error {
 	return nil
 }
 
-func generateWrapperForStruct(str model.Struct, templateName string) error {
-	if str.IsEvent() {
-		targetDir := str.PackageName
-		dir, _ := path.Split(str.PackageName)
-		if dir == "" {
-			targetDir = "."
-		} else {
-			str.PackageName = path.Dir(str.PackageName)
-		}
-		target := fmt.Sprintf("%s/%sWrapperAgain.go", targetDir, str.Name)
+func generateWrapperForStruct(data model.Struct) error {
+	if data.IsEvent() {
+		targetDir := data.PackageName
+		target := fmt.Sprintf("%s/%sWrapper.go", targetDir, data.Name)
 
-		err := generateFileFromTemplate(str, templateName, target)
+		err := generateFileFromTemplate(data, "wrapper", target)
 		if err != nil {
 			log.Fatalf("Error generating events (%s)", err)
 			return err
@@ -62,7 +50,7 @@ func generateWrapperForStruct(str model.Struct, templateName string) error {
 }
 
 func generateFileFromTemplate(data interface{}, templateName string, targetFileName string) error {
-	log.Printf("Using template %s to generate target %s\n", templateName, targetFileName)
+	log.Printf("Using template '%s' to generate target %s\n", templateName, targetFileName)
 
 	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)
 	if err != nil {
@@ -128,7 +116,7 @@ import (
   "code.google.com/p/go-uuid/uuid"
 )
 
-func (s *{{.Name}}) Wrap() *Envelope {
+func (s *{{.Name}}) Wrap() (*Envelope,error) {
     var err error
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
@@ -140,11 +128,11 @@ func (s *{{.Name}}) Wrap() *Envelope {
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
-        return nil //, err
+        return nil, err
     }
     envelope.EventData = string(blob)
 
-    return envelope
+    return envelope, nil
 }
 
 func Is{{.Name}}(envelope *Envelope) bool {
@@ -159,7 +147,7 @@ func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     return event, true
 }
 
-func UnWrap{{.Name}}(envelop *Envelope) *{{.Name}} {
+func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelop) == false {
         return nil
     }
@@ -167,9 +155,9 @@ func UnWrap{{.Name}}(envelop *Envelope) *{{.Name}} {
     err := json.Unmarshal([]byte(envelop.EventData), &event)
     if err != nil {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
-        return nil
+        return nil, err
     }
 
-    return &event
+    return &event, nil
 }
 `

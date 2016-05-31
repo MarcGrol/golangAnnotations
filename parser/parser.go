@@ -24,7 +24,7 @@ func FindStructsInFile(srcFilename string) ([]model.Struct, error) {
 	return v.structs, nil
 }
 
-func findStructsInDir(dirName string, filenameRegex string) ([]model.Struct, error) {
+func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, error) {
 	var pattern = regexp.MustCompile(filenameRegex)
 
 	fset := token.NewFileSet()
@@ -32,10 +32,10 @@ func findStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 		fset,
 		dirName,
 		func(fi os.FileInfo) bool {
-			//log.Printf("filename:%s", fi.Name())
+			log.Printf("filename:%s: matches %v", fi.Name(), pattern.MatchString(fi.Name()))
 			return pattern.MatchString(fi.Name())
 		},
-		0)
+		parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return []model.Struct{}, err
@@ -44,6 +44,7 @@ func findStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 	v := structVisitor{}
 	for _, p := range packages {
 		for _, f := range p.Files {
+			ast.Print(fset, f)
 			ast.Walk(&v, f)
 		}
 	}
@@ -51,13 +52,23 @@ func findStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 }
 
 type structVisitor struct {
-	docLines []string
-	name     string
-	structs  []model.Struct
+	packageName string
+	docLines    []string
+	name        string
+	structs     []model.Struct
 }
 
 func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
+		{
+			ts, ok := node.(*ast.File)
+			if ok {
+				if ts.Name != nil {
+					v.packageName = ts.Name.Name
+				}
+				return v
+			}
+		}
 		{
 			ts, ok := node.(*ast.GenDecl)
 			if ok {
@@ -79,7 +90,7 @@ func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 		{
 			ts, ok := node.(*ast.StructType)
 			if ok {
-				strct := handleStruct(v.name, v.docLines, ts)
+				strct := handleStruct(v.packageName, v.name, v.docLines, ts)
 				if len(v.docLines) > 0 {
 					strct.DocLines = v.docLines
 				}
@@ -94,10 +105,11 @@ func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-func handleStruct(name string, docLines []string, node *ast.StructType) model.Struct {
+func handleStruct(packageName string, name string, docLines []string, node *ast.StructType) model.Struct {
 	myStruct := model.Struct{
-		Name:   name,
-		Fields: make([]model.Field, 0, 10),
+		PackageName: packageName,
+		Name:        name,
+		Fields:      make([]model.Field, 0, 10),
 	}
 
 	for _, rawField := range node.Fields.List {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -38,11 +39,16 @@ func (s Struct) getEventAggregateAnnotation() (string, bool) {
 	aggregateName := ""
 
 	for _, line := range s.DocLines {
+		log.Printf("line:%s", line)
 		count, err := fmt.Sscanf(strings.TrimSpace(line), "// +event -> aggregate: %s",
 			&aggregateName)
 		if err == nil && count == 1 {
+			log.Printf("Match:%s", line)
 			found = true
 			break
+		} else {
+			log.Printf("No match:%s", line)
+
 		}
 	}
 	return aggregateName, found

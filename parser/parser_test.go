@@ -14,7 +14,7 @@ func TestParseStructsInFile(t *testing.T) {
 	assert.Equal(t, 2, len(structs))
 
 	assertStruct(t,
-		model.Struct{Name: "Person", DocLines: []string{"// Struct comment before type"}},
+		model.Struct{PackageName: "testData", Name: "Person", DocLines: []string{"// Struct comment before type"}},
 		structs[0])
 	assert.Equal(t, 9, len(structs[0].Fields))
 
@@ -61,7 +61,7 @@ func TestParseStructsInFile(t *testing.T) {
 }
 
 func TestParseStructsInDir(t *testing.T) {
-	structs, err := findStructsInDir("testData", ".*xample.*")
+	structs, err := FindStructsInDir("testData", ".*xample.*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 3, len(structs))
 
@@ -82,6 +82,7 @@ func TestParseStructsInDir(t *testing.T) {
 func assertStruct(t *testing.T, expected model.Struct, actual model.Struct) {
 	t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
+	assert.Equal(t, expected.PackageName, actual.PackageName)
 	assert.Equal(t, expected.Name, actual.Name)
 	assertStringSlice(t, expected.CommentLines, actual.CommentLines)
 }
