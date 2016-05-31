@@ -2,6 +2,8 @@ package example
 
 import "time"
 
+//go:generate astTools -input-dir .
+
 // +event -> aggregate: tour
 type TourCreated struct {
 	Year int `json:"year"`

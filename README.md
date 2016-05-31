@@ -3,10 +3,23 @@
 Tool to help parsing your own golang source-code from the ast (=abstract syntax tree) into an intermediate representation.
 From this intermediate representation, we can easily generate boring and error-phrone boilerplate source-code.
 
-## Example:
+## Preparation
     go get github.com/MarcGrol/astTools
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
+
+
+## Example integrated in tool-chain
+
+### command:
+    cd example
+    rm *Wrapper.go
+    go generate
+
+Observe that for each annotated struct wrapping functions have been created    
+
+
+## Raw example:
 
 ### input-file: [example.go](./example/example.go)
 A regular golang struct definition with our own "+event"-annotation. 
@@ -27,7 +40,7 @@ This annotation is used to trigger code-generation
     ${GOPATH}/bin/astTools -input-dir ./tool/example/
 
 
-### result: files in dir [example](example/)
+### result: files in dir [example]( example/)
 [example/envelope.go]  (tool/example/envelope.go)
 
 [example/TourCreatedWrapper.go]  (example/TourCreatedWrapper.go)
