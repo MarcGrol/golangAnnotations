@@ -28,6 +28,8 @@ This annotation is used to trigger code-generation
 
 
 ### result: files in dir ./tool/example/
+[envelope.go]  (tool/example/envelope.go)
+
 [TourCreatedWrapper.go]  (tool/example/TourCreatedWrapper.go)
 
 [EtappeCreatedWrapper.go] (tool/example/EtappeCreatedWrapper.go)
