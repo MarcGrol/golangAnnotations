@@ -151,28 +151,59 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
+import "fmt"
+
 const (
-{{range $key, $value := .AggregateMap}}
-    {{$key}}AggregateName = "{{$key}}"
+{{range $aggr, $events := .AggregateMap}}
+    {{$aggr}}AggregateName = "{{$aggr}}"
 {{end}}
 )
 var AggregateEvents map[string][]string = map[string][]string{
-{{range $key, $value := .AggregateMap}}
-	{{$key}}AggregateName: []string {
-	{{range $key2, $value2 := $value}}
-		{{$value2}}EventName,
+{{range $aggr, $events := .AggregateMap}}
+	{{$aggr}}AggregateName: []string {
+	{{range $aggregName, $eventName := $events}}
+		{{$eventName}}EventName,
 	{{end}}
 	},
 {{end}}
 }
 
-{{range $key, $value := .AggregateMap}}
-type Aggregate{{$key}} interface {
+{{range $aggr, $events := .AggregateMap}}
+type Aggregate{{$aggr}} interface {
 	ApplyAll(envelopes []Envelope)
-	{{range $key2, $value2 := $value}}
-		Apply{{$value2}}(event {{$value2}})
+	{{range $aggregName, $eventName := $events}}
+		Apply{{$eventName}}(event {{$eventName}})
 	{{end}}
 }
+
+func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot Aggregate{{$aggr}}) error {
+	switch envelop.EventTypeName {
+	{{range $aggregName, $eventName := $events}}
+		case {{$eventName}}EventName:
+		event, err := 	UnWrap{{$eventName}}(&envelop)
+		if err != nil {
+			return err
+		}
+		aggregateRoot.Apply{{$eventName}}(*event)
+		break
+	{{end}}
+	default:
+		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
+	}
+	return nil
+}
+
+func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot Aggregate{{$aggr}}) error {
+	var err error
+	for _, envelop := range envelopes {
+		err = Apply{{$aggr}}Event(envelop, aggregateRoot)
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
+
 {{end}} 
 `
 

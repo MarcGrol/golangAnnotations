@@ -30,7 +30,7 @@ func main() {
 
 	err = generator.GenerateForStructs(*inputDir, structs)
 	if err != nil {
-		log.Printf("Error generating code:%s",err)
+		log.Printf("Error generating code:%s", err)
 		os.Exit(1)
 	}
 	os.Exit(0)
