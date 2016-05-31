@@ -20,7 +20,7 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     rm wrappers.go aggregates.go
     go generate
     
-Observe that wrappers.go aggregates.go have been created in [example]( example/)
+Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example]( example/)
 
 
 ## Raw example:
