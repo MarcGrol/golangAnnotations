@@ -28,7 +28,7 @@ This annotation is used to trigger code-generation
 
 
 ### result: files in dir [example](example/)
-[example/envelope.go]  (tool/example/envelope.go)
+[example/envelope.go]  (example/envelope.go)
 
 [example/TourCreatedWrapper.go]  (example/TourCreatedWrapper.go)
 
