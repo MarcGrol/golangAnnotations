@@ -42,7 +42,7 @@ func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = TourAggregateName
+	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = TourCreatedEventName
 	blob, err := json.Marshal(s)
@@ -89,7 +89,7 @@ func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = TourAggregateName
+	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = CyclistCreatedEventName
 	blob, err := json.Marshal(s)
@@ -136,7 +136,7 @@ func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = TourAggregateName
+	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = EtappeCreatedEventName
 	blob, err := json.Marshal(s)
@@ -183,7 +183,7 @@ func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = TourAggregateName
+	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = EtappeResultsCreatedEventName
 	blob, err := json.Marshal(s)
@@ -230,7 +230,7 @@ func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = GamblerAggregateName
+	envelope.AggregateName = GamblerAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = GamblerCreatedEventName
 	blob, err := json.Marshal(s)
@@ -277,7 +277,7 @@ func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = GamblerAggregateName
+	envelope.AggregateName = GamblerAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = GamblerTeamCreatedEventName
 	blob, err := json.Marshal(s)
@@ -324,7 +324,7 @@ func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
 	envelope.Uuid = uuid.NewV1().String()
 	envelope.SequenceNumber = 0 // Set later by event-store
 	envelope.Timestamp = time.Now()
-	envelope.AggregateName = NewsAggregateName
+	envelope.AggregateName = NewsAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = NewsItemCreatedEventName
 	blob, err := json.Marshal(s)

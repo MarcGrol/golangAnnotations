@@ -38,7 +38,7 @@ var AggregateEvents map[string][]string = map[string][]string{
 	},
 }
 
-type AggregateGambler interface {
+type GamblerAggregate interface {
 	ApplyAll(envelopes []Envelope)
 
 	ApplyGamblerCreated(event GamblerCreated)
@@ -46,7 +46,7 @@ type AggregateGambler interface {
 	ApplyGamblerTeamCreated(event GamblerTeamCreated)
 }
 
-func ApplyGamblerEvent(envelop Envelope, aggregateRoot AggregateGambler) error {
+func ApplyGamblerEvent(envelop Envelope, aggregateRoot GamblerAggregate) error {
 	switch envelop.EventTypeName {
 
 	case GamblerCreatedEventName:
@@ -71,7 +71,7 @@ func ApplyGamblerEvent(envelop Envelope, aggregateRoot AggregateGambler) error {
 	return nil
 }
 
-func ApplyGamblerEvents(envelopes []Envelope, aggregateRoot AggregateGambler) error {
+func ApplyGamblerEvents(envelopes []Envelope, aggregateRoot GamblerAggregate) error {
 	var err error
 	for _, envelop := range envelopes {
 		err = ApplyGamblerEvent(envelop, aggregateRoot)
@@ -82,13 +82,13 @@ func ApplyGamblerEvents(envelopes []Envelope, aggregateRoot AggregateGambler) er
 	return err
 }
 
-type AggregateNews interface {
+type NewsAggregate interface {
 	ApplyAll(envelopes []Envelope)
 
 	ApplyNewsItemCreated(event NewsItemCreated)
 }
 
-func ApplyNewsEvent(envelop Envelope, aggregateRoot AggregateNews) error {
+func ApplyNewsEvent(envelop Envelope, aggregateRoot NewsAggregate) error {
 	switch envelop.EventTypeName {
 
 	case NewsItemCreatedEventName:
@@ -105,7 +105,7 @@ func ApplyNewsEvent(envelop Envelope, aggregateRoot AggregateNews) error {
 	return nil
 }
 
-func ApplyNewsEvents(envelopes []Envelope, aggregateRoot AggregateNews) error {
+func ApplyNewsEvents(envelopes []Envelope, aggregateRoot NewsAggregate) error {
 	var err error
 	for _, envelop := range envelopes {
 		err = ApplyNewsEvent(envelop, aggregateRoot)
@@ -116,7 +116,7 @@ func ApplyNewsEvents(envelopes []Envelope, aggregateRoot AggregateNews) error {
 	return err
 }
 
-type AggregateTour interface {
+type TourAggregate interface {
 	ApplyAll(envelopes []Envelope)
 
 	ApplyCyclistCreated(event CyclistCreated)
@@ -128,7 +128,7 @@ type AggregateTour interface {
 	ApplyTourCreated(event TourCreated)
 }
 
-func ApplyTourEvent(envelop Envelope, aggregateRoot AggregateTour) error {
+func ApplyTourEvent(envelop Envelope, aggregateRoot TourAggregate) error {
 	switch envelop.EventTypeName {
 
 	case CyclistCreatedEventName:
@@ -169,7 +169,7 @@ func ApplyTourEvent(envelop Envelope, aggregateRoot AggregateTour) error {
 	return nil
 }
 
-func ApplyTourEvents(envelopes []Envelope, aggregateRoot AggregateTour) error {
+func ApplyTourEvents(envelopes []Envelope, aggregateRoot TourAggregate) error {
 	var err error
 	for _, envelop := range envelopes {
 		err = ApplyTourEvent(envelop, aggregateRoot)

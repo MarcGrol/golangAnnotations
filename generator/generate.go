@@ -169,14 +169,14 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 {{range $aggr, $events := .AggregateMap}}
-type Aggregate{{$aggr}} interface {
+type {{$aggr}}Aggregate interface {
 	ApplyAll(envelopes []Envelope)
 	{{range $aggregName, $eventName := $events}}
 		Apply{{$eventName}}(event {{$eventName}})
 	{{end}}
 }
 
-func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot Aggregate{{$aggr}}) error {
+func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 		case {{$eventName}}EventName:
@@ -193,7 +193,7 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot Aggregate{{$aggr}}) err
 	return nil
 }
 
-func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot Aggregate{{$aggr}}) error {
+func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelop := range envelopes {
 		err = Apply{{$aggr}}Event(envelop, aggregateRoot)
