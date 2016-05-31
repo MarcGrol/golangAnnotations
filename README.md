@@ -8,6 +8,18 @@ From this intermediate representation, we can easily generate boring and error-p
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
 
+## Raw example:
+
+A regular golang struct definition with our own "+event"-annotation. 
+This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
+
+### command:
+    cd ${GOPATH/src/github.com/MarcGrol/astTools/
+    ${GOPATH}/bin/astTools -input-dir ./example/
+
+Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example]( example/)
+
+[example/aggregates.go]  (example/aggregates.go)
 
 ## Example integrated in tool-chain
 
@@ -21,31 +33,3 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     go generate
     
 Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example]( example/)
-
-
-## Raw example:
-
-### input-file: [./example/example.go](./example/example.go)
-A regular golang struct definition with our own "+event"-annotation. 
-This annotation is used to trigger code-generation
-
-Example of an annotated structure:
-
-    // +event -> aggregate: tour
-    type EtappeCreated struct {
-	    Year                 int
-	    EtappeId             int
-	    EtappeDate           time.Time
-	    EtappeStartLocation  strin
-	    EtappeFinishLocation string
-	    EtappeLength         int
-	    EtappeKind           int
-    }
-
-### command:
-    ${GOPATH}/bin/astTools -input-dir ./example/
-
-### result: files in dir [example]( example/)
-[example/wrappers.go]  (example/wrappers.go)
-
-[example/aggregates.go]  (example/aggregates.go)
