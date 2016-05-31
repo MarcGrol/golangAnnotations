@@ -46,6 +46,6 @@ Example of an annotated structure:
     ${GOPATH}/bin/astTools -input-dir ./example/
 
 ### result: files in dir [example]( example/)
-[example/wrappers.go]  (tool/example/wrappers.go)
+[example/wrappers.go]  (example/wrappers.go)
 
 [example/aggregates.go]  (example/aggregates.go)
