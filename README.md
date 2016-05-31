@@ -16,7 +16,7 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     //go:generate astTools -input-dir .
 
 ### command:
-    cd example
+    cd ${GOPATH/src/github.com/MarcGrol/astTools/example
     rm wrappers.go aggregates.go
     go generate
 
