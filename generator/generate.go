@@ -5,13 +5,19 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/MarcGrol/astTools/model"
 )
 
 func GenerateForStruct(myStruct model.Struct) error {
-	err := generateEnvelope(myStruct)
+
+	path, err := determineTargetPath(myStruct.PackageName)
+	log.Printf("target:%s %v\n", path, err)
+
+	err = generateEnvelope(myStruct)
 	if err != nil {
 		return err
 	}
@@ -23,11 +29,42 @@ func GenerateForStruct(myStruct model.Struct) error {
 	return nil
 }
 
+func determineTargetPath(packageName string) (string, error) {
+	log.Printf("package:%s", packageName)
+
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		return "", fmt.Errorf("GOPATH not set")
+	}
+	log.Printf("GOPATH:%s", goPath)
+
+	workDir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("Error getting working dir:%s", err)
+	}
+	log.Printf("work-dir:%s", workDir)
+
+	if !strings.Contains(workDir, goPath) {
+		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
+	}
+
+	baseDir := path.Base(workDir)
+	if baseDir == packageName {
+		return ".", nil
+	} else {
+		return packageName, nil
+	}
+}
+
 func generateEnvelope(data model.Struct) error {
-	targetDir := data.PackageName
+	targetDir, err := determineTargetPath(data.PackageName)
+	if err != nil {
+		return err
+	}
+
 	target := fmt.Sprintf("%s/envelope.go", targetDir)
 
-	err := generateFileFromTemplate(data, "envelope", target)
+	err = generateFileFromTemplate(data, "envelope", target)
 	if err != nil {
 		log.Fatalf("Error generating events (%s)", err)
 		return err
@@ -37,10 +74,13 @@ func generateEnvelope(data model.Struct) error {
 
 func generateWrapperForStruct(data model.Struct) error {
 	if data.IsEvent() {
-		targetDir := data.PackageName
+		targetDir, err := determineTargetPath(data.PackageName)
+		if err != nil {
+			return err
+		}
 		target := fmt.Sprintf("%s/%sWrapper.go", targetDir, data.Name)
 
-		err := generateFileFromTemplate(data, "wrapper", target)
+		err = generateFileFromTemplate(data, "wrapper", target)
 		if err != nil {
 			log.Fatalf("Error generating events (%s)", err)
 			return err
@@ -110,6 +150,7 @@ package {{.PackageName}}
 
 import (
   "encoding/json"
+  "fmt"
   "log"
   "time"
 
@@ -117,7 +158,6 @@ import (
 )
 
 func (s *{{.Name}}) Wrap() (*Envelope,error) {
-    var err error
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
     envelope.SequenceNumber = 0 // Set later by event-store
@@ -143,13 +183,16 @@ func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     if Is{{.Name}}(envelop) == false {
         return nil, false
     }
-    event := UnWrap{{.Name}}(envelop)
+    event,err := UnWrap{{.Name}}(envelop)
+    if err != nil {
+    	return nil, false
+    }
     return event, true
 }
 
 func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelop) == false {
-        return nil
+        return nil, fmt.Errorf("Not a {{.Name}}")
     }
     var event {{.Name}}
     err := json.Unmarshal([]byte(envelop.EventData), &event)

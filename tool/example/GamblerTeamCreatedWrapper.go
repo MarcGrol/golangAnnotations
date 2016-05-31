@@ -1,57 +1,59 @@
-
 // Generated automatically: do not edit manually
 
 package example
 
 import (
-  "encoding/json"
-  "log"
-  "time"
+	"encoding/json"
+	"fmt"
+	"log"
+	"time"
 
-  "code.google.com/p/go-uuid/uuid"
+	"code.google.com/p/go-uuid/uuid"
 )
 
-func (s *GamblerTeamCreated) Wrap() (*Envelope,error) {
-    var err error
-    envelope := new(Envelope)
-    envelope.Uuid = uuid.New()
-    envelope.SequenceNumber = 0 // Set later by event-store
-    envelope.Timestamp = time.Now()
-    envelope.AggregateName = "gambler"
-    envelope.AggregateUid = s.GetUid()
-    envelope.EventTypeName = "GamblerTeamCreated"
-    blob, err := json.Marshal(s)
-    if err != nil {
-        log.Printf("Error marshalling GamblerTeamCreated payload %+v", err)
-        return nil, err
-    }
-    envelope.EventData = string(blob)
+func (s *GamblerTeamCreated) Wrap() (*Envelope, error) {
+	envelope := new(Envelope)
+	envelope.Uuid = uuid.New()
+	envelope.SequenceNumber = 0 // Set later by event-store
+	envelope.Timestamp = time.Now()
+	envelope.AggregateName = "gambler"
+	envelope.AggregateUid = s.GetUid()
+	envelope.EventTypeName = "GamblerTeamCreated"
+	blob, err := json.Marshal(s)
+	if err != nil {
+		log.Printf("Error marshalling GamblerTeamCreated payload %+v", err)
+		return nil, err
+	}
+	envelope.EventData = string(blob)
 
-    return envelope, nil
+	return envelope, nil
 }
 
 func IsGamblerTeamCreated(envelope *Envelope) bool {
-    return envelope.EventTypeName == "GamblerTeamCreated"
+	return envelope.EventTypeName == "GamblerTeamCreated"
 }
 
 func GetIfIsGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, bool) {
-    if IsGamblerTeamCreated(envelop) == false {
-        return nil, false
-    }
-    event := UnWrapGamblerTeamCreated(envelop)
-    return event, true
+	if IsGamblerTeamCreated(envelop) == false {
+		return nil, false
+	}
+	event, err := UnWrapGamblerTeamCreated(envelop)
+	if err != nil {
+		return nil, false
+	}
+	return event, true
 }
 
-func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated,error) {
-    if IsGamblerTeamCreated(envelop) == false {
-        return nil
-    }
-    var event GamblerTeamCreated
-    err := json.Unmarshal([]byte(envelop.EventData), &event)
-    if err != nil {
-        log.Printf("Error unmarshalling GamblerTeamCreated payload %+v", err)
-        return nil, err
-    }
+func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, error) {
+	if IsGamblerTeamCreated(envelop) == false {
+		return nil, fmt.Errorf("Not a GamblerTeamCreated")
+	}
+	var event GamblerTeamCreated
+	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	if err != nil {
+		log.Printf("Error unmarshalling GamblerTeamCreated payload %+v", err)
+		return nil, err
+	}
 
-    return &event, nil
+	return &event, nil
 }
