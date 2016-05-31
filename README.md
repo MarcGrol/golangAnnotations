@@ -4,8 +4,11 @@ Tool to help parsing your own golang source-code from the ast (=abstract syntax 
 From this intermediate representation, we can easily generate boring and error-phrone boilerplate source-code.
 
 ## Example:
+    go get github.com/MarcGrol/astTools
+    cd ${GOPATH/src/github.com/MarcGrol/astTools
+    go install
 
-### input:
+### input-file: ./tool/example/example.go
 A regular golang struct definition with our own "+event"-annotation. 
 This annotation is used to trigger code-generation
 
@@ -20,8 +23,20 @@ This annotation is used to trigger code-generation
 	    EtappeKind           int
     }
 
-### result 
-etappeCreatedWrapper.go (approx. 60 lines of code):
+### command:
+    ${GOPATH}/bin/tool -input-dir ./tool/example/
+
+
+### result: files in dir ./tool/example/
+    tool/example/EtappeCreatedWrapper.go
+    tool/example/CyclistCreatedWrapper.go
+    tool/example/GamblerTeamCreatedWrapper.go
+    tool/example/NewsItemCreatedWrapper.go
+    tool/example/EtappeResultsCreatedWrapper.go 
+    tool/example/TourCreatedWrapper.go
+    tool/example/GamblerCreatedWrapper.go
+
+Each file has the following functions:
 
     func (s *EtappeCreated) Wrap(aggregateName string, aggegateUid string) (*Envelope,error) {
         ....
