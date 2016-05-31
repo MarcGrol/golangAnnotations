@@ -28,13 +28,19 @@ This annotation is used to trigger code-generation
 
 
 ### result: files in dir ./tool/example/
-[EtappeCreatedWrapper.go] (tool/example/EtappeCreatedWrapper.go]
-[CyclistCreatedWrapper.go] (tool/example/CyclistCreatedWrapper.go)
-[GamblerTeamCreatedWrapper.go]  (tool/example/GamblerTeamCreatedWrapper.go)
-[NewsItemCreatedWrapper.go]  (tool/example/NewsItemCreatedWrapper.go)
-[EtappeResultsCreatedWrapper.go] (tool/example/EtappeResultsCreatedWrapper.go) 
 [TourCreatedWrapper.go]  (tool/example/TourCreatedWrapper.go)
+
+[EtappeCreatedWrapper.go] (tool/example/EtappeCreatedWrapper.go)
+
+[CyclistCreatedWrapper.go] (tool/example/CyclistCreatedWrapper.go)
+
+[EtappeResultsCreatedWrapper.go] (tool/example/EtappeResultsCreatedWrapper.go) 
+
 [GamblerCreatedWrapper.go]  (tool/example/GamblerCreatedWrapper.go)
+
+[GamblerTeamCreatedWrapper.go]  (tool/example/GamblerTeamCreatedWrapper.go)
+
+[NewsItemCreatedWrapper.go]  (tool/example/NewsItemCreatedWrapper.go)
 
 Each file has the following functions:
 
