@@ -12,24 +12,53 @@ import (
 	"github.com/MarcGrol/astTools/model"
 )
 
-func GenerateForStruct(myStruct model.Struct) error {
-
-	path, err := determineTargetPath(myStruct.PackageName)
-	log.Printf("target:%s %v\n", path, err)
-
-	err = generateEnvelope(myStruct)
+func GenerateForStruct(inputDir string, myStruct model.Struct) error {
+	err := generateEnvelope(inputDir, myStruct)
 	if err != nil {
 		return err
 	}
 
-	err = generateWrapperForStruct(myStruct)
+	err = generateWrapperForStruct(inputDir, myStruct)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+func generateEnvelope(inputDir string, data model.Struct) error {
+	targetDir, err := determineTargetPath(inputDir, data.PackageName)
+	if err != nil {
+		return err
+	}
 
-func determineTargetPath(packageName string) (string, error) {
+	target := fmt.Sprintf("%s/envelope.go", targetDir)
+
+	err = generateFileFromTemplate(data, "envelope", target)
+	if err != nil {
+		log.Fatalf("Error generating events (%s)", err)
+		return err
+	}
+	return nil
+}
+
+func generateWrapperForStruct(inputDir string, data model.Struct) error {
+	if data.IsEvent() {
+		targetDir, err := determineTargetPath(inputDir, data.PackageName)
+		if err != nil {
+			return err
+		}
+		target := fmt.Sprintf("%s/%sWrapper.go", targetDir, data.Name)
+
+		err = generateFileFromTemplate(data, "wrapper", target)
+		if err != nil {
+			log.Fatalf("Error generating events (%s)", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func determineTargetPath(inputDir string, packageName string) (string, error) {
+	log.Printf("inputDir:%s", inputDir)
 	log.Printf("package:%s", packageName)
 
 	goPath := os.Getenv("GOPATH")
@@ -48,45 +77,12 @@ func determineTargetPath(packageName string) (string, error) {
 		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
 	}
 
-	baseDir := path.Base(workDir)
-	if baseDir == packageName {
-		return ".", nil
+	baseDir := path.Base(inputDir)
+	if baseDir == "." || baseDir == packageName {
+		return inputDir, nil
 	} else {
-		return packageName, nil
+		return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 	}
-}
-
-func generateEnvelope(data model.Struct) error {
-	targetDir, err := determineTargetPath(data.PackageName)
-	if err != nil {
-		return err
-	}
-
-	target := fmt.Sprintf("%s/envelope.go", targetDir)
-
-	err = generateFileFromTemplate(data, "envelope", target)
-	if err != nil {
-		log.Fatalf("Error generating events (%s)", err)
-		return err
-	}
-	return nil
-}
-
-func generateWrapperForStruct(data model.Struct) error {
-	if data.IsEvent() {
-		targetDir, err := determineTargetPath(data.PackageName)
-		if err != nil {
-			return err
-		}
-		target := fmt.Sprintf("%s/%sWrapper.go", targetDir, data.Name)
-
-		err = generateFileFromTemplate(data, "wrapper", target)
-		if err != nil {
-			log.Fatalf("Error generating events (%s)", err)
-			return err
-		}
-	}
-	return nil
 }
 
 func generateFileFromTemplate(data interface{}, templateName string, targetFileName string) error {

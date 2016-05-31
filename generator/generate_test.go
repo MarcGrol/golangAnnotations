@@ -21,7 +21,7 @@ func TestGenerateForStruct(t *testing.T) {
 		},
 	}
 	t.Logf("struct to generate:%+v", s)
-	err := GenerateForStruct(s)
+	err := GenerateForStruct(".", s)
 	assert.Nil(t, err)
 
 }
