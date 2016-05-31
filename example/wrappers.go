@@ -21,7 +21,21 @@ type Envelope struct {
 	EventData      string
 }
 
-const TourCreatedEventName = "TourCreated"
+const (
+	TourCreatedEventName = "TourCreated"
+
+	CyclistCreatedEventName = "CyclistCreated"
+
+	EtappeCreatedEventName = "EtappeCreated"
+
+	EtappeResultsCreatedEventName = "EtappeResultsCreated"
+
+	GamblerCreatedEventName = "GamblerCreated"
+
+	GamblerTeamCreatedEventName = "GamblerTeamCreated"
+
+	NewsItemCreatedEventName = "NewsItemCreated"
+)
 
 func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
@@ -70,8 +84,6 @@ func UnWrapTourCreated(envelop *Envelope) (*TourCreated, error) {
 	return &event, nil
 }
 
-const CyclistCreatedEventName = "CyclistCreated"
-
 func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
 	envelope.Uuid = uuid.NewV1().String()
@@ -118,8 +130,6 @@ func UnWrapCyclistCreated(envelop *Envelope) (*CyclistCreated, error) {
 
 	return &event, nil
 }
-
-const EtappeCreatedEventName = "EtappeCreated"
 
 func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
@@ -168,8 +178,6 @@ func UnWrapEtappeCreated(envelop *Envelope) (*EtappeCreated, error) {
 	return &event, nil
 }
 
-const EtappeResultsCreatedEventName = "EtappeResultsCreated"
-
 func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
 	envelope.Uuid = uuid.NewV1().String()
@@ -216,8 +224,6 @@ func UnWrapEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, error
 
 	return &event, nil
 }
-
-const GamblerCreatedEventName = "GamblerCreated"
 
 func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
@@ -266,8 +272,6 @@ func UnWrapGamblerCreated(envelop *Envelope) (*GamblerCreated, error) {
 	return &event, nil
 }
 
-const GamblerTeamCreatedEventName = "GamblerTeamCreated"
-
 func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
 	envelope.Uuid = uuid.NewV1().String()
@@ -314,8 +318,6 @@ func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, error) {
 
 	return &event, nil
 }
-
-const NewsItemCreatedEventName = "NewsItemCreated"
 
 func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)

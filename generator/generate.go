@@ -200,9 +200,16 @@ type Envelope struct {
 	EventData      string
 }
 
+const (
 {{range .Structs}}
 {{if .IsEvent}}
-const {{.Name}}EventName = "{{.Name}}"
+	{{.Name}}EventName = "{{.Name}}"
+{{end}}
+{{end}}
+)
+
+{{range .Structs}}
+{{if .IsEvent}}
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
