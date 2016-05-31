@@ -7,7 +7,7 @@ This first implementation focuses on essing the work related to event-sourcing:
 - Type-strong boiler-plate code  to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
 - Type-strong boiler-plate code to build an aggregate from individual events
 
-In a leter version, I will also add jasx-rs style to annotatie rest-services 
+In a leter version, I would like to add JAX-RS style annotations to describe rest-services.
 
 
 
