@@ -8,7 +8,7 @@ From this intermediate representation, we can easily generate boring and error-p
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
 
-### input-file: ./tool/example/example.go
+### input-file: [example.go](./tool/example/example.go)
 A regular golang struct definition with our own "+event"-annotation. 
 This annotation is used to trigger code-generation
 
