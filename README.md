@@ -27,7 +27,7 @@ This annotation is used to trigger code-generation
     ${GOPATH}/bin/tool -input-dir ./tool/example/
 
 
-### result: files in dir ./tool/example/
+### result: files in dir [./tool/example](./tool/example/)
 [tool/example/envelope.go]  (tool/example/envelope.go)
 
 [tool/example/TourCreatedWrapper.go]  (tool/example/TourCreatedWrapper.go)
