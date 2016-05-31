@@ -37,27 +37,27 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 type AggregateGambler interface {
-	ApplyAll(envelopes []*Envelope)
+	ApplyAll(envelopes []Envelope)
 
-	ApplyGamblerCreated(event *GamblerCreated)
+	ApplyGamblerCreated(event GamblerCreated)
 
-	ApplyGamblerTeamCreated(event *GamblerTeamCreated)
+	ApplyGamblerTeamCreated(event GamblerTeamCreated)
 }
 
 type AggregateNews interface {
-	ApplyAll(envelopes []*Envelope)
+	ApplyAll(envelopes []Envelope)
 
-	ApplyNewsItemCreated(event *NewsItemCreated)
+	ApplyNewsItemCreated(event NewsItemCreated)
 }
 
 type AggregateTour interface {
-	ApplyAll(envelopes []*Envelope)
+	ApplyAll(envelopes []Envelope)
 
-	ApplyCyclistCreated(event *CyclistCreated)
+	ApplyCyclistCreated(event CyclistCreated)
 
-	ApplyEtappeCreated(event *EtappeCreated)
+	ApplyEtappeCreated(event EtappeCreated)
 
-	ApplyEtappeResultsCreated(event *EtappeResultsCreated)
+	ApplyEtappeResultsCreated(event EtappeResultsCreated)
 
-	ApplyTourCreated(event *TourCreated)
+	ApplyTourCreated(event TourCreated)
 }

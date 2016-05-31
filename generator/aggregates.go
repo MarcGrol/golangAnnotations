@@ -15,7 +15,7 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 type Aggregateperson interface {
-	ApplyAll(envelopes []*Envelope)
+	ApplyAll(envelopes []Envelope)
 
-	ApplyMyStruct(event *MyStruct)
+	ApplyMyStruct(event MyStruct)
 }

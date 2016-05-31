@@ -56,7 +56,7 @@ func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsTourCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "TourCreated"
+	return envelope.EventTypeName == TourCreatedEventName
 }
 
 func GetIfIsTourCreated(envelop *Envelope) (*TourCreated, bool) {
@@ -103,7 +103,7 @@ func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsCyclistCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "CyclistCreated"
+	return envelope.EventTypeName == CyclistCreatedEventName
 }
 
 func GetIfIsCyclistCreated(envelop *Envelope) (*CyclistCreated, bool) {
@@ -150,7 +150,7 @@ func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsEtappeCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "EtappeCreated"
+	return envelope.EventTypeName == EtappeCreatedEventName
 }
 
 func GetIfIsEtappeCreated(envelop *Envelope) (*EtappeCreated, bool) {
@@ -197,7 +197,7 @@ func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsEtappeResultsCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "EtappeResultsCreated"
+	return envelope.EventTypeName == EtappeResultsCreatedEventName
 }
 
 func GetIfIsEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, bool) {
@@ -244,7 +244,7 @@ func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsGamblerCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "GamblerCreated"
+	return envelope.EventTypeName == GamblerCreatedEventName
 }
 
 func GetIfIsGamblerCreated(envelop *Envelope) (*GamblerCreated, bool) {
@@ -291,7 +291,7 @@ func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsGamblerTeamCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "GamblerTeamCreated"
+	return envelope.EventTypeName == GamblerTeamCreatedEventName
 }
 
 func GetIfIsGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, bool) {
@@ -338,7 +338,7 @@ func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsNewsItemCreated(envelope *Envelope) bool {
-	return envelope.EventTypeName == "NewsItemCreated"
+	return envelope.EventTypeName == NewsItemCreatedEventName
 }
 
 func GetIfIsNewsItemCreated(envelop *Envelope) (*NewsItemCreated, bool) {

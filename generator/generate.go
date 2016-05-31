@@ -168,9 +168,9 @@ var AggregateEvents map[string][]string = map[string][]string{
 
 {{range $key, $value := .AggregateMap}}
 type Aggregate{{$key}} interface {
-	ApplyAll(envelopes []*Envelope)
+	ApplyAll(envelopes []Envelope)
 	{{range $key2, $value2 := $value}}
-		Apply{{$value2}}(event *{{$value2}})
+		Apply{{$value2}}(event {{$value2}})
 	{{end}}
 }
 {{end}} 
@@ -230,7 +230,7 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
 }
 
 func Is{{.Name}}(envelope *Envelope) bool {
-    return envelope.EventTypeName == "{{.Name}}"
+    return envelope.EventTypeName == {{.Name}}EventName
 }
 
 func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {

@@ -44,7 +44,7 @@ func (s *MyStruct) Wrap(uid string) (*Envelope, error) {
 }
 
 func IsMyStruct(envelope *Envelope) bool {
-	return envelope.EventTypeName == "MyStruct"
+	return envelope.EventTypeName == MyStructEventName
 }
 
 func GetIfIsMyStruct(envelop *Envelope) (*MyStruct, bool) {
