@@ -1,3 +1,4 @@
+
 // Generated automatically: do not edit manually
 
 package generator
@@ -11,11 +12,11 @@ type Uider interface {
 }
 
 type Envelope struct {
-    Uuid           string    `json:"uuid"`
-    SequenceNumber uint64    `json:"sequenceNumber"`
-    Timestamp      time.Time `json:"timestamp"`
-    AggregateName  string    `json:"aggregateName"`
-    AggregateUid   string    `json:"aggregateUid"`
-    EventTypeName  string    `json:"eventTypeName"`
-    EventData      string    `json:"eventData"`
+    Uuid           string 
+    SequenceNumber uint64 
+    Timestamp      time.Time 
+    AggregateName  string 
+    AggregateUid   string  
+    EventTypeName  string 
+    EventData      string
 }

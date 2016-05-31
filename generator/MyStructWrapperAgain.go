@@ -1,8 +1,7 @@
+
 // Generated automatically: do not edit manually
 
 package generator
-
-
 
 import (
   "encoding/json"
@@ -13,7 +12,6 @@ import (
 )
 
 func (s *MyStruct) Wrap() *Envelope {
-    //[// &#43;event -&gt; aggregate: person]
     var err error
     envelope := new(Envelope)
     envelope.Uuid = uuid.New()
@@ -57,6 +55,3 @@ func UnWrapMyStruct(envelop *Envelope) *MyStruct {
 
     return &event
 }
-
-
-
