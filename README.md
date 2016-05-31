@@ -11,6 +11,12 @@ From this intermediate representation, we can easily generate boring and error-p
 ## Raw example:
 
 A regular golang struct definition with our own "+event"-annotation. 
+    
+    // +event -> aggregate: Tour
+    type TourEtappeCreated struct {
+        ...
+    }        
+
 This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
 
 ### command:
