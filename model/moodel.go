@@ -1,10 +1,5 @@
 package model
 
-import (
-	"fmt"
-	"strings"
-)
-
 type Service struct {
 	DocLines     []string
 	PackageName  string
@@ -42,13 +37,13 @@ type Field struct {
 }
 
 func (s Struct) IsEvent() bool {
-	_, hasEventAnnotation := s.getEventAggregateAnnotation()
-	return hasEventAnnotation
+	_, ok := resolveEventAnnotation(s.DocLines)
+	return ok
 }
 
 func (s Struct) GetAggregateName() string {
-	aggr, _ := s.getEventAggregateAnnotation()
-	return aggr
+	val, _ := resolveEventAnnotation(s.DocLines)
+	return val
 }
 
 func (s Struct) IsRestService() bool {
@@ -65,24 +60,4 @@ func (m Method) IsRestMethod() bool {
 
 func (s Struct) GetRestMethodParamaters() (path string, method string) {
 	return "", "GET"
-}
-
-func (s Struct) getEventAggregateAnnotation() (string, bool) {
-	found := false
-	aggregateName := ""
-
-	for _, line := range s.DocLines {
-		//log.Printf("line:%s", line)
-		count, err := fmt.Sscanf(strings.TrimSpace(line), "// +event -> aggregate: %s",
-			&aggregateName)
-		if err == nil && count == 1 {
-			//	log.Printf("Match:%s", line)
-			found = true
-			break
-		} else {
-			//	log.Printf("No match:%s", line)
-		}
-	}
-	return aggregateName, found
-
 }

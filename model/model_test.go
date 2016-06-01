@@ -13,7 +13,7 @@ func TestAnnotationOk(t *testing.T) {
 		Name:        "MyStruct",
 	}
 	assert.True(t, s.IsEvent())
-	assert.Equal(t, "person", s.GetAggregateName())
+	assert.Equal(t, "Person", s.GetAggregateName())
 }
 
 func TestAnnotationInvalid(t *testing.T) {
