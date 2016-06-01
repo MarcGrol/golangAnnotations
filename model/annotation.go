@@ -18,13 +18,13 @@ type ParseFunc func(annotation, string) (map[string]string, bool)
 type annotation struct {
 	name       string
 	annoType   annotationType
-	pattern    string
+	format     string
 	paramNames []string
 	parseFunc  ParseFunc
 }
 
 var annotations []annotation = []annotation{
-	{name: "event", annoType: annotationTypeEvent, pattern: "// +event -> aggregate: %s", paramNames: []string{"aggregate"}, parseFunc: parseEventAnnotation},
+	{name: "event", annoType: annotationTypeEvent, format: "// +event -> aggregate: %s", paramNames: []string{"aggregate"}, parseFunc: parseEventAnnotation},
 }
 
 func resolveEventAnnotation(lines []string) (string, bool) {
@@ -43,7 +43,7 @@ func parseEventAnnotation(ann annotation, annotationDocline string) (map[string]
 	annotationData := make(map[string]string)
 	aggregateName := ""
 
-	count, err := fmt.Sscanf(annotationDocline, ann.pattern, &aggregateName)
+	count, err := fmt.Sscanf(annotationDocline, ann.format, &aggregateName)
 	if err == nil && count == len(ann.paramNames) {
 		matched = true
 		annotationData["aggregate"] = aggregateName

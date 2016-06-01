@@ -1,0 +1,248 @@
+package main
+
+/*
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"log"
+	"reflect"
+)
+
+func main() {
+
+	p := Person{
+		FirstName: "Marc",
+		Age:       45,
+		Color:     Green,
+		Children: []Person{
+			Person{FirstName: "Pien"},
+		},
+	}
+	log.Printf("person: %+v", p)
+
+	result, err := MyFunc(42, true)
+	if err == nil {
+		log.Printf("func: %s", result)
+	}
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "example.go", nil, 0)
+	if err != nil {
+		log.Printf("Error parsing tree:%s", err.Error())
+	}
+	log.Printf("--- DUMP ---\n")
+	ast.Print(fset, f)
+
+		log.Printf("--- WALK ---\n")
+		config := &types.Config{
+			Error: func(e error) {
+				fmt.Println(e)
+			},
+			Importer: importer.Default(),
+		}
+		info := types.Info{
+			Types: make(map[ast.Expr]types.TypeAndValue),
+			Defs:  make(map[*ast.Ident]types.Object),
+			Uses:  make(map[*ast.Ident]types.Object),
+		}
+		log.Printf("--- CHECK ---\n")
+
+		_, e := config.Check("code.go", fset, []*ast.File{f}, &info)
+		if e != nil {
+			fmt.Println(e)
+		}
+	log.Printf("--- WALK ---\n")
+
+	{
+		//ast.Walk(&DissectingVisitor{}, f)
+	}
+
+	{
+		v := StructVisitor{}
+		ast.Walk(&v, f)
+		log.Printf("%+v", v)
+	}
+
+}
+
+type StructVisitor struct {
+	Name string
+	//	CurrentStruct Struct
+	//	Structs       []Struct
+}
+
+type Struct struct {
+	Name   string
+	Fields []Field
+}
+
+type Field struct {
+	Name      string
+	TypeName  string
+	IsSlice   bool
+	IsPointer bool
+}
+
+func (v *StructVisitor) Visit(node ast.Node) ast.Visitor {
+	if node != nil {
+		{
+			ts, ok := node.(*ast.TypeSpec)
+			if ok {
+				v.Name = ts.Name.Name
+				return v
+			}
+		}
+		{
+			ts, ok := node.(*ast.StructType)
+			if ok {
+				fmt.Printf("type %s struct {\n", v.Name)
+				for _, item := range ts.Fields.List {
+					fields, ok := ExtractField(item)
+					if ok {
+						for _, f := range fields {
+							pointer := ""
+							if f.IsPointer {
+								pointer = "*"
+							}
+							slice := ""
+							if f.IsSlice {
+								slice = "[]"
+							}
+							fmt.Printf("\t%s %s%s%s\n",
+								f.Name,
+								slice,
+								pointer,
+								f.TypeName)
+
+						}
+					}
+
+				}
+				fmt.Printf("}\n")
+
+				return v
+			}
+		}
+	}
+	return v
+}
+
+func ExtractField(node ast.Node) ([]Field, bool) {
+
+	// we are looking for a node of type ield
+	ts, ok := node.(*ast.Field)
+	if !ok {
+		return []Field{}, false
+	}
+
+	dataType := ""
+	isPointer := false
+	isSlice := false
+
+	{
+		// array
+		slice, ok := ts.Type.(*ast.ArrayType)
+		if ok {
+			isSlice = true
+			{
+				elt, ok := slice.Elt.(*ast.StarExpr)
+				if ok {
+					isPointer = true
+					sliceDataType, ok := elt.X.(*ast.Ident)
+					if ok {
+						dataType = sliceDataType.Name
+					}
+				}
+			}
+			{
+				elt, ok := slice.Elt.(*ast.Ident)
+				if ok {
+					dataType = elt.Name
+				}
+			}
+		}
+	}
+
+	{
+		// pointer
+		star, ok := ts.Type.(*ast.StarExpr)
+		if ok {
+			isPointer = true
+			pointerDataType, ok := star.X.(*ast.Ident)
+			if ok {
+				dataType = pointerDataType.Name
+			}
+		}
+	}
+	{
+		// no pointer, no array
+		t, ok := ts.Type.(*ast.Ident)
+		if ok {
+			dataType = t.Name
+		}
+	}
+
+	fields := make([]Field, 0, 10)
+	for _, f := range ts.Names {
+		field := Field{
+			Name:      f.Name,
+			TypeName:  dataType,
+			IsSlice:   isSlice,
+			IsPointer: isPointer,
+		}
+		fields = append(fields, field)
+	}
+	return fields, true
+}
+
+type DissectingVisitor struct {
+}
+
+func (d *DissectingVisitor) Visit(node ast.Node) ast.Visitor {
+	if node != nil {
+		t := reflect.TypeOf(node)
+		//fmt.Printf("%s ->\n\t %+v\n", t, node)
+		{
+			ts, ok := node.(*ast.TypeSpec)
+			if ok {
+				fmt.Printf("**************** Type %s ==>> %+v\n", t, ts)
+			}
+		}
+		{
+			ts, ok := node.(*ast.ValueSpec)
+			if ok {
+				fmt.Printf("**************** Value %s ==>> %+v\n", t, ts)
+			}
+		}
+		{
+			ts, ok := node.(*ast.StructType)
+			if ok {
+				log.Printf("--- STRUCT ---\n")
+				fmt.Printf("**************** Struct %s ==>> %+v\n", t, ts)
+			}
+		}
+		{
+			ts, ok := node.(*ast.Field)
+			if ok {
+				fmt.Printf("**************** Field %s ==>> %+v\n", t, ts)
+			}
+		}
+		{
+			ts, ok := node.(*ast.FuncDecl)
+			if ok {
+				fmt.Printf("**************** Function %s ==>> %+v\n", t, ts)
+			}
+		}
+		{
+			ts, ok := node.(*ast.FuncType)
+			if ok {
+				fmt.Printf("**************** Params %s ==>> %+v\n", t, ts.Params.List)
+				fmt.Printf("**************** Results %s ==>> %+v\n", t, ts.Results.List)
+			}
+		}
+	}
+	return d
+}
+*/

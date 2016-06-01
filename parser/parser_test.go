@@ -9,12 +9,12 @@ import (
 
 func TestParseStructsInFile(t *testing.T) {
 
-	structs, err := FindStructsInFile("testData/example.go")
+	structs, err := FindStructsInFile("structs/example.go")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 2, len(structs))
 
 	assertStruct(t,
-		model.Struct{PackageName: "testData", Name: "Person", DocLines: []string{"// Struct comment before type"}},
+		model.Struct{PackageName: "structs", Name: "Person", DocLines: []string{"// Struct comment before type"}},
 		structs[0])
 	assert.Equal(t, 9, len(structs[0].Fields))
 
@@ -61,7 +61,7 @@ func TestParseStructsInFile(t *testing.T) {
 }
 
 func TestParseStructsInDir(t *testing.T) {
-	structs, err := FindStructsInDir("testData", ".*xample.*")
+	structs, err := FindStructsInDir("structs", ".*xample.*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 3, len(structs))
 
@@ -80,7 +80,7 @@ func TestParseStructsInDir(t *testing.T) {
 }
 
 func assertStruct(t *testing.T, expected model.Struct, actual model.Struct) {
-	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	//t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
 	assert.Equal(t, expected.PackageName, actual.PackageName)
 	assert.Equal(t, expected.Name, actual.Name)
@@ -88,7 +88,7 @@ func assertStruct(t *testing.T, expected model.Struct, actual model.Struct) {
 }
 
 func assertField(t *testing.T, expected model.Field, actual model.Field) {
-	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	//t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
 
 	assert.Equal(t, expected.Name, actual.Name)
@@ -101,7 +101,7 @@ func assertField(t *testing.T, expected model.Field, actual model.Field) {
 }
 
 func assertStringSlice(t *testing.T, expected []string, actual []string) {
-	t.Logf("expected: %+v, actual: %+v", expected, actual)
+	//t.Logf("expected: %+v, actual: %+v", expected, actual)
 	actualHas := false
 	if actual != nil && len(actual) > 0 {
 		actualHas = true
