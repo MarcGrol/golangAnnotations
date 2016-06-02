@@ -24,6 +24,16 @@ A regular golang struct definition with our own "+event"-annotation.
         ...
     }        
 
+    // {"Action":"RestService","Data":{"Path":"/person"}}
+    type Service struct {
+       ...
+    }
+    
+    // {"Action":"RestOperation","Data":{"Method":"GET", "Path":"/person/:uid"}}`})
+    func (s Service) getPerson(uid string) (Person,error) {
+        ...
+    }        
+
 This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
 
 ### command:
