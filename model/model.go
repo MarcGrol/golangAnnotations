@@ -47,13 +47,16 @@ func (s Struct) GetAggregateName() string {
 }
 
 func (s Struct) IsRestService() bool {
-	return false
+	_, ok := resolveRestServiceAnnotation(s.DocLines)
+	return ok
 }
 
-func (m Operation) IsRestOperation() bool {
-	return false
+func (o Operation) IsRestOperation() bool {
+	_, ok := resolveRestOperationAnnotation(o.DocLines)
+	return ok
 }
 
-func (s Struct) GetRestOperationParamaters() (path string, method string) {
-	return "", "GET"
+func (o Operation) GetRestOperationParamaters() (path string, method string) {
+	val, _ := resolveRestOperationAnnotation(o.DocLines)
+	return val["Method"], val["Path"]
 }

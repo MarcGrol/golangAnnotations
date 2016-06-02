@@ -4,11 +4,11 @@ type Person struct {
 	Name string
 }
 
-// +Service -> path: /api/
+// docline for Service
 type Service struct {
 }
 
-// +Operation: -> methhod: GET, path: /person
+// docline for getPersons
 func (serv *Service) getPersons() ([]Person, error) {
 	return []Person{
 		{Name: "Marc"},
@@ -16,7 +16,7 @@ func (serv *Service) getPersons() ([]Person, error) {
 	}, nil
 }
 
-// +Operation: -> methhod: GET, path: /person/:uid
+// docline for getPerson
 func (s Service) getPerson(uid string) (Person, *Person, error) {
 	p := Person{
 		Name: "Pien",

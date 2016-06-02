@@ -15,7 +15,7 @@ func TestStructOperationsInDir(t *testing.T) {
 	{
 		o := opers[0]
 		assert.Equal(t, "operations", o.PackageName)
-		assert.Equal(t, []string{"// +Operation: -> methhod: GET, path: /person"}, o.DocLines)
+		assert.Equal(t, []string{"// docline for getPersons"}, o.DocLines)
 		assert.Equal(t, "getPersons", o.Name)
 		assertField(t, model.Field{Name: "serv", TypeName: "Service", IsPointer: true}, *o.RelatedStruct)
 
@@ -28,7 +28,7 @@ func TestStructOperationsInDir(t *testing.T) {
 	{
 		o := opers[1]
 		assert.Equal(t, "operations", o.PackageName)
-		assert.Equal(t, []string{"// +Operation: -> methhod: GET, path: /person/:uid"}, o.DocLines)
+		assert.Equal(t, []string{`// docline for getPerson`}, o.DocLines)
 		assert.Equal(t, "getPerson", o.Name)
 		assertField(t, model.Field{Name: "s", TypeName: "Service"}, *o.RelatedStruct)
 

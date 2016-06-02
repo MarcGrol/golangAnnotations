@@ -8,7 +8,7 @@ import (
 
 func TestAnnotationOk(t *testing.T) {
 	s := Struct{
-		DocLines:    []string{"Dummy", "   // +event -> aggregate: person   "},
+		DocLines:    []string{"Dummy", `    // {"Action":"Event","Data":{"Aggregate":"person"}}`},
 		PackageName: "generator",
 		Name:        "MyStruct",
 	}

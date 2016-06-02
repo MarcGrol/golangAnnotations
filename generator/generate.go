@@ -151,8 +151,6 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
-import "fmt"
-
 const (
 {{range $aggr, $events := .AggregateMap}}
     {{$aggr}}AggregateName = "{{$aggr}}"

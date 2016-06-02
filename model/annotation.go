@@ -1,74 +1,99 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
 )
 
-type annotationType int
-
 const (
-	annotationTypeUnknown annotationType = iota
-	annotationTypeEvent   annotationType = iota + 1
+	annotationTypeEvent         = "Event"
+	annotationTypeRestService   = "RestService"
+	annotationTypeRestOperation = "RestOperation"
 )
-
-type ParseFunc func(annotation, string) (map[string]string, bool)
 
 type annotation struct {
 	name       string
-	annoType   annotationType
-	format     string
 	paramNames []string
-	parseFunc  ParseFunc
 }
 
 var annotations []annotation = []annotation{
-	{name: "event", annoType: annotationTypeEvent, format: "// +event -> aggregate: %s", paramNames: []string{"aggregate"}, parseFunc: parseEventAnnotation},
+	{name: annotationTypeEvent, paramNames: []string{"Aggregate"}},
+	{name: annotationTypeRestService, paramNames: []string{"Path"}},
+	{name: annotationTypeRestOperation, paramNames: []string{"Method", "Path"}},
 }
 
 func resolveEventAnnotation(lines []string) (string, bool) {
 	for _, line := range lines {
-		t, m := resolveAnnotation(strings.TrimSpace(line))
-		if t == annotationTypeEvent {
-			val, ok := m["aggregate"]
-			return toFirstUpper(val), ok
+		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
+		if ok && annotation.Action == annotationTypeEvent {
+			_, ok := annotation.Data["Aggregate"]
+			return toFirstUpper(annotation.Data["Aggregate"]), ok
 		}
 	}
 	return "", false
 }
 
-func parseEventAnnotation(ann annotation, annotationDocline string) (map[string]string, bool) {
-	matched := false
-	annotationData := make(map[string]string)
-	aggregateName := ""
-
-	count, err := fmt.Sscanf(annotationDocline, ann.format, &aggregateName)
-	if err == nil && count == len(ann.paramNames) {
-		matched = true
-		annotationData["aggregate"] = aggregateName
-	}
-	return annotationData, matched
-}
-
-func resolveAnnotation(annotationDocline string) (annotationType, map[string]string) {
-	annotationType := annotationTypeUnknown
-	annotationData := make(map[string]string)
-
-	for _, ann := range annotations {
-		var ok bool
-		annotationData, ok = ann.parseFunc(ann, annotationDocline)
-		if ok {
-			annotationType = ann.annoType
-			log.Printf("Annotation-line '%s' matched %+v", annotationDocline, ann)
-			break
-		} else {
-			log.Printf("Annotation-line '%s' did not match %+v", annotationDocline, ann)
+func resolveRestServiceAnnotation(lines []string) (string, bool) {
+	for _, line := range lines {
+		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
+		if ok && annotation.Action == annotationTypeRestService {
+			_, ok := annotation.Data["Path"]
+			return annotation.Data["Path"], ok
 		}
 	}
-	return annotationType, annotationData
+	return "", false
+}
+
+func resolveRestOperationAnnotation(lines []string) (map[string]string, bool) {
+	for _, line := range lines {
+		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
+		if ok && annotation.Action == annotationTypeRestOperation {
+			_, hasPath := annotation.Data["Path"]
+			_, hasMethod := annotation.Data["Method"]
+			return annotation.Data, hasPath && hasMethod
+		}
+	}
+	return map[string]string{}, false
+}
+
+type Annotation struct {
+	Action string
+	Data   map[string]string
+}
+
+func resolveAnnotation(annotationDocline string) (Annotation, bool) {
+	for _, ann := range annotations {
+		annotation, err := parseAnnotation(annotationDocline)
+		if err != nil {
+			log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
+			continue
+		}
+		if annotation.Action == ann.name {
+			log.Printf("Annotation-line '%s' MATCHED %+v -> %+v", annotationDocline, ann, annotation)
+			return annotation, true
+		} else {
+			log.Printf("Annotation-line '%s' did NOT match %+v", annotationDocline, ann)
+		}
+	}
+	return Annotation{}, false
+}
+
+func parseAnnotation(annotationDocline string) (Annotation, error) {
+	withoutComment := strings.TrimLeft(strings.TrimSpace(annotationDocline), "/")
+
+	var annotation Annotation
+	err := json.Unmarshal([]byte(withoutComment), &annotation)
+	if err != nil {
+		return annotation, err
+	}
+	return annotation, nil
 }
 
 func toFirstUpper(in string) string {
+	if len(in) == 0 {
+		return in
+	}
 	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
 }
