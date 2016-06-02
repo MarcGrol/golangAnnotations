@@ -18,8 +18,8 @@ func FindStructsInFile(srcFilename string) ([]model.Struct, error) {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return []model.Struct{}, err
 	}
-	//ast.Print(fset, f)
-	v := structVisitor{}
+	ast.Print(fset, f)
+	v := astVisitor{}
 	ast.Walk(&v, f)
 	return v.structs, nil
 }
@@ -41,7 +41,7 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 		return []model.Struct{}, err
 	}
 
-	v := structVisitor{}
+	v := astVisitor{}
 	for _, p := range packages {
 		for _, f := range p.Files {
 			//ast.Print(fset, f)
@@ -51,184 +51,14 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 	return v.structs, nil
 }
 
-type structVisitor struct {
-	packageName string
-	docLines    []string
-	name        string
-	structs     []model.Struct
-}
-
-func (v *structVisitor) Visit(node ast.Node) ast.Visitor {
-	if node != nil {
-		//log.Printf("Got node:%+v", node)
-		{
-			ts, ok := node.(*ast.File)
-			if ok {
-				//log.Printf("*** Got file:%+v", ts)
-				if ts.Name != nil {
-					v.packageName = ts.Name.Name
-				}
-				return v
-			}
-		}
-		{
-			ts, ok := node.(*ast.GenDecl)
-			if ok {
-				//log.Printf("*** Got GenDecl:%+v", ts)
-				if ts.Doc != nil && ts.Doc.List != nil && len(ts.Doc.List) > 0 {
-					for _, d := range ts.Doc.List {
-						v.docLines = append(v.docLines, d.Text)
-					}
-				}
-				return v
-			}
-		}
-		{
-			ts, ok := node.(*ast.StructType)
-			if ok {
-				//log.Printf("*** Got StructType:%+v", ts)
-				strct := handleStruct(v.packageName, v.name, v.docLines, ts)
-				if len(v.docLines) > 0 {
-					strct.DocLines = v.docLines
-				}
-				v.structs = append(v.structs, strct)
-				v.name = ""
-				v.docLines = []string{}
-			}
-			return v
-		}
-
-	}
-	return v
-}
-
-func handleStruct(packageName string, name string, docLines []string, node *ast.StructType) model.Struct {
-	myStruct := model.Struct{
-		PackageName: packageName,
-		Name:        name,
-		Fields:      make([]model.Field, 0, 10),
-	}
-
-	for _, rawField := range node.Fields.List {
-		fields, ok := handleFields(rawField)
-		if ok {
-			for _, f := range fields {
-				myStruct.Fields = append(myStruct.Fields, f)
-			}
-		}
-	}
-
-	return myStruct
-}
-
-func handleFields(node ast.Node) ([]model.Field, bool) {
-
-	// we are looking for a node of type ield
-	ts, ok := node.(*ast.Field)
-	if !ok {
-		return []model.Field{}, false
-	}
-
-	docLines := []string{}
-	tag := ""
-	dataType := ""
-	isPointer := false
-	isSlice := false
-	commentLines := []string{}
-
-	if ts.Doc != nil && len(ts.Doc.List) > 0 {
-		for _, d := range ts.Doc.List {
-			docLines = append(docLines, d.Text)
-		}
-	}
-
-	if ts.Comment != nil && len(ts.Comment.List) > 0 {
-		for _, c := range ts.Comment.List {
-			commentLines = append(commentLines, c.Text)
-		}
-	}
-
-	if ts.Tag != nil {
-		tag = ts.Tag.Value
-	}
-
-	{
-		// array
-		slice, ok := ts.Type.(*ast.ArrayType)
-		if ok {
-			isSlice = true
-			{
-				elt, ok := slice.Elt.(*ast.StarExpr)
-				if ok {
-					isPointer = true
-					sliceDataType, ok := elt.X.(*ast.Ident)
-					if ok {
-						dataType = sliceDataType.Name
-					}
-				}
-			}
-			{
-				elt, ok := slice.Elt.(*ast.Ident)
-				if ok {
-					dataType = elt.Name
-				}
-			}
-		}
-	}
-
-	{
-		// pointer
-		star, ok := ts.Type.(*ast.StarExpr)
-		if ok {
-			isPointer = true
-			pointerDataType, ok := star.X.(*ast.Ident)
-			if ok {
-				dataType = pointerDataType.Name
-			}
-		}
-	}
-	{
-		// no pointer, no array
-		t, ok := ts.Type.(*ast.Ident)
-		if ok {
-			dataType = t.Name
-		}
-	}
-
-	fields := make([]model.Field, 0, 10)
-	for _, f := range ts.Names {
-		field := model.Field{
-			DocLines:     docLines,
-			Name:         f.Name,
-			TypeName:     dataType,
-			IsSlice:      isSlice,
-			IsPointer:    isPointer,
-			Tag:          tag,
-			CommentLines: commentLines,
-		}
-		fields = append(fields, field)
-	}
-	return fields, true
-}
-
-type operationVisitor struct {
-	packageName string
-	operations  []model.Operation
-}
-
 func FindOperationsInDir(dirName string, filenameRegex string) ([]model.Operation, error) {
 	fset := token.NewFileSet()
-	packages, err := parser.ParseDir(
-		fset,
-		dirName,
-		nil,
-		parser.ParseComments)
+	packages, err := parseDir(dirName, filenameRegex)
 	if err != nil {
-		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return []model.Operation{}, err
 	}
 
-	v := operationVisitor{}
+	v := astVisitor{}
 	for _, p := range packages {
 		for _, f := range p.Files {
 			ast.Print(fset, f)
@@ -238,120 +68,266 @@ func FindOperationsInDir(dirName string, filenameRegex string) ([]model.Operatio
 	return v.operations, nil
 }
 
-func (v *operationVisitor) Visit(node ast.Node) ast.Visitor {
+func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
+	packages := make(map[string]*ast.Package)
+	var err error
+
+	fset := token.NewFileSet()
+	packages, err = parser.ParseDir(
+		fset,
+		dirName,
+		nil,
+		parser.ParseComments)
+	if err != nil {
+		log.Printf("error parsing dir %s: %s", dirName, err.Error())
+		return packages, err
+	}
+	return packages, nil
+}
+
+type astVisitor struct {
+	packageName string
+	structs     []model.Struct
+	operations  []model.Operation
+}
+
+func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
-		{
-			ts, ok := node.(*ast.File)
-			if ok {
-				if ts.Name != nil {
-					v.packageName = ts.Name.Name
-				}
-				return v
-			}
+
+		// package-name is in isolated node
+		name, found := extractPackageName(node)
+		if found {
+			v.packageName = name
 		}
 
-		{
-			fd, ok := node.(*ast.FuncDecl)
-			if ok {
-				oper := model.Operation{
-					PackageName: v.packageName,
-				}
-
-				log.Printf("*** Got FuncDecl:%+v", fd)
-
-				if fd.Doc != nil && len(fd.Doc.List) > 0 {
-					docLines := []string{}
-					for _, line := range fd.Doc.List {
-						log.Printf("*** Got doc-line:%s", line.Text)
-						docLines = append(docLines, line.Text)
-					}
-					oper.DocLines = docLines
-				}
-
-				if fd.Recv != nil && len(fd.Recv.List) >= 1 {
-					relatedStruct, _ := extractField(fd.Recv.List[0])
-					log.Printf("*** recv:%+v", relatedStruct)
-					oper.RelatedStruct = relatedStruct
-				}
-
-				if fd.Name != nil {
-					oper.Name = fd.Name.Name
-					log.Printf("*** Got operation name:%s", oper.Name)
-				}
-
-				if fd.Type.Params != nil {
-					args := []model.Field{}
-					for _, p := range fd.Type.Params.List {
-						arg, ok := extractField(p)
-						if ok {
-							args = append(args, arg)
-						}
-					}
-					oper.InputArgs = args
-					log.Printf("*** Got inputArgs:%+v", args)
-				}
-
-				if fd.Type.Results != nil {
-					args := []model.Field{}
-					for _, p := range fd.Type.Results.List {
-						arg, ok := extractField(p)
-						if ok {
-							args = append(args, arg)
-						}
-					}
-					oper.OutputArgs = args
-					log.Printf("*** Got outputArgs:%+v", args)
-
-				}
-
-				log.Printf("oper: %+v", oper)
-				v.operations = append(v.operations, oper)
-			}
-			return v
+		// if struct, get its fields
+		str, found := extractGenDecl(node)
+		if found {
+			str.PackageName = v.packageName
+			v.structs = append(v.structs, str)
 		}
 
+		// if operation, get its interface details
+		operation, ok := extractOperation(node)
+		if ok {
+			operation.PackageName = v.packageName
+			v.operations = append(v.operations, operation)
+		}
 	}
 	return v
 }
 
-func extractField(input *ast.Field) (model.Field, bool) {
+func extractGenDecl(node ast.Node) (model.Struct, bool) {
+	found := false
+	var str model.Struct
+
+	gd, ok := node.(*ast.GenDecl)
+	if ok {
+		log.Printf("*** Got ast.GenDecl:%+v", gd)
+
+		// Continue parsing to see if it a struct
+		str, found = extractSpecs(gd.Specs)
+		if ok {
+			// Docline of struct (that could contain annotations) appear far before the details of the struct
+			str.DocLines = extractDocLines(gd.Doc)
+		}
+	}
+
+	return str, found
+}
+
+func extractSpecs(specs []ast.Spec) (model.Struct, bool) {
+	found := false
+	str := model.Struct{}
+
+	if len(specs) >= 1 {
+		ts, ok := specs[0].(*ast.TypeSpec)
+		if ok {
+			log.Printf("*** Got ast.TypeSpec:%+v", ts)
+
+			str.Name = ts.Name.Name
+
+			ss, ok := ts.Type.(*ast.StructType)
+			if ok {
+				log.Printf("*** Got ast.StructType:%+v", ss)
+
+				str.Fields = extractFieldList(ss.Fields)
+				found = true
+			}
+		}
+	}
+
+	return str, found
+}
+
+func extractPackageName(node ast.Node) (string, bool) {
+	name := ""
+
+	fil, found := node.(*ast.File)
+	if found {
+		log.Printf("*** Got ast.File:%+v", fil)
+
+		if fil.Name != nil {
+			name = fil.Name.Name
+		}
+
+	}
+	return name, found
+}
+
+func extractOperation(node ast.Node) (model.Operation, bool) {
+	found := false
+	oper := model.Operation{}
+
+	fd, found := node.(*ast.FuncDecl)
+	if found {
+		log.Printf("*** Got FuncDecl:%+v", fd)
+
+		oper.DocLines = extractDocLines(fd.Doc)
+
+		if fd.Recv != nil {
+			recvd := extractFieldList(fd.Recv)
+			if len(recvd) >= 1 {
+				oper.RelatedStruct = &(recvd[0])
+			}
+			log.Printf("*** Got RelatedStruct:%+v", oper.RelatedStruct)
+		}
+
+		if fd.Name != nil {
+			oper.Name = fd.Name.Name
+			log.Printf("*** Got operation name:%s", oper.Name)
+		}
+
+		if fd.Type.Params != nil {
+			oper.InputArgs = extractFieldList(fd.Type.Params)
+			log.Printf("*** Got inputArgs:%+v", oper.InputArgs)
+		}
+
+		if fd.Type.Results != nil {
+			oper.OutputArgs = extractFieldList(fd.Type.Results)
+			log.Printf("*** Got outputArgs:%+v", oper.OutputArgs)
+		}
+
+		log.Printf("oper: %+v", oper)
+	}
+	return oper, found
+}
+
+func extractDocLines(doc *ast.CommentGroup) []string {
+	docLines := []string{}
+	if doc != nil {
+		for _, line := range doc.List {
+			docLines = append(docLines, line.Text)
+		}
+		log.Printf("*** Got doc-lines:%+v", docLines)
+	}
+	return docLines
+}
+
+func extractComments(comment *ast.CommentGroup) []string {
+	lines := []string{}
+	if comment != nil {
+		for _, c := range comment.List {
+			lines = append(lines, c.Text)
+		}
+		log.Printf("*** Got Comment:%+v", lines)
+	}
+	return lines
+}
+
+func extractTag(tag *ast.BasicLit) (string, bool) {
+	if tag != nil {
+		log.Printf("*** Got Tag:%+v", tag.Value)
+		return tag.Value, true
+	}
+	return "", false
+}
+
+func extractFieldList(fl *ast.FieldList) []model.Field {
+	fields := []model.Field{}
+	if fl != nil {
+		for _, p := range fl.List {
+			flds := extractFields(p)
+			fields = append(fields, flds...)
+		}
+	}
+	return fields
+}
+
+func extractFields(input *ast.Field) []model.Field {
+	fields := []model.Field{}
+	if input != nil {
+		if len(input.Names) == 0 {
+			field := _extractField(input)
+			fields = append(fields, field)
+		} else {
+			// A single field can refer to multiple: example: x,y int -> x int, y int
+			for _, name := range input.Names {
+				field := _extractField(input)
+				field.Name = name.Name
+				fields = append(fields, field)
+			}
+		}
+	}
+	return fields
+}
+
+func _extractField(input *ast.Field) model.Field {
 	field := model.Field{}
-	if len(input.Names) >= 1 {
-		// TODO should be able to handle multiple nammes
-		field.Name = input.Names[0].Name
+
+	field.DocLines = extractDocLines(input.Doc)
+
+	field.CommentLines = extractComments(input.Comment)
+
+	tag, found := extractTag(input.Tag)
+	if found {
+		field.Tag = tag
 	}
 	{
-		param, ok := input.Type.(*ast.ArrayType)
+		arr, ok := input.Type.(*ast.ArrayType)
 		if ok {
-			elt, ok := param.Elt.(*ast.Ident)
-			if ok {
-				field.TypeName = elt.Name
-				field.IsSlice = true
+			log.Printf("*** Got ast.ArrayType:%+v", arr)
+			field.IsSlice = true
+			{
+				ident, ok := arr.Elt.(*ast.Ident)
+				if ok {
+					log.Printf("*** Got ast.Ident:%+v", ident)
+					field.TypeName = ident.Name
+				}
+			}
+			{
+				star, ok := arr.Elt.(*ast.StarExpr)
+				if ok {
+					log.Printf("*** Got ast.StarExpr:%+v", star)
+					ident, ok := star.X.(*ast.Ident)
+					if ok {
+						log.Printf("*** Got ast.Ident:%+v", ident)
+						field.TypeName = ident.Name
+						field.IsPointer = true
+					}
+				}
 			}
 		}
 	}
 	{
 		star, ok := input.Type.(*ast.StarExpr)
 		if ok {
-			x, ok := star.X.(*ast.Ident)
+			log.Printf("*** Got ast.StarExpr:%+v", star)
+			ident, ok := star.X.(*ast.Ident)
 			if ok {
-				field.TypeName = x.Name
+				log.Printf("*** Got ast.Ident:%+v", ident)
+				field.TypeName = ident.Name
 				field.IsPointer = true
 			}
 		}
 	}
 	{
-		param, ok := input.Type.(*ast.Ident)
+		ident, ok := input.Type.(*ast.Ident)
 		if ok {
-			field.TypeName = param.Name
-			field.IsSlice = false
+			log.Printf("*** Got ast.Ident:%+v", ident)
+			field.TypeName = ident.Name
 		}
 	}
 
-	isOk := false
-	if field.TypeName != "" {
-		isOk = true
-	}
-
-	return field, isOk
+	return field
 }

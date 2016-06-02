@@ -4,18 +4,18 @@ type Service struct {
 	DocLines     []string
 	PackageName  string
 	Name         string
-	Methods      []Method
+	Operations   []Operation
 	CommentLines []string
 }
 
-type Method struct {
-	DocLines     []string
-	PackageName  string
-	Service      *Service
-	Name         string
-	InputArgs    []Struct
-	OutputArgs   []Struct
-	CommentLines []string
+type Operation struct {
+	DocLines      []string
+	PackageName   string
+	RelatedStruct *Field
+	Name          string
+	InputArgs     []Field
+	OutputArgs    []Field
+	CommentLines  []string
 }
 
 type Struct struct {
@@ -50,14 +50,10 @@ func (s Struct) IsRestService() bool {
 	return false
 }
 
-func (s Struct) GetRestServiceParamaters() (path string) {
-	return ""
-}
-
-func (m Method) IsRestMethod() bool {
+func (m Operation) IsRestOperation() bool {
 	return false
 }
 
-func (s Struct) GetRestMethodParamaters() (path string, method string) {
+func (s Struct) GetRestOperationParamaters() (path string, method string) {
 	return "", "GET"
 }

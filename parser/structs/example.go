@@ -2,18 +2,6 @@ package structs
 
 import "fmt"
 
-type ColorType int
-
-const (
-	Green ColorType = iota
-	Yellow
-	Red
-)
-
-func MyFunc(value int, yes bool) (string, error) {
-	return fmt.Sprintf("%d", value), nil
-}
-
 // Struct comment before type
 type Person struct {
 	FirstName, LastName string
@@ -26,6 +14,18 @@ type Person struct {
 	Father        *Person
 	Uncles        []*Person
 	Children      []Person
+}
+
+type ColorType int
+
+const (
+	Green ColorType = iota
+	Yellow
+	Red
+)
+
+func MyFunc(value int, yes bool) (string, error) {
+	return fmt.Sprintf("%d", value), nil
 }
 
 func (p Person) Dump() string {
