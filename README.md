@@ -29,7 +29,7 @@ A regular golang struct definition with our own "+event"-annotation.
        ...
     }
     
-    // {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/person/:uid"}}`})
+    // {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/person/:uid"}}
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
