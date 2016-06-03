@@ -43,11 +43,9 @@ func TestIcompleteEventAnnotation(t *testing.T) {
 }
 
 func validateOk(annot Annotation) bool {
-	log.Printf("good")
 	return true
 }
 
 func validateError(annot Annotation) bool {
-	log.Printf("wrong")
 	return false
 }
