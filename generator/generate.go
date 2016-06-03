@@ -29,8 +29,8 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 	}
 	aggregates := make(map[string]map[string]string)
 	for _, s := range structs {
+		log.Printf("struct:%s -> %+v: %v", s.GetAggregateName(), s, s.IsEvent())
 		if s.IsEvent() {
-			//log.Printf("struct:%s -> %+v", s.GetAggregateName(), s)
 			events, ok := aggregates[s.GetAggregateName()]
 			if !ok {
 				events = make(map[string]string)
@@ -52,7 +52,7 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 			AggregateMap: aggregates,
 		}
 
-		//log.Printf("aggregates:%+v", data)
+		log.Printf("aggregates:%+v", data)
 		err = generateFileFromTemplate(data, "aggregates", target)
 		if err != nil {
 			log.Fatalf("Error generating aggregates (%s)", err)
@@ -139,6 +139,13 @@ func generateFileFromTemplate(data interface{}, templateName string, targetFileN
 		return err
 	}
 	return nil
+}
+
+func toFirstUpper(in string) string {
+	if len(in) == 0 {
+		return in
+	}
+	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
 }
 
 var templates map[string]string = map[string]string{

@@ -35,28 +35,3 @@ type Field struct {
 	Tag          string
 	CommentLines []string
 }
-
-func (s Struct) IsEvent() bool {
-	_, ok := resolveEventAnnotation(s.DocLines)
-	return ok
-}
-
-func (s Struct) GetAggregateName() string {
-	val, _ := resolveEventAnnotation(s.DocLines)
-	return val
-}
-
-func (s Struct) IsRestService() bool {
-	_, ok := resolveRestServiceAnnotation(s.DocLines)
-	return ok
-}
-
-func (o Operation) IsRestOperation() bool {
-	_, ok := resolveRestOperationAnnotation(o.DocLines)
-	return ok
-}
-
-func (o Operation) GetRestOperationParamaters() (path string, method string) {
-	val, _ := resolveRestOperationAnnotation(o.DocLines)
-	return val["Method"], val["Path"]
-}
