@@ -15,7 +15,7 @@ In a leter version, I would like to add JAX-RS style annotations to describe res
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
 
-## Raw example:
+## Example annotations:
 
 A regular golang struct definition with our own "+event"-annotation. 
     
