@@ -15,7 +15,7 @@ In a leter version, I would like to add JAX-RS style annotations to describe res
     cd ${GOPATH/src/github.com/MarcGrol/astTools
     go install
 
-## Example annotations:
+## Event-sourcing related annotations:
 
 A regular golang struct definition with our own "+event"-annotation. 
     
@@ -23,6 +23,10 @@ A regular golang struct definition with our own "+event"-annotation.
     type TourEtappeCreated struct {
         ...
     }        
+
+This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
+
+## Http-server related annotations ("jax-rs"-like):
 
     // {"Annotation":"RestService","With":{"Path":"/person"}}
     type Service struct {
@@ -34,7 +38,6 @@ A regular golang struct definition with our own "+event"-annotation.
         ...
     }        
 
-This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
 
 ### command:
     cd ${GOPATH/src/github.com/MarcGrol/astTools/
