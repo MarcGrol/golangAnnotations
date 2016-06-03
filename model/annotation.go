@@ -13,12 +13,12 @@ const (
 	annotationTypeRestOperation = "RestOperation"
 )
 
-type annotation struct {
+type annotationDescriptor struct {
 	name       string
 	paramNames []string
 }
 
-var annotations []annotation = []annotation{
+var annotations []annotationDescriptor = []annotationDescriptor{
 	{name: annotationTypeEvent, paramNames: []string{"Aggregate"}},
 	{name: annotationTypeRestService, paramNames: []string{"Path"}},
 	{name: annotationTypeRestOperation, paramNames: []string{"Method", "Path"}},
@@ -27,9 +27,9 @@ var annotations []annotation = []annotation{
 func resolveEventAnnotation(lines []string) (string, bool) {
 	for _, line := range lines {
 		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
-		if ok && annotation.Action == annotationTypeEvent {
-			_, ok := annotation.Data["Aggregate"]
-			return toFirstUpper(annotation.Data["Aggregate"]), ok
+		if ok && annotation.Annotation == annotationTypeEvent {
+			_, ok := annotation.With["Aggregate"]
+			return toFirstUpper(annotation.With["Aggregate"]), ok
 		}
 	}
 	return "", false
@@ -38,9 +38,9 @@ func resolveEventAnnotation(lines []string) (string, bool) {
 func resolveRestServiceAnnotation(lines []string) (string, bool) {
 	for _, line := range lines {
 		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
-		if ok && annotation.Action == annotationTypeRestService {
-			_, ok := annotation.Data["Path"]
-			return annotation.Data["Path"], ok
+		if ok && annotation.Annotation == annotationTypeRestService {
+			_, ok := annotation.With["Path"]
+			return annotation.With["Path"], ok
 		}
 	}
 	return "", false
@@ -49,41 +49,41 @@ func resolveRestServiceAnnotation(lines []string) (string, bool) {
 func resolveRestOperationAnnotation(lines []string) (map[string]string, bool) {
 	for _, line := range lines {
 		annotation, ok := resolveAnnotation(strings.TrimSpace(line))
-		if ok && annotation.Action == annotationTypeRestOperation {
-			_, hasPath := annotation.Data["Path"]
-			_, hasMethod := annotation.Data["Method"]
-			return annotation.Data, hasPath && hasMethod
+		if ok && annotation.Annotation == annotationTypeRestOperation {
+			_, hasPath := annotation.With["Path"]
+			_, hasMethod := annotation.With["Method"]
+			return annotation.With, hasPath && hasMethod
 		}
 	}
 	return map[string]string{}, false
 }
 
-type Annotation struct {
-	Action string
-	Data   map[string]string
+type AnnotationLine struct {
+	Annotation string
+	With       map[string]string
 }
 
-func resolveAnnotation(annotationDocline string) (Annotation, bool) {
+func resolveAnnotation(annotationDocline string) (AnnotationLine, bool) {
 	for _, ann := range annotations {
 		annotation, err := parseAnnotation(annotationDocline)
 		if err != nil {
 			log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
 			continue
 		}
-		if annotation.Action == ann.name {
+		if annotation.Annotation == ann.name {
 			log.Printf("Annotation-line '%s' MATCHED %+v -> %+v", annotationDocline, ann, annotation)
 			return annotation, true
 		} else {
 			log.Printf("Annotation-line '%s' did NOT match %+v", annotationDocline, ann)
 		}
 	}
-	return Annotation{}, false
+	return AnnotationLine{}, false
 }
 
-func parseAnnotation(annotationDocline string) (Annotation, error) {
+func parseAnnotation(annotationDocline string) (AnnotationLine, error) {
 	withoutComment := strings.TrimLeft(strings.TrimSpace(annotationDocline), "/")
 
-	var annotation Annotation
+	var annotation AnnotationLine
 	err := json.Unmarshal([]byte(withoutComment), &annotation)
 	if err != nil {
 		return annotation, err

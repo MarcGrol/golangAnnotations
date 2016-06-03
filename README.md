@@ -19,17 +19,17 @@ In a leter version, I would like to add JAX-RS style annotations to describe res
 
 A regular golang struct definition with our own "+event"-annotation. 
     
-    // {"Action":"Event","Data":{"Aggregate":"Tour"}}
+    // {"Annotation":"Event","With":{"Aggregate":"Tour"}}
     type TourEtappeCreated struct {
         ...
     }        
 
-    // {"Action":"RestService","Data":{"Path":"/person"}}
+    // {"Annotation":"RestService","With":{"Path":"/person"}}
     type Service struct {
        ...
     }
     
-    // {"Action":"RestOperation","Data":{"Method":"GET", "Path":"/person/:uid"}}`})
+    // {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/person/:uid"}}`})
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
