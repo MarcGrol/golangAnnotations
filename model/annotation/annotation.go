@@ -16,6 +16,10 @@ type annotationDescriptor struct {
 
 var annotationRegistry []annotationDescriptor = []annotationDescriptor{}
 
+func ClearRegisteredAnnotations() {
+	annotationRegistry = []annotationDescriptor{}
+}
+
 func RegisterAnnotation(name string, paramNames []string, validator ValidationFunc) {
 	log.Printf("*** Register annnotation %s", name)
 	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
@@ -38,6 +42,7 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
+		log.Printf("ResolveAnnotation against %+v: %s", descriptor, annotationDocline)
 		annotation, err := parseAnnotation(annotationDocline)
 		if err != nil {
 			log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
@@ -51,10 +56,10 @@ func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 
 		ok := descriptor.validator(annotation)
 		if !ok {
-			log.Printf("*** Annotation -line '%s' of type %s is invalid %+v", annotation, descriptor.name)
+			log.Printf("*** Annotation-line '%s' of type %s is invalid %+v", annotationDocline, descriptor.name, annotation)
 			continue
 		}
-		log.Printf("*** Annotation is ok: %+v", annotation)
+		log.Printf("*** Annotation -line '%s' of type %s is valid: %+v", annotationDocline, descriptor.name, annotation)
 
 		return annotation, true
 	}

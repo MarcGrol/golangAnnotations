@@ -3,23 +3,29 @@ package annotation
 import (
 	"testing"
 
+	"log"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGarbage(t *testing.T) {
+	ClearRegisteredAnnotations()
+	RegisterAnnotation("Event", []string{}, validateOk)
 	_, ok := ResolveAnnotation(`// wvdwadbvb`)
 	assert.False(t, ok)
 }
 
 func TestUnknownAction(t *testing.T) {
-	RegisterAnnotation("Event", []string{}, validateAnnotation)
+	ClearRegisteredAnnotations()
+	RegisterAnnotation("Event", []string{}, validateOk)
 
 	_, ok := ResolveAnnotation(`// {"Annotation":"Haha","With":{"X":"Y"}}`)
 	assert.False(t, ok)
 }
 
 func TestCorrectEventAnnotation(t *testing.T) {
-	RegisterAnnotation("Event", []string{}, validateAnnotation)
+	ClearRegisteredAnnotations()
+	RegisterAnnotation("Event", []string{}, validateOk)
 
 	annotation, ok := ResolveAnnotation(`// {"Annotation":"Event","With":{"Aggregate":"Test"}}`)
 	assert.True(t, ok)
@@ -27,6 +33,20 @@ func TestCorrectEventAnnotation(t *testing.T) {
 	assert.Equal(t, "Test", annotation.With["Aggregate"])
 }
 
-func validateAnnotation(annot Annotation) bool {
+func TestIcompleteEventAnnotation(t *testing.T) {
+	ClearRegisteredAnnotations()
+	RegisterAnnotation("Event", []string{}, validateError)
+
+	_, ok := ResolveAnnotation(`// {"Annotation":"Event","With":{}}`)
+	assert.False(t, ok)
+}
+
+func validateOk(annot Annotation) bool {
+	log.Printf("good")
 	return true
+}
+
+func validateError(annot Annotation) bool {
+	log.Printf("wrong")
+	return false
 }
