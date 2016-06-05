@@ -23,3 +23,11 @@ func TestIncompleteEventAnnotation(t *testing.T) {
 	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"Event"}`})
 	assert.False(t, ok)
 }
+
+func TestEmptyEventAnnotation(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"Event""With":{"Aggregate":""}}`})
+	assert.False(t, ok)
+}

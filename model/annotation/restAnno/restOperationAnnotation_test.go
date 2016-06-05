@@ -21,7 +21,23 @@ func TestIncompleteRestOperationAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
+	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"RestOperation"}`})
+	assert.False(t, ok)
+}
+
+func TestEmptyRestOperationAnnotation1(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
 	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"RestOperation","With":{"Method":"GET"}}`})
+	assert.False(t, ok)
+}
+
+func TestEmptyRestOperationAnnotation2(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"RestOperation","With":{"Path":"/foo"}}`})
 	assert.False(t, ok)
 }
 
@@ -39,5 +55,13 @@ func TestIncompleteRestServiceAnnotation(t *testing.T) {
 	Register()
 
 	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"RestService"`})
+	assert.False(t, ok)
+}
+
+func TestEmptyRestServiceAnnotation(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	_, ok := annotation.ResolveAnnotations([]string{`// {"Annotation":"RestService,"With":{"Path":""}"`})
 	assert.False(t, ok)
 }

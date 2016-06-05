@@ -3,15 +3,13 @@ package annotation
 import (
 	"testing"
 
-	"log"
-
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGarbage(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("Event", []string{}, validateOk)
-	
+
 	_, ok := ResolveAnnotation(`// wvdwadbvb`)
 	assert.False(t, ok)
 }

@@ -14,8 +14,8 @@ func Register() {
 
 func validateEventAnnotation(annot annotation.Annotation) bool {
 	if annot.Annotation == typeEvent {
-		_, hasAggr := annot.With[ParamAggregate]
-		return hasAggr
+		val, hasAggr := annot.With[ParamAggregate]
+		return (hasAggr && val != "")
 	}
 	return false
 }
