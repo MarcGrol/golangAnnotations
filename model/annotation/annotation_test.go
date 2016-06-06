@@ -16,27 +16,27 @@ func TestGarbage(t *testing.T) {
 
 func TestUnknownAction(t *testing.T) {
 	ClearRegisteredAnnotations()
-	RegisterAnnotation("Event", []string{}, validateOk)
+	RegisterAnnotation("X", []string{}, validateOk)
 
-	_, ok := ResolveAnnotation(`// {"Annotation":"Haha","With":{"X":"Y"}}`)
+	_, ok := ResolveAnnotation(`// {"Annotation":"Y","With":{"a":"A"}}`)
 	assert.False(t, ok)
 }
 
 func TestCorrectEventAnnotation(t *testing.T) {
 	ClearRegisteredAnnotations()
-	RegisterAnnotation("Event", []string{}, validateOk)
+	RegisterAnnotation("X", []string{}, validateOk)
 
-	annotation, ok := ResolveAnnotation(`// {"Annotation":"Event","With":{"Aggregate":"Test"}}`)
+	annotation, ok := ResolveAnnotation(`// {"Annotation":"X","With":{"a":"A"}}`)
 	assert.True(t, ok)
-	assert.Equal(t, "Event", annotation.Annotation)
-	assert.Equal(t, "Test", annotation.With["Aggregate"])
+	assert.Equal(t, "X", annotation.Annotation)
+	assert.Equal(t, "A", annotation.With["a"])
 }
 
 func TestIcompleteEventAnnotation(t *testing.T) {
 	ClearRegisteredAnnotations()
-	RegisterAnnotation("Event", []string{}, validateError)
+	RegisterAnnotation("X", []string{}, validateError)
 
-	_, ok := ResolveAnnotation(`// {"Annotation":"Event","With":{}}`)
+	_, ok := ResolveAnnotation(`// {"Annotation":"X","With":{"a":"A"}}`)
 	assert.False(t, ok)
 }
 

@@ -1,3 +1,4 @@
+
 // Generated automatically: do not edit manually
 
 package generator
@@ -5,34 +6,39 @@ package generator
 import "fmt"
 
 const (
-	TestAggregateName = "Test"
-)
 
+    TestAggregateName = "Test"
+
+)
 var AggregateEvents map[string][]string = map[string][]string{
 
-	TestAggregateName: []string{
-
+	TestAggregateName: []string {
+	
 		MyStructEventName,
+	
 	},
+
 }
+
 
 type TestAggregate interface {
 	ApplyAll(envelopes []Envelope)
-
-	ApplyMyStruct(event MyStruct)
+	
+		ApplyMyStruct(event MyStruct)
+	
 }
 
 func ApplyTestEvent(envelop Envelope, aggregateRoot TestAggregate) error {
 	switch envelop.EventTypeName {
-
-	case MyStructEventName:
-		event, err := UnWrapMyStruct(&envelop)
+	
+		case MyStructEventName:
+		event, err := 	UnWrapMyStruct(&envelop)
 		if err != nil {
 			return err
 		}
 		aggregateRoot.ApplyMyStruct(*event)
 		break
-
+	
 	default:
 		return fmt.Errorf("ApplyTestEvent: Unexpected event %s", envelop.EventTypeName)
 	}
@@ -49,3 +55,5 @@ func ApplyTestEvents(envelopes []Envelope, aggregateRoot TestAggregate) error {
 	}
 	return err
 }
+
+ 
