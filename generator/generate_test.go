@@ -11,7 +11,7 @@ func TestGenerateForStructs(t *testing.T) {
 	s := []model.Struct{
 		{
 			DocLines:    []string{`// {"Annotation":"Event","With":{"Aggregate":"Test"}}`},
-			PackageName: "generator",
+			PackageName: "testData",
 			Name:        "MyStruct",
 			Fields: []model.Field{
 				{Name: "StringField", TypeName: "string", IsPointer: false, IsSlice: false},
@@ -21,7 +21,7 @@ func TestGenerateForStructs(t *testing.T) {
 			},
 		},
 	}
-	err := GenerateForStructs(".", s)
+	err := GenerateForStructs("testData", s)
 	assert.Nil(t, err)
 
 }

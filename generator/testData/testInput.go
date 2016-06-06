@@ -1,6 +1,6 @@
-package generator
+package testData
 
-// {"Action":"Event","Data":{"Aggregate":"Tour"}}
+// {"Annotation":"Event","With":{"Aggregate":"Tour"}}
 type MyStruct struct {
 	StringField string
 	IntField    int
