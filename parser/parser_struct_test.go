@@ -68,13 +68,13 @@ func TestParseStructsInDir(t *testing.T) {
 	// Order is undetermined
 	for _, s := range structs {
 		if s.Name == "Person" {
-			assert.Equal(t, 9, len(structs[0].Fields))
+			assert.Equal(t, 9, len(s.Fields))
 		}
 		if s.Name == "MyStruct" {
-			assert.Equal(t, 1, len(structs[1].Fields))
+			assert.Equal(t, 1, len(s.Fields))
 		}
 		if s.Name == "OtherStruct" {
-			assert.Equal(t, 1, len(structs[2].Fields))
+			assert.Equal(t, 1, len(s.Fields))
 		}
 	}
 }
