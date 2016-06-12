@@ -68,6 +68,23 @@ func FindOperationsInDir(dirName string, filenameRegex string) ([]model.Operatio
 	return v.operations, nil
 }
 
+func FindInterfacesInDir(dirName string, filenameRegex string) ([]model.Interface, error) {
+	fset := token.NewFileSet()
+	packages, err := parseDir(dirName, filenameRegex)
+	if err != nil {
+		return []model.Interface{}, err
+	}
+
+	v := astVisitor{}
+	for _, p := range packages {
+		for _, f := range p.Files {
+			ast.Print(fset, f)
+			ast.Walk(&v, f)
+		}
+	}
+	return v.interfaces, nil
+}
+
 func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
 	packages := make(map[string]*ast.Package)
 	var err error
@@ -89,35 +106,52 @@ type astVisitor struct {
 	packageName string
 	structs     []model.Struct
 	operations  []model.Operation
+	interfaces  []model.Interface
 }
 
 func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 
 		// package-name is in isolated node
-		name, found := extractPackageName(node)
+		pName, found := extractPackageName(node)
 		if found {
-			v.packageName = name
+			v.packageName = pName
 		}
 
-		// if struct, get its fields
-		str, found := extractGenDecl(node)
-		if found {
-			str.PackageName = v.packageName
-			v.structs = append(v.structs, str)
+		{
+			// if struct, get its fields
+			str, found := extractGenDeclForStruct(node)
+			if found {
+				str.PackageName = v.packageName
+				v.structs = append(v.structs, str)
+			}
 		}
 
-		// if operation, get its interface details
-		operation, ok := extractOperation(node)
-		if ok {
-			operation.PackageName = v.packageName
-			v.operations = append(v.operations, operation)
+		{
+			// if interfaces, get its methods
+			iface, found := extractGenDecForInterfacel(node)
+			if found {
+				for _, m := range iface.Methods {
+					m.PackageName = v.packageName
+				}
+				iface.PackageName = v.packageName
+				v.interfaces = append(v.interfaces, iface)
+			}
+		}
+
+		{
+			// if operation, get its signature
+			operation, ok := extractOperation(node)
+			if ok {
+				operation.PackageName = v.packageName
+				v.operations = append(v.operations, operation)
+			}
 		}
 	}
 	return v
 }
 
-func extractGenDecl(node ast.Node) (model.Struct, bool) {
+func extractGenDeclForStruct(node ast.Node) (model.Struct, bool) {
 	found := false
 	var str model.Struct
 
@@ -126,7 +160,7 @@ func extractGenDecl(node ast.Node) (model.Struct, bool) {
 		log.Printf("*** Got ast.GenDecl:%+v", gd)
 
 		// Continue parsing to see if it a struct
-		str, found = extractSpecs(gd.Specs)
+		str, found = extractSpecsForStruct(gd.Specs)
 		if ok {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			str.DocLines = extractDocLines(gd.Doc)
@@ -136,7 +170,26 @@ func extractGenDecl(node ast.Node) (model.Struct, bool) {
 	return str, found
 }
 
-func extractSpecs(specs []ast.Spec) (model.Struct, bool) {
+func extractGenDecForInterfacel(node ast.Node) (model.Interface, bool) {
+	found := false
+	var iface model.Interface
+
+	gd, ok := node.(*ast.GenDecl)
+	if ok {
+		log.Printf("*** Got ast.GenDecl:%+v", gd)
+
+		// Continue parsing to see if it an interface
+		iface, found = extractSpecsForInterface(gd.Specs)
+		if ok {
+			// Docline of interface (that could contain annotations) appear far before the details of the struct
+			iface.DocLines = extractDocLines(gd.Doc)
+		}
+	}
+
+	return iface, found
+}
+
+func extractSpecsForStruct(specs []ast.Spec) (model.Struct, bool) {
 	found := false
 	str := model.Struct{}
 
@@ -160,16 +213,42 @@ func extractSpecs(specs []ast.Spec) (model.Struct, bool) {
 	return str, found
 }
 
+func extractSpecsForInterface(specs []ast.Spec) (model.Interface, bool) {
+	found := false
+	interf := model.Interface{}
+
+	if len(specs) >= 1 {
+		ts, ok := specs[0].(*ast.TypeSpec)
+		if ok {
+			log.Printf("*** Got ast.TypeSpec:%+v", ts)
+
+			interf.Name = ts.Name.Name
+
+			it, ok := ts.Type.(*ast.InterfaceType)
+			if ok {
+				log.Printf("************************************")
+				log.Printf("*** Got ast.InterfaceType:%+v", interf)
+				log.Printf("************************************")
+				interf.Methods = extractInterfaceMethods(it.Methods)
+				found = true
+			}
+		}
+	}
+
+	return interf, found
+}
+
 func extractPackageName(node ast.Node) (string, bool) {
 	name := ""
 
 	fil, found := node.(*ast.File)
 	if found {
-		log.Printf("*** Got ast.File:%+v", fil)
 
 		if fil.Name != nil {
 			name = fil.Name.Name
+
 		}
+		log.Printf("*** Got ast.File:%+v ->", fil, name)
 
 	}
 	return name, found
@@ -252,6 +331,35 @@ func extractFieldList(fl *ast.FieldList) []model.Field {
 		}
 	}
 	return fields
+}
+
+func extractInterfaceMethods(fl *ast.FieldList) []model.Operation {
+	methods := []model.Operation{}
+
+	for _, m := range fl.List {
+		if len(m.Names) > 0 {
+			oper := model.Operation{DocLines: extractDocLines(m.Doc)}
+
+			log.Printf("*** Got interface name:%+v", m.Names[0].Name)
+			oper.Name = m.Names[0].Name
+
+			ft, found := m.Type.(*ast.FuncType)
+			if found {
+				if ft.Params != nil {
+					oper.InputArgs = extractFieldList(ft.Params)
+					log.Printf("*** Got inputArgs:%+v", oper.InputArgs)
+				}
+
+				if ft.Results != nil {
+					oper.OutputArgs = extractFieldList(ft.Results)
+					log.Printf("*** Got outputArgs:%+v", oper.OutputArgs)
+				}
+				log.Printf("interface:%+v", oper)
+				methods = append(methods, oper)
+			}
+		}
+	}
+	return methods
 }
 
 func extractFields(input *ast.Field) []model.Field {

@@ -11,7 +11,7 @@ type Service struct {
 type Operation struct {
 	DocLines      []string
 	PackageName   string
-	RelatedStruct *Field
+	RelatedStruct *Field // optional
 	Name          string
 	InputArgs     []Field
 	OutputArgs    []Field
@@ -23,6 +23,14 @@ type Struct struct {
 	PackageName  string
 	Name         string
 	Fields       []Field
+	CommentLines []string
+}
+
+type Interface struct {
+	DocLines     []string
+	PackageName  string
+	Name         string
+	Methods      []Operation
 	CommentLines []string
 }
 
