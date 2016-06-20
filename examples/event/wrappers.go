@@ -1,6 +1,6 @@
 // Generated automatically: do not edit manually
 
-package example
+package event
 
 import (
 	"encoding/json"

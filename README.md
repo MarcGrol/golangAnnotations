@@ -24,7 +24,7 @@ A regular golang struct definition with our own "+event"-annotation.
         ...
     }        
 
-This annotation is used to trigger code-generation. See [./example/example.go](./example/example.go)
+This annotation is used to trigger code-generation. See [./examples/event/example.go](./examples/event/example.go)
 
 ## Http-server related annotations ("jax-rs"-like):
 
@@ -61,13 +61,13 @@ This annotation is used to trigger code-generation. See [./example/example.go](.
 
 ### command:
     cd ${GOPATH/src/github.com/MarcGrol/astTools/
-    ${GOPATH}/bin/astTools -input-dir ./example/
+    ${GOPATH}/bin/astTools -input-dir ./examples/event
 
-Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example](example/)
+Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
 
 ## Example integrated in tool-chain
 
-We use the "go:generate" mechanism to trigger our astTools. See [example.go](./example/example.go).
+We use the "go:generate" mechanism to trigger our astTools. See [example.go](./examples/event/example.go).
 
     //go:generate astTools -input-dir .
 
@@ -76,4 +76,4 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     rm wrappers.go aggregates.go
     go generate
     
-Observe that [wrappers.go](./example/wrappers.go) and [aggregates.go](./example/aggregates.go) have been created in [example]( example/)
+Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [example]( examples/event/)
