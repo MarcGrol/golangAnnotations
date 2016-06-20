@@ -38,6 +38,26 @@ This annotation is used to trigger code-generation. See [./example/example.go](.
         ...
     }        
 
+## Http-client related annotations ("jax-rs"-like):
+
+    // {"Annotation":"RestClient","With":{"Path":"/person"}}
+    type RestClient interface {
+          
+          // {"Annotation":"RestClientMethod","With":{"Method":"GET", "Path":"/person"}}
+          getPersons([]Person,error)
+          
+          // {"Annotation":"RestClientMethod","With":{"Method":"GET", "Path":"/person/:uid"}}
+          getPerson(uid string) (p Person,error)
+          
+          // {"Annotation":"RestClientMethod","With":{"Method":"POST", "Path":"/person"}}
+          createPerson(p Person) (p Person,error)
+          
+          // {"Annotation":"RestClientMethod","With":{"Method":"PUT", "Path":"/person/:uid"}}
+          modifyPerson(p Person) (p Person,error)
+
+          // {"Annotation":"RestClientMethod","With":{"Method":"DELETE", "Path":"/person/:uid"}}
+          removePerson( uid string ) (error)
+    }
 
 ### command:
     cd ${GOPATH/src/github.com/MarcGrol/astTools/
