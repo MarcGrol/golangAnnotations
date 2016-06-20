@@ -11,24 +11,49 @@ import (
 	"github.com/MarcGrol/astTools/model"
 )
 
-func FindStructsInFile(srcFilename string) ([]model.Struct, error) {
+type AstVisitor struct {
+	PackageName string
+	Structs     []model.Struct
+	Operations  []model.Operation
+	Interfaces  []model.Interface
+}
+
+func ParseSourceFile(srcFilename string) (*AstVisitor, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
-		return []model.Struct{}, err
+		return nil, err
 	}
-	ast.Print(fset, f)
-	v := astVisitor{}
+	v := AstVisitor{}
 	ast.Walk(&v, f)
-	return v.structs, nil
+	return &v, nil
 }
 
-func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, error) {
+func ParseSourceDir(dirName string, filenameRegex string) (*AstVisitor, error) {
+	packages, err := parseDir(dirName, filenameRegex)
+	if err != nil {
+		log.Printf("error parsing dir %s: %s", dirName, err.Error())
+		return nil, err
+	}
+
+	v := AstVisitor{}
+	for _, p := range packages {
+		for _, f := range p.Files {
+			ast.Walk(&v, f)
+		}
+	}
+	return &v, nil
+}
+
+func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
 	var pattern = regexp.MustCompile(filenameRegex)
 
+	packages := make(map[string]*ast.Package)
+	var err error
+
 	fset := token.NewFileSet()
-	packages, err := parser.ParseDir(
+	packages, err = parser.ParseDir(
 		fset,
 		dirName,
 		func(fi os.FileInfo) bool {
@@ -38,104 +63,63 @@ func FindStructsInDir(dirName string, filenameRegex string) ([]model.Struct, err
 		parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return []model.Struct{}, err
+		return packages, err
 	}
-
-	v := astVisitor{}
-	for _, p := range packages {
-		for _, f := range p.Files {
-			//ast.Print(fset, f)
-			ast.Walk(&v, f)
-		}
-	}
-	return v.structs, nil
+	return packages, nil
 }
 
-func FindOperationsInDir(dirName string, filenameRegex string) ([]model.Operation, error) {
+func dumpFile(srcFilename string) {
 	fset := token.NewFileSet()
-	packages, err := parseDir(dirName, filenameRegex)
+	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
 	if err != nil {
-		return []model.Operation{}, err
+		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
+		return
 	}
-
-	v := astVisitor{}
-	for _, p := range packages {
-		for _, f := range p.Files {
-			ast.Print(fset, f)
-			ast.Walk(&v, f)
-		}
-	}
-	return v.operations, nil
+	ast.Print(fset, f)
 }
 
-func FindInterfacesInDir(dirName string, filenameRegex string) ([]model.Interface, error) {
+func dumpFilesInDir(dirName string) {
 	fset := token.NewFileSet()
-	packages, err := parseDir(dirName, filenameRegex)
-	if err != nil {
-		return []model.Interface{}, err
-	}
-
-	v := astVisitor{}
-	for _, p := range packages {
-		for _, f := range p.Files {
-			ast.Print(fset, f)
-			ast.Walk(&v, f)
-		}
-	}
-	return v.interfaces, nil
-}
-
-func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
-	packages := make(map[string]*ast.Package)
-	var err error
-
-	fset := token.NewFileSet()
-	packages, err = parser.ParseDir(
+	packages, err := parser.ParseDir(
 		fset,
 		dirName,
 		nil,
 		parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return packages, err
 	}
-	return packages, nil
+	for _, p := range packages {
+		for _, f := range p.Files {
+			ast.Print(fset, f)
+		}
+	}
 }
 
-type astVisitor struct {
-	packageName string
-	structs     []model.Struct
-	operations  []model.Operation
-	interfaces  []model.Interface
-}
-
-func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
+func (v *AstVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 
 		// package-name is in isolated node
 		pName, found := extractPackageName(node)
 		if found {
-			v.packageName = pName
+			v.PackageName = pName
 		}
 
 		{
 			// if struct, get its fields
 			str, found := extractGenDeclForStruct(node)
 			if found {
-				str.PackageName = v.packageName
-				v.structs = append(v.structs, str)
+				str.PackageName = v.PackageName
+				v.Structs = append(v.Structs, str)
 			}
 		}
 
 		{
 			// if interfaces, get its methods
-			iface, found := extractGenDecForInterfacel(node)
+			iface, found := extractGenDecForInterface(node)
 			if found {
-				for _, m := range iface.Methods {
-					m.PackageName = v.packageName
-				}
-				iface.PackageName = v.packageName
-				v.interfaces = append(v.interfaces, iface)
+				iface.PackageName = v.PackageName
+				log.Printf("iface:%+v", iface)
+				v.Interfaces = append(v.Interfaces, iface)
 			}
 		}
 
@@ -143,8 +127,8 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			// if operation, get its signature
 			operation, ok := extractOperation(node)
 			if ok {
-				operation.PackageName = v.packageName
-				v.operations = append(v.operations, operation)
+				operation.PackageName = v.PackageName
+				v.Operations = append(v.Operations, operation)
 			}
 		}
 	}
@@ -170,7 +154,7 @@ func extractGenDeclForStruct(node ast.Node) (model.Struct, bool) {
 	return str, found
 }
 
-func extractGenDecForInterfacel(node ast.Node) (model.Interface, bool) {
+func extractGenDecForInterface(node ast.Node) (model.Interface, bool) {
 	found := false
 	var iface model.Interface
 

@@ -1,16 +1,8 @@
 package model
 
-type Service struct {
-	DocLines     []string
-	PackageName  string
-	Name         string
-	Operations   []Operation
-	CommentLines []string
-}
-
 type Operation struct {
-	DocLines      []string
 	PackageName   string
+	DocLines      []string
 	RelatedStruct *Field // optional
 	Name          string
 	InputArgs     []Field
@@ -19,16 +11,17 @@ type Operation struct {
 }
 
 type Struct struct {
-	DocLines     []string
 	PackageName  string
+	DocLines     []string
 	Name         string
 	Fields       []Field
+	Operations   []Operation
 	CommentLines []string
 }
 
 type Interface struct {
-	DocLines     []string
 	PackageName  string
+	DocLines     []string
 	Name         string
 	Methods      []Operation
 	CommentLines []string

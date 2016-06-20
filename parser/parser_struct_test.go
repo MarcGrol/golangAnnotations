@@ -9,17 +9,17 @@ import (
 
 func TestParseStructsInFile(t *testing.T) {
 
-	structs, err := FindStructsInFile("structs/example.go")
+	harvest, err := ParseSourceFile("structs/example.go")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, 2, len(structs))
+	assert.Equal(t, 2, len(harvest.Structs))
 
 	assertStruct(t,
 		model.Struct{PackageName: "structs", Name: "Person", DocLines: []string{"// Struct comment before type"}},
-		structs[0])
-	assert.Equal(t, 9, len(structs[0].Fields))
+		harvest.Structs[0])
+	assert.Equal(t, 9, len(harvest.Structs[0].Fields))
 
 	{
-		s := structs[0]
+		s := harvest.Structs[0]
 
 		assertField(t,
 			model.Field{Name: "FirstName", TypeName: "string", IsPointer: false, IsSlice: false},
@@ -61,12 +61,12 @@ func TestParseStructsInFile(t *testing.T) {
 }
 
 func TestParseStructsInDir(t *testing.T) {
-	structs, err := FindStructsInDir("structs", ".*xample.*")
+	harvest, err := ParseSourceDir("structs", ".*xample.*")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, 3, len(structs))
+	assert.Equal(t, 3, len(harvest.Structs))
 
 	// Order is undetermined
-	for _, s := range structs {
+	for _, s := range harvest.Structs {
 		if s.Name == "Person" {
 			assert.Equal(t, 9, len(s.Fields))
 		}

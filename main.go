@@ -21,13 +21,13 @@ var (
 func main() {
 	processArgs()
 
-	structs, err := parser.FindStructsInDir(*inputDir, ".*.go")
+	harvest, err := parser.ParseSourceDir(*inputDir, ".*.go")
 	if err != nil {
 		log.Printf("Error finding structs in %s:%s", *inputDir, err)
 		os.Exit(1)
 	}
 
-	err = generator.GenerateForStructs(*inputDir, structs)
+	err = generator.GenerateForStructs(*inputDir, harvest.Structs)
 	if err != nil {
 		log.Printf("Error generating code:%s", err)
 		os.Exit(1)

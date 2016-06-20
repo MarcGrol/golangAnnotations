@@ -8,12 +8,12 @@ import (
 )
 
 func TestStructOperationsInDir(t *testing.T) {
-	opers, err := FindOperationsInDir("./operations", ".*")
+	harvest, err := ParseSourceDir("./operations", ".*")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, 2, len(opers))
+	assert.Equal(t, 2, len(harvest.Operations))
 
 	{
-		o := opers[0]
+		o := harvest.Operations[0]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{"// docline for getPersons"}, o.DocLines)
 		assert.Equal(t, "getPersons", o.Name)
@@ -26,7 +26,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[1])
 	}
 	{
-		o := opers[1]
+		o := harvest.Operations[1]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{`// docline for getPerson`}, o.DocLines)
 		assert.Equal(t, "getPerson", o.Name)

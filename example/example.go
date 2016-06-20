@@ -10,6 +10,7 @@ type TourCreated struct {
 }
 
 // {"Annotation":"Event","With":{"Aggregate":"Tour"}}
+// @Event(aggregate="Name")
 type CyclistCreated struct {
 	Year        int    `json:"year"`
 	CyclistId   int    `json:"cyclistId"`
