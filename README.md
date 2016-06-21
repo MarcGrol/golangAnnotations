@@ -17,16 +17,16 @@ In a leter version, I would like to add JAX-RS style annotations to describe res
 
 ## Event-sourcing related annotations:
 
-A regular golang struct definition with our own "+event"-annotation. 
+A regular golang struct definition with our own "+event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
     
     // {"Annotation":"Event","With":{"Aggregate":"Tour"}}
     type TourEtappeCreated struct {
         ...
     }        
 
-This annotation is used to trigger code-generation. See [./examples/event/example.go](./examples/event/example.go)
+Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
 
-## Http-server related annotations ("jax-rs"-like):
+## Http-server related annotations ("jax-rs"-like). See [./examples/event/example.go](./examples/web/tourService.go)
 
     // {"Annotation":"RestService","With":{"Path":"/person"}}
     type Service struct {
@@ -37,6 +37,10 @@ This annotation is used to trigger code-generation. See [./examples/event/exampl
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
+
+Observe that [./examples/event/example.go](./examples/web/httpTourService.go) has been created in [examples/event](examples/event)
+
+This annotation is used to trigger code-generation. View resulting code: 
 
 ## Http-client related annotations ("jax-rs"-like):
 
@@ -63,7 +67,6 @@ This annotation is used to trigger code-generation. See [./examples/event/exampl
     cd ${GOPATH/src/github.com/MarcGrol/astTools/
     ${GOPATH}/bin/astTools -input-dir ./examples/event
 
-Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
 
 ## Example integrated in tool-chain
 
@@ -72,8 +75,8 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     //go:generate astTools -input-dir .
 
 ### command:
-    cd ${GOPATH/src/github.com/MarcGrol/astTools/example
+    cd ${GOPATH/src/github.com/MarcGrol/astTools
     rm wrappers.go aggregates.go
-    go generate
+    go generate ./...
     
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [example]( examples/event/)
