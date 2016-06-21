@@ -17,7 +17,7 @@ In a leter version, I would like to add JAX-RS style annotations to describe res
 
 ## Event-sourcing related annotations:
 
-A regular golang struct definition with our own "+event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
+A regular golang struct definition with our own "Event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
     
     // {"Annotation":"Event","With":{"Aggregate":"Tour"}}
     type TourEtappeCreated struct {
@@ -26,7 +26,9 @@ A regular golang struct definition with our own "+event"-annotation. See [./exam
 
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
 
-## Http-server related annotations ("jax-rs"-like). See [./examples/event/example.go](./examples/web/tourService.go)
+## Http-server related annotations ("jax-rs"-like). 
+
+A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. See [./examples/event/example.go](./examples/web/tourService.go)
 
     // {"Annotation":"RestService","With":{"Path":"/person"}}
     type Service struct {
