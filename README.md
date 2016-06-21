@@ -12,9 +12,9 @@ This first implementation focuses on essing the work on the following topics:
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
 
 ## Preparation
-    go get github.com/MarcGrol/astTools
-    cd ${GOPATH/src/github.com/MarcGrol/astTools
-    go install
+    $ go get github.com/MarcGrol/astTools
+    $ cd ${GOPATH/src/github.com/MarcGrol/astTools
+    $ go install ./...
 
 ## Http-server related annotations ("jax-rs"-like). 
 
@@ -43,9 +43,10 @@ A regular golang struct definition with our own "Event"-annotation. See [./examp
 
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
 
-### command:
-    cd ${GOPATH/src/github.com/MarcGrol/astTools/
-    ${GOPATH}/bin/astTools -input-dir ./examples/event
+### Command to trigger code-generation:
+
+    $ cd ${GOPATH/src/github.com/MarcGrol/astTools/
+    $ ${GOPATH}/bin/astTools -input-dir ./examples/event
 
 
 ## Example integrated in tool-chain
@@ -55,9 +56,9 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     //go:generate astTools -input-dir .
 
 ### command:
-    cd ${GOPATH/src/github.com/MarcGrol/astTools
-    rm wrappers.go aggregates.go
-    go generate ./...
+    $ cd ${GOPATH/src/github.com/MarcGrol/astTools
+    $ rm wrappers.go aggregates.go
+    $ go generate ./...
     
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event/](examples/event/) 
 
