@@ -3,12 +3,13 @@
 Tool to help parsing your own golang source-code (using the abstract-syntax-tree tools from the standard library) into an intermediate representation.
 From this intermediate representation, we can easily generate boring and error-phrone boilerplate source-code.
 
-This first implementation focuses on essing the work related to event-sourcing:
-- Describe which events belong to a specific aggregate
-- Type-strong boiler-plate code to build an aggregate from individual events
-- Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
-
-In a leter version, I would like to add JAX-RS style annotations to describe rest-services.
+This first implementation focuses on essing the work related to event-sourcing and web-services:
+- event-sourcing:
+    - Describe which events belong to a specific aggregate
+    - Type-strong boiler-plate code to build an aggregate from individual events
+    - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
+- web-services:
+    - Generate server-side http-handling for a regular "service"
 
 ## Preparation
     go get github.com/MarcGrol/astTools
