@@ -83,4 +83,4 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event/](examples/event/) 
 
-and [httpTourservice.go](./examples/web/httpTourservice.go) has been created in [examples/event/](examples/web/) 
+and [httpTourservice.go](./examples/web/httpTourService.go) has been created in [./examples/web/](./examples/web/) 
