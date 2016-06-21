@@ -43,6 +43,28 @@ func ParseSourceDir(dirName string, filenameRegex string) (*AstVisitor, error) {
 			ast.Walk(&v, f)
 		}
 	}
+
+	allStructs := make(map[string]*model.Struct)
+	for idx, _ := range v.Structs {
+		allStructs[(&v.Structs[idx]).Name] = &v.Structs[idx]
+	}
+	for idx, _ := range v.Operations {
+		oper := v.Operations[idx]
+		if oper.RelatedStruct != nil {
+			found, exists := allStructs[(*oper.RelatedStruct).TypeName]
+			if exists {
+				log.Printf(">>>>>>>>>>>>>>>>>>>> Found oper %s with ref %+v\n", oper.Name, *oper.RelatedStruct)
+				found.Operations = append(found.Operations, &oper)
+			}
+		}
+	}
+	for _, str := range v.Structs {
+		log.Printf(">>>>>>>>>>>>>>>>>>>>  Summarize struct %+v\n", str.Name)
+		for _, oper := range str.Operations {
+			log.Printf(">>>>>>>>>>>>>>>>>>>>  Summarize oper %+v\n", oper.Name)
+		}
+	}
+
 	return &v, nil
 }
 
@@ -65,6 +87,7 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return packages, err
 	}
+
 	return packages, nil
 }
 
@@ -131,6 +154,7 @@ func (v *AstVisitor) Visit(node ast.Node) ast.Visitor {
 				v.Operations = append(v.Operations, operation)
 			}
 		}
+
 	}
 	return v
 }

@@ -15,7 +15,7 @@ type Struct struct {
 	DocLines     []string
 	Name         string
 	Fields       []Field
-	Operations   []Operation
+	Operations   []*Operation
 	CommentLines []string
 }
 

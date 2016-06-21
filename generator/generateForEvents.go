@@ -2,12 +2,7 @@ package generator
 
 import (
 	"fmt"
-	"html/template"
 	"log"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"github.com/MarcGrol/astTools/model"
 )
@@ -17,17 +12,13 @@ type AggregateMap struct {
 	AggregateMap map[string]map[string]string
 }
 
-type Structs struct {
-	PackageName string
-	Structs     []model.Struct
-}
-
 func GenerateForStructs(inputDir string, structs []model.Struct) error {
 	packageName, err := getPackageName(structs)
 	if err != nil {
 		return err
 	}
 	aggregates := make(map[string]map[string]string)
+	eventCount := 0
 	for _, s := range structs {
 		log.Printf("struct:%s -> %+v: %v", s.GetAggregateName(), s, s.IsEvent())
 		if s.IsEvent() {
@@ -37,120 +28,45 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 			}
 			events[s.Name] = s.Name
 			aggregates[s.GetAggregateName()] = events
+			eventCount++
 		}
 	}
 
-	targetDir, err := determineTargetPath(inputDir, packageName)
-	if err != nil {
-		return err
-	}
-	{
-		target := fmt.Sprintf("%s/aggregates.go", targetDir)
-
-		data := AggregateMap{
-			PackageName:  packageName,
-			AggregateMap: aggregates,
-		}
-
-		log.Printf("aggregates:%+v", data)
-		err = generateFileFromTemplate(data, "aggregates", target)
+	if eventCount > 0 {
+		targetDir, err := determineTargetPath(inputDir, packageName)
 		if err != nil {
-			log.Fatalf("Error generating aggregates (%s)", err)
 			return err
 		}
-	}
-	{
-		target := fmt.Sprintf("%s/wrappers.go", targetDir)
+		{
+			target := fmt.Sprintf("%s/aggregates.go", targetDir)
 
-		data := Structs{
-			PackageName: packageName,
-			Structs:     structs,
+			data := AggregateMap{
+				PackageName:  packageName,
+				AggregateMap: aggregates,
+			}
+
+			log.Printf("aggregates:%+v", data)
+			err = generateFileFromTemplate(data, "aggregates", target)
+			if err != nil {
+				log.Fatalf("Error generating aggregates (%s)", err)
+				return err
+			}
 		}
-		err = generateFileFromTemplate(data, "wrappers", target)
-		if err != nil {
-			log.Fatalf("Error generating wrappers for structs (%s)", err)
-			return err
+		{
+			target := fmt.Sprintf("%s/wrappers.go", targetDir)
+
+			data := Structs{
+				PackageName: packageName,
+				Structs:     structs,
+			}
+			err = generateFileFromTemplate(data, "wrappers", target)
+			if err != nil {
+				log.Fatalf("Error generating wrappers for structs (%s)", err)
+				return err
+			}
 		}
 	}
 	return nil
-}
-
-func getPackageName(structs []model.Struct) (string, error) {
-	if len(structs) == 0 {
-		return "", fmt.Errorf("Need at least one struct to determine package-name")
-	}
-	packageName := structs[0].PackageName
-	for _, s := range structs {
-		if s.PackageName != packageName {
-			return "", fmt.Errorf("List of structs has multiple package-names")
-		}
-	}
-	return packageName, nil
-}
-
-func determineTargetPath(inputDir string, packageName string) (string, error) {
-	//log.Printf("inputDir:%s", inputDir)
-	//log.Printf("package:%s", packageName)
-
-	goPath := os.Getenv("GOPATH")
-	if goPath == "" {
-		return "", fmt.Errorf("GOPATH not set")
-	}
-	//log.Printf("GOPATH:%s", goPath)
-
-	workDir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("Error getting working dir:%s", err)
-	}
-	//log.Printf("work-dir:%s", workDir)
-
-	if !strings.Contains(workDir, goPath) {
-		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
-	}
-
-	baseDir := path.Base(inputDir)
-	if baseDir == "." || baseDir == packageName {
-		return inputDir, nil
-	} else {
-		return fmt.Sprintf("%s/%s", inputDir, packageName), nil
-	}
-}
-
-func generateFileFromTemplate(data interface{}, templateName string, targetFileName string) error {
-	log.Printf("Using template '%s' to generate target %s\n", templateName, targetFileName)
-
-	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)
-	if err != nil {
-		return err
-	}
-	w, err := os.Create(targetFileName)
-	if err != nil {
-		return err
-	}
-
-	t := template.New(templateName)
-	t, err = t.Parse(templates[templateName])
-	if err != nil {
-		return err
-	}
-
-	defer w.Close()
-	if err := t.Execute(w, data); err != nil {
-		return err
-	}
-	return nil
-}
-
-func toFirstUpper(in string) string {
-	if len(in) == 0 {
-		return in
-	}
-	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
-}
-
-var templates map[string]string = map[string]string{
-	"aggregates": aggregateTemplate,
-	"wrappers":   wrappersTemplate,
 }
 
 var aggregateTemplate string = `

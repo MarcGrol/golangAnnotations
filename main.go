@@ -29,7 +29,13 @@ func main() {
 
 	err = generator.GenerateForStructs(*inputDir, harvest.Structs)
 	if err != nil {
-		log.Printf("Error generating code:%s", err)
+		log.Printf("Error generating event code:%s", err)
+		os.Exit(1)
+	}
+
+	err = generator.GenerateForWeb(*inputDir, harvest.Structs)
+	if err != nil {
+		log.Printf("Error generating http code:%s", err)
 		os.Exit(1)
 	}
 
