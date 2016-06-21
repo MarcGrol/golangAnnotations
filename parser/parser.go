@@ -53,15 +53,8 @@ func ParseSourceDir(dirName string, filenameRegex string) (*AstVisitor, error) {
 		if oper.RelatedStruct != nil {
 			found, exists := allStructs[(*oper.RelatedStruct).TypeName]
 			if exists {
-				log.Printf(">>>>>>>>>>>>>>>>>>>> Found oper %s with ref %+v\n", oper.Name, *oper.RelatedStruct)
 				found.Operations = append(found.Operations, &oper)
 			}
-		}
-	}
-	for _, str := range v.Structs {
-		log.Printf(">>>>>>>>>>>>>>>>>>>>  Summarize struct %+v\n", str.Name)
-		for _, oper := range str.Operations {
-			log.Printf(">>>>>>>>>>>>>>>>>>>>  Summarize oper %+v\n", oper.Name)
 		}
 	}
 
@@ -79,7 +72,6 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 		fset,
 		dirName,
 		func(fi os.FileInfo) bool {
-			//log.Printf("filename:%s: matches %v", fi.Name(), pattern.MatchString(fi.Name()))
 			return pattern.MatchString(fi.Name())
 		},
 		parser.ParseComments)
@@ -141,7 +133,6 @@ func (v *AstVisitor) Visit(node ast.Node) ast.Visitor {
 			iface, found := extractGenDecForInterface(node)
 			if found {
 				iface.PackageName = v.PackageName
-				log.Printf("iface:%+v", iface)
 				v.Interfaces = append(v.Interfaces, iface)
 			}
 		}
@@ -165,8 +156,6 @@ func extractGenDeclForStruct(node ast.Node) (model.Struct, bool) {
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
-		log.Printf("*** Got ast.GenDecl:%+v", gd)
-
 		// Continue parsing to see if it a struct
 		str, found = extractSpecsForStruct(gd.Specs)
 		if ok {
@@ -184,8 +173,6 @@ func extractGenDecForInterface(node ast.Node) (model.Interface, bool) {
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
-		log.Printf("*** Got ast.GenDecl:%+v", gd)
-
 		// Continue parsing to see if it an interface
 		iface, found = extractSpecsForInterface(gd.Specs)
 		if ok {
@@ -204,14 +191,10 @@ func extractSpecsForStruct(specs []ast.Spec) (model.Struct, bool) {
 	if len(specs) >= 1 {
 		ts, ok := specs[0].(*ast.TypeSpec)
 		if ok {
-			log.Printf("*** Got ast.TypeSpec:%+v", ts)
-
 			str.Name = ts.Name.Name
 
 			ss, ok := ts.Type.(*ast.StructType)
 			if ok {
-				log.Printf("*** Got ast.StructType:%+v", ss)
-
 				str.Fields = extractFieldList(ss.Fields)
 				found = true
 			}
@@ -228,15 +211,10 @@ func extractSpecsForInterface(specs []ast.Spec) (model.Interface, bool) {
 	if len(specs) >= 1 {
 		ts, ok := specs[0].(*ast.TypeSpec)
 		if ok {
-			log.Printf("*** Got ast.TypeSpec:%+v", ts)
-
 			interf.Name = ts.Name.Name
 
 			it, ok := ts.Type.(*ast.InterfaceType)
 			if ok {
-				log.Printf("************************************")
-				log.Printf("*** Got ast.InterfaceType:%+v", interf)
-				log.Printf("************************************")
 				interf.Methods = extractInterfaceMethods(it.Methods)
 				found = true
 			}
@@ -256,8 +234,6 @@ func extractPackageName(node ast.Node) (string, bool) {
 			name = fil.Name.Name
 
 		}
-		log.Printf("*** Got ast.File:%+v ->", fil, name)
-
 	}
 	return name, found
 }
@@ -268,8 +244,6 @@ func extractOperation(node ast.Node) (model.Operation, bool) {
 
 	fd, found := node.(*ast.FuncDecl)
 	if found {
-		log.Printf("*** Got FuncDecl:%+v", fd)
-
 		oper.DocLines = extractDocLines(fd.Doc)
 
 		if fd.Recv != nil {
@@ -277,25 +251,19 @@ func extractOperation(node ast.Node) (model.Operation, bool) {
 			if len(recvd) >= 1 {
 				oper.RelatedStruct = &(recvd[0])
 			}
-			log.Printf("*** Got RelatedStruct:%+v", oper.RelatedStruct)
 		}
 
 		if fd.Name != nil {
 			oper.Name = fd.Name.Name
-			log.Printf("*** Got operation name:%s", oper.Name)
 		}
 
 		if fd.Type.Params != nil {
 			oper.InputArgs = extractFieldList(fd.Type.Params)
-			log.Printf("*** Got inputArgs:%+v", oper.InputArgs)
 		}
 
 		if fd.Type.Results != nil {
 			oper.OutputArgs = extractFieldList(fd.Type.Results)
-			log.Printf("*** Got outputArgs:%+v", oper.OutputArgs)
 		}
-
-		log.Printf("oper: %+v", oper)
 	}
 	return oper, found
 }
@@ -306,7 +274,6 @@ func extractDocLines(doc *ast.CommentGroup) []string {
 		for _, line := range doc.List {
 			docLines = append(docLines, line.Text)
 		}
-		log.Printf("*** Got doc-lines:%+v", docLines)
 	}
 	return docLines
 }
@@ -317,14 +284,12 @@ func extractComments(comment *ast.CommentGroup) []string {
 		for _, c := range comment.List {
 			lines = append(lines, c.Text)
 		}
-		log.Printf("*** Got Comment:%+v", lines)
 	}
 	return lines
 }
 
 func extractTag(tag *ast.BasicLit) (string, bool) {
 	if tag != nil {
-		log.Printf("*** Got Tag:%+v", tag.Value)
 		return tag.Value, true
 	}
 	return "", false
@@ -348,21 +313,17 @@ func extractInterfaceMethods(fl *ast.FieldList) []model.Operation {
 		if len(m.Names) > 0 {
 			oper := model.Operation{DocLines: extractDocLines(m.Doc)}
 
-			log.Printf("*** Got interface name:%+v", m.Names[0].Name)
 			oper.Name = m.Names[0].Name
 
 			ft, found := m.Type.(*ast.FuncType)
 			if found {
 				if ft.Params != nil {
 					oper.InputArgs = extractFieldList(ft.Params)
-					log.Printf("*** Got inputArgs:%+v", oper.InputArgs)
 				}
 
 				if ft.Results != nil {
 					oper.OutputArgs = extractFieldList(ft.Results)
-					log.Printf("*** Got outputArgs:%+v", oper.OutputArgs)
 				}
-				log.Printf("interface:%+v", oper)
 				methods = append(methods, oper)
 			}
 		}
@@ -402,22 +363,18 @@ func _extractField(input *ast.Field) model.Field {
 	{
 		arr, ok := input.Type.(*ast.ArrayType)
 		if ok {
-			log.Printf("*** Got ast.ArrayType:%+v", arr)
 			field.IsSlice = true
 			{
 				ident, ok := arr.Elt.(*ast.Ident)
 				if ok {
-					log.Printf("*** Got ast.Ident:%+v", ident)
 					field.TypeName = ident.Name
 				}
 			}
 			{
 				star, ok := arr.Elt.(*ast.StarExpr)
 				if ok {
-					log.Printf("*** Got ast.StarExpr:%+v", star)
 					ident, ok := star.X.(*ast.Ident)
 					if ok {
-						log.Printf("*** Got ast.Ident:%+v", ident)
 						field.TypeName = ident.Name
 						field.IsPointer = true
 					}
@@ -428,10 +385,8 @@ func _extractField(input *ast.Field) model.Field {
 	{
 		star, ok := input.Type.(*ast.StarExpr)
 		if ok {
-			log.Printf("*** Got ast.StarExpr:%+v", star)
 			ident, ok := star.X.(*ast.Ident)
 			if ok {
-				log.Printf("*** Got ast.Ident:%+v", ident)
 				field.TypeName = ident.Name
 				field.IsPointer = true
 			}
@@ -440,7 +395,6 @@ func _extractField(input *ast.Field) model.Field {
 	{
 		ident, ok := input.Type.(*ast.Ident)
 		if ok {
-			log.Printf("*** Got ast.Ident:%+v", ident)
 			field.TypeName = ident.Name
 		}
 	}

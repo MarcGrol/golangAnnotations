@@ -5,7 +5,6 @@ import "time"
 //go:generate astTools -input-dir .
 
 type Tour struct {
-	UID      string    `json:"uid"`
 	Year     int       `json:"year"`
 	Etappes  []Etappe  `json:"etappes"`
 	Cyclists []Cyclist `json:"cyclists"`
@@ -40,9 +39,8 @@ type TourService struct {
 
 // {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/tour/{year}"}}
 // @RestOperation(Method = "GET", Path = "/tour/{year}")
-func (ts TourService) getTourOnUid(year string) (Tour, error) {
+func (ts TourService) getTourOnUid(year int) (Tour, error) {
 	return Tour{
-		UID:      year,
 		Year:     2016,
 		Cyclists: []Cyclist{},
 		Etappes:  []Etappe{},
@@ -51,7 +49,7 @@ func (ts TourService) getTourOnUid(year string) (Tour, error) {
 
 // {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/etappe"}}
 // @RestOperation(Method = "POST", Path = "/tour/{year}/etappe")
-func (ts *TourService) createEtappe(year string, etappe Etappe) (Etappe, error) {
+func (ts *TourService) createEtappe(year int, etappe Etappe) (Etappe, error) {
 	dateString := "2016-07-14"
 	day, _ := time.Parse(dateString, dateString)
 	return Etappe{
@@ -64,13 +62,13 @@ func (ts *TourService) createEtappe(year string, etappe Etappe) (Etappe, error) 
 
 // {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/etappe/{etappeUid}"}}
 // @RestOperation(Method = "PUT", Path = "/tour/:year/etappe/:etappeUid")
-func (ts *TourService) addEtappeResults(year string, etappeUid string, results EtappeResult) error {
+func (ts *TourService) addEtappeResults(year int, etappeUid string, results EtappeResult) error {
 	return nil
 }
 
 // {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/cyclist"}}
 // @RestOperation(Method = "POST", Path = "/tour/{year}/cyclist")
-func (ts *TourService) createCyclist(year string, cyclist Cyclist) (Cyclist, error) {
+func (ts *TourService) createCyclist(year int, cyclist Cyclist) (Cyclist, error) {
 	return Cyclist{
 		UID:    "42",
 		Name:   "Boogerd, Michael",
@@ -80,6 +78,6 @@ func (ts *TourService) createCyclist(year string, cyclist Cyclist) (Cyclist, err
 
 // {"Annotation":"RestOperation","With":{"Method":"DELETE", "Path":"/tour/{year}/cyclist/{cyclistUid}"}}
 // @RestOperation(Method = "DELETE", Path = "/tour/{year}/cyclist/{cyclistUid}")
-func (ts *TourService) markCyclistAbondoned(year string, cyclistUid string) error {
+func (ts *TourService) markCyclistAbondoned(year int, cyclistUid string) error {
 	return nil
 }

@@ -2,7 +2,6 @@ package annotation
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 )
 
@@ -21,7 +20,6 @@ func ClearRegisteredAnnotations() {
 }
 
 func RegisterAnnotation(name string, paramNames []string, validator ValidationFunc) {
-	log.Printf("*** Register annnotation %s", name)
 	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
 }
 
@@ -42,24 +40,23 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
-		log.Printf("ResolveAnnotation against %+v: %s", descriptor, annotationDocline)
 		annotation, err := parseAnnotation(annotationDocline)
 		if err != nil {
-			log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
+			//log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
 			continue
 		}
 
 		if annotation.Annotation != descriptor.name {
-			log.Printf("*** Annotation-line '%s' did NOT match %s", annotationDocline, descriptor.name)
+			//log.Printf("*** Annotation-line '%s' did NOT match %s", annotationDocline, descriptor.name)
 			continue
 		}
 
 		ok := descriptor.validator(annotation)
 		if !ok {
-			log.Printf("*** Annotation-line '%s' of type %s is invalid %+v", annotationDocline, descriptor.name, annotation)
+			//log.Printf("*** Annotation-line '%s' of type %s is invalid %+v", annotationDocline, descriptor.name, annotation)
 			continue
 		}
-		log.Printf("*** Annotation -line '%s' of type %s is valid: %+v", annotationDocline, descriptor.name, annotation)
+		//log.Printf("Valid %s annotation -line '%s'", annotation.Annotation, annotationDocline)
 
 		return annotation, true
 	}

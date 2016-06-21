@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/MarcGrol/microgen/lib/myerrors"
 	"github.com/gorilla/mux"
@@ -37,9 +38,14 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 
 		// extract url-params
 
-		year, exists := pathParams["year"]
+		yearString, exists := pathParams["year"]
 		if !exists {
 			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			return
+		}
+		year, err := strconv.Atoi(yearString)
+		if err != nil {
+			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -73,9 +79,14 @@ func createEtappe(service *TourService) http.HandlerFunc {
 
 		// extract url-params
 
-		year, exists := pathParams["year"]
+		yearString, exists := pathParams["year"]
 		if !exists {
 			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			return
+		}
+		year, err := strconv.Atoi(yearString)
+		if err != nil {
+			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -117,9 +128,14 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 
 		// extract url-params
 
-		year, exists := pathParams["year"]
+		yearString, exists := pathParams["year"]
 		if !exists {
 			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			return
+		}
+		year, err := strconv.Atoi(yearString)
+		if err != nil {
+			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -162,9 +178,14 @@ func createCyclist(service *TourService) http.HandlerFunc {
 
 		// extract url-params
 
-		year, exists := pathParams["year"]
+		yearString, exists := pathParams["year"]
 		if !exists {
 			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			return
+		}
+		year, err := strconv.Atoi(yearString)
+		if err != nil {
+			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -206,9 +227,14 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 
 		// extract url-params
 
-		year, exists := pathParams["year"]
+		yearString, exists := pathParams["year"]
 		if !exists {
 			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			return
+		}
+		year, err := strconv.Atoi(yearString)
+		if err != nil {
+			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
 			return
 		}
 

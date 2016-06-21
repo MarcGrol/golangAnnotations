@@ -16,17 +16,14 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 	if err != nil {
 		return err
 	}
-	{
-		target := fmt.Sprintf("%s/httpHandlers.go", targetDir)
-
-		data := Structs{
-			PackageName: packageName,
-			Structs:     structs,
-		}
-		err = generateFileFromTemplate(data, "handlers", target)
-		if err != nil {
-			log.Fatalf("Error generating wrappers for structs (%s)", err)
-			return err
+	for _, service := range structs {
+		if service.IsRestService() {
+			target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
+			err = generateFileFromTemplate(service, "handlers", target)
+			if err != nil {
+				log.Fatalf("Error generating wrappers for service %s: %s", service.Name, err)
+				return err
+			}
 		}
 	}
 	return nil
@@ -38,87 +35,95 @@ var handlersTemplate string = `
 package {{.PackageName}}
 
 import (
-  "encoding/json"
-  "fmt"
-  "log"
-  "net/http"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
 
-  "github.com/gorilla/mux"
-  "github.com/MarcGrol/microgen/lib/myerrors"
+	"github.com/MarcGrol/microgen/lib/myerrors"
+	"github.com/gorilla/mux"
 )
 
-{{range .Structs}}
-	{{if .IsRestService}}
-	func (ts *{{.Name}}) HandleHttp() http.Handler {
-		router := mux.NewRouter().StrictSlash(true)
-		{{range .Operations}}
-			{{if .IsRestOperation}}
-				router.HandleFunc("{{.GetRestOperationPath}}", {{.Name}}(ts)).Methods("{{.GetRestOperationMethod}}")
+{{ $structName := .Name }}
+
+func (ts *{{.Name}}) HandleHttp() http.Handler {
+	router := mux.NewRouter().StrictSlash(true)
+	{{range .Operations}}
+		{{if .IsRestOperation}}
+			router.HandleFunc("{{.GetRestOperationPath}}", {{.Name}}(ts)).Methods("{{.GetRestOperationMethod}}")
+		{{end}}
+	{{end}}
+	return router
+}
+
+{{range $idxOper, $oper := .Operations}}
+{{if .IsRestOperation}}
+func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+
+		pathParams := mux.Vars(r)
+		log.Printf("pathParams:%+v", pathParams)
+
+		// extract url-params
+		{{range .InputArgs}}
+			{{if .IsPrimitive}}
+				{{if .IsNumber}}
+					{{.Name}}String, exists := pathParams["{{.Name}}"]
+					if !exists {
+						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
+						return
+					}
+					{{.Name}}, err := strconv.Atoi({{.Name}}String)
+					if err != nil {
+						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param '{{.Name}}'")), w)
+						return
+					}
+				{{else}}
+					{{.Name}}, exists := pathParams["{{.Name}}"]
+					if !exists {
+						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
+						return
+					}
+				{{end}}
 			{{end}}
 		{{end}}
-		return router
-	}
-	{{end}}
+
+		{{if .HasInput }}
+			// read abd parse request body
+			var {{.GetInputArgName}} {{.GetInputArgType}}
+			err = json.NewDecoder(r.Body).Decode( &{{.GetInputArgName}} )
+			if err != nil {
+				handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
+				return
+			}
+		{{end}}
+
+		// call business logic
+		{{if .HasOutput }}
+			result, err := service.{{$oper.Name}}({{.GetInputParamString}})
+		{{else}}
+			err = service.{{$oper.Name}}({{.GetInputParamString}})
+		{{end}}
+		if err != nil {
+			handleError(err, w)
+			return
+		}
+
+		// write response body
+		{{if .HasOutput }}
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			err = json.NewEncoder(w).Encode(result)
+			if err != nil {
+				log.Printf("Error encoding response payload %+v", err)
+			}
+		{{else}}
+			w.WriteHeader(http.StatusNoContent)
+		{{end}}
+      }
+ }
 {{end}}
-
-{{range $idx, $str := .Structs}}
-	{{if .IsRestService}}
-		{{range $idxOper, $oper := .Operations}}
-			{{if .IsRestOperation}}
-				 func {{$oper.Name}}( service *{{$str.Name}} ) http.HandlerFunc {
-						return func(w http.ResponseWriter, r *http.Request) {
-							var err error
-
-							pathParams := mux.Vars(r)
-							log.Printf("pathParams:%+v", pathParams)
-
-							// extract url-params
-							{{range .InputArgs}}
-								{{if .IsPrimitive}}
-								{{.Name}}, exists := pathParams["{{.Name}}"]
-								if !exists {
-									handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
-									return
-								}
-								{{end}}
-							{{end}}
-
-							{{if .HasInput }}
-								// read abd parse request body
-								var {{.GetInputArgName}} {{.GetInputArgType}}
-								err = json.NewDecoder(r.Body).Decode( &{{.GetInputArgName}} )
-								if err != nil {
-									handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
-									return
-								}
-							{{end}}
-
-							// call business logic
-							{{if .HasOutput }}
-							result, err := service.{{$oper.Name}}({{.GetInputParamString}})
-							{{else}}
-							err = service.{{$oper.Name}}({{.GetInputParamString}})
-							{{end}}
-							if err != nil {
-								handleError(err, w)
-								return
-							}
-
-							// write response body
-							{{if .HasOutput }}
-							w.WriteHeader(http.StatusOK)
-							w.Header().Set("Content-Type", "application/json")
-							err = json.NewEncoder(w).Encode(result)
-							if err != nil {
-								log.Printf("Error encoding response payload %+v", err)
-							}
-							{{else}}
-							w.WriteHeader(http.StatusNoContent)
-							{{end}}
-				      }
-				 }
-			{{end}}
-		{{end}}
-	{{end}}
 {{end}}
 `

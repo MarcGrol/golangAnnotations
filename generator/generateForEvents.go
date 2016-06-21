@@ -12,6 +12,11 @@ type AggregateMap struct {
 	AggregateMap map[string]map[string]string
 }
 
+type Structs struct {
+	PackageName string
+	Structs     []model.Struct
+}
+
 func GenerateForStructs(inputDir string, structs []model.Struct) error {
 	packageName, err := getPackageName(structs)
 	if err != nil {
@@ -20,7 +25,6 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 	aggregates := make(map[string]map[string]string)
 	eventCount := 0
 	for _, s := range structs {
-		log.Printf("struct:%s -> %+v: %v", s.GetAggregateName(), s, s.IsEvent())
 		if s.IsEvent() {
 			events, ok := aggregates[s.GetAggregateName()]
 			if !ok {
@@ -45,7 +49,6 @@ func GenerateForStructs(inputDir string, structs []model.Struct) error {
 				AggregateMap: aggregates,
 			}
 
-			log.Printf("aggregates:%+v", data)
 			err = generateFileFromTemplate(data, "aggregates", target)
 			if err != nil {
 				log.Fatalf("Error generating aggregates (%s)", err)

@@ -12,11 +12,6 @@ import (
 	"github.com/MarcGrol/astTools/model"
 )
 
-type Structs struct {
-	PackageName string
-	Structs     []model.Struct
-}
-
 var templates map[string]string = map[string]string{
 	"aggregates": aggregateTemplate,
 	"wrappers":   wrappersTemplate,

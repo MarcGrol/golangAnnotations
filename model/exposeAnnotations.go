@@ -14,7 +14,10 @@ func init() {
 }
 
 func (s Struct) IsEvent() bool {
-	_, ok := annotation.ResolveAnnotations(s.DocLines)
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if !ok || annotation.Annotation != "Event" {
+		return false
+	}
 	return ok
 }
 
@@ -27,7 +30,10 @@ func (s Struct) GetAggregateName() string {
 }
 
 func (s Struct) IsRestService() bool {
-	_, ok := annotation.ResolveAnnotations(s.DocLines)
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if !ok || annotation.Annotation != "RestService" {
+		return false
+	}
 	return ok
 }
 
@@ -40,7 +46,10 @@ func (o Struct) GetRestServicePath() string {
 }
 
 func (o Operation) IsRestOperation() bool {
-	_, ok := annotation.ResolveAnnotations(o.DocLines)
+	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
+	if !ok || annotation.Annotation != "RestOperation" {
+		return false
+	}
 	return ok
 }
 
@@ -113,4 +122,8 @@ func (o Operation) GetOutputArgType() string {
 
 func (f Field) IsPrimitive() bool {
 	return f.TypeName == "int" || f.TypeName == "string"
+}
+
+func (f Field) IsNumber() bool {
+	return f.TypeName == "int"
 }
