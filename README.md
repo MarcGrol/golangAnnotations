@@ -40,7 +40,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that [./examples/event/example.go](./examples/web/httpTourService.go) has been created in [examples/event](examples/event)
+Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) has been created in [examples/web](examples/web)
 
 This annotation is used to trigger code-generation. View resulting code: 
 
