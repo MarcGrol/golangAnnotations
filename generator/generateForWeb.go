@@ -18,12 +18,23 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 	}
 	for _, service := range structs {
 		if service.IsRestService() {
-			target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
-			err = generateFileFromTemplate(service, "handlers", target)
-			if err != nil {
-				log.Fatalf("Error generating wrappers for service %s: %s", service.Name, err)
-				return err
+			{
+				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
+				err = generateFileFromTemplate(service, "handlers", target)
+				if err != nil {
+					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
+					return err
+				}
 			}
+			{
+				target := fmt.Sprintf("%s/%sHelpers_test.go", targetDir, service.Name)
+				err = generateFileFromTemplate(service, "helpers", target)
+				if err != nil {
+					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
+					return err
+				}
+			}
+
 		}
 	}
 	return nil
@@ -47,7 +58,7 @@ import (
 
 {{ $structName := .Name }}
 
-func (ts *{{.Name}}) HandleHttp() http.Handler {
+func (ts *{{.Name}}) HttpHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 	{{range .Operations}}
 		{{if .IsRestOperation}}
@@ -124,6 +135,63 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
       }
  }
+{{end}}
+{{end}}
+`
+
+var helpersTemplate string = `
+// Generated automatically: do not edit manually
+
+package {{.PackageName}}
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+)
+
+{{ $structName := .Name }}
+
+{{range .Operations}}
+
+{{if .IsRestOperation}}
+func {{.Name}}TestHelper(url string {{if .HasInput}}, input {{.GetInputArgType}} {{end}} )  (int {{if .HasOutput }},*{{.GetOutputArgType}}{{end}},error) {
+
+	recorder := httptest.NewRecorder()
+
+	{{if .HasInput}}
+		requestBody, _ := json.Marshal(input)
+		req, err := http.NewRequest("{{.GetRestOperationMethod}}", url, strings.NewReader(string(requestBody)))
+	{{else}}
+		req, err := http.NewRequest("{{.GetRestOperationMethod}}", url, nil)
+	{{end}}
+	if err != nil {
+		{{if .HasOutput }}
+			return 0, nil, err
+		{{else}}
+			return 0,  err
+		{{end}}
+	}
+	{{if .HasOutput }}
+		req.Header.Set("Accept", "application/json")
+	{{end}}
+
+	webservice := {{$structName}}{}
+	webservice.HttpHandler().ServeHTTP(recorder, req)
+
+	{{if .HasOutput }}
+		var resp {{.GetOutputArgType}}
+		dec := json.NewDecoder(recorder.Body)
+		err = dec.Decode(&resp)
+		if err != nil {
+			return recorder.Code, nil, err
+		}
+		return recorder.Code, &resp, nil
+	{{else}}
+		return recorder.Code, nil
+	{{end}}
+}
 {{end}}
 {{end}}
 `

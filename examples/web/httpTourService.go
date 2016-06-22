@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (ts *TourService) HandleHttp() http.Handler {
+func (ts *TourService) HttpHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/tour/{year}", getTourOnUid(ts)).Methods("GET")

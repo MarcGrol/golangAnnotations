@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = generator.GenerateForStructs(*inputDir, harvest.Structs)
+	err = generator.GenerateForEvents(*inputDir, harvest.Structs)
 	if err != nil {
 		log.Printf("Error generating event code:%s", err)
 		os.Exit(1)

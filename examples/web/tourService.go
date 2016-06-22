@@ -50,7 +50,7 @@ func (ts *TourService) createEtappe(year int, etappe Etappe) (Etappe, error) {
 	dateString := "2016-07-14"
 	day, _ := time.Parse(dateString, dateString)
 	return Etappe{
-		UID:            "2",
+		UID:            "14",
 		Day:            day,
 		StartLocation:  "Paris",
 		FinishLocation: "Roubaix",

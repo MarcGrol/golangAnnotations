@@ -17,7 +17,7 @@ type Structs struct {
 	Structs     []model.Struct
 }
 
-func GenerateForStructs(inputDir string, structs []model.Struct) error {
+func GenerateForEvents(inputDir string, structs []model.Struct) error {
 	packageName, err := getPackageName(structs)
 	if err != nil {
 		return err

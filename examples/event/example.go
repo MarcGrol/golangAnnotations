@@ -12,7 +12,7 @@ type TourCreated struct {
 // @Event(aggregate="Tour")
 type CyclistCreated struct {
 	Year        int    `json:"year"`
-	CyclistId   int    `json:"cyclistId"`
+	CyclistUid  string `json:"cyclistUid"`
 	CyclistName string `json:"cyclistName"`
 	CyclistTeam string `json:"cyclistTeam"`
 }
@@ -20,7 +20,7 @@ type CyclistCreated struct {
 // @Event(aggregate="Tour")
 type EtappeCreated struct {
 	Year                 int       `json:"year"`
-	EtappeId             int       `json:"etappeId"`
+	EtappeUid            string    `json:"etappeUid"`
 	EtappeDate           time.Time `json:"etappeDate"`
 	EtappeStartLocation  string    `json:"etappeStartLocation"`
 	EtappeFinishLocation string    `json:"etappeFinishLocation"`
@@ -30,12 +30,12 @@ type EtappeCreated struct {
 
 // @Event(aggregate="Tour")
 type EtappeResultsCreated struct {
-	Year                     int   `json:"year"`
-	LastEtappeId             int   `json:"lastEtappeId"`
-	BestDayCyclistIds        []int `json:"bestDayCyclistIds"`
-	BestAllrounderCyclistIds []int `json:"bestAllrounderCyclistIds"`
-	BestSprinterCyclistIds   []int `json:"bestSprinterCyclistIds"`
-	BestClimberCyclistIds    []int `json:"bestClimberCyclistIds"`
+	Year                     int      `json:"year"`
+	EtappeUid                string   `json:"EtappeUid"`
+	BestDayCyclistIds        []string `json:"bestDayCyclistIds"`
+	BestAllrounderCyclistIds []string `json:"bestAllrounderCyclistIds"`
+	BestSprinterCyclistIds   []string `json:"bestSprinterCyclistIds"`
+	BestClimberCyclistIds    []string `json:"bestClimberCyclistIds"`
 }
 
 // @Event(aggregate="Gambler")
@@ -55,8 +55,10 @@ type GamblerTeamCreated struct {
 
 // @Event(aggregate="News")
 type NewsItemCreated struct {
-	Year      int       `json:"year"`
-	Timestamp time.Time `json:"timestamp"`
-	Message   string    `json:"message"`
-	Sender    string    `json:"sender"`
+	Year              int       `json:"year"`
+	Timestamp         time.Time `json:"timestamp"`
+	Message           string    `json:"message"`
+	Sender            string    `json:"sender"`
+	RelatedCyclistUid string    `json:"relatedCyclistUid"`
+	RelatedEtappeUid  string    `json:"relatedEtappeUid"`
 }

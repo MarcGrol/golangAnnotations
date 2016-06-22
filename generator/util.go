@@ -16,6 +16,7 @@ var templates map[string]string = map[string]string{
 	"aggregates": aggregateTemplate,
 	"wrappers":   wrappersTemplate,
 	"handlers":   handlersTemplate,
+	"helpers":    helpersTemplate,
 }
 
 func getPackageName(structs []model.Struct) (string, error) {
