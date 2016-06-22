@@ -32,7 +32,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) and [./examples/web/httpTourService.go](./examples/web/httpTourService.go) has been created in [examples/web](examples/web)
+Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) and [./examples/web/TourServiceHelpers_test.go](./examples/web/TourServiceHelpers_test.go) has been created in [examples/web](examples/web)
 
 ## Event-sourcing related annotations:
 
