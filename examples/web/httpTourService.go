@@ -20,7 +20,7 @@ func (ts *TourService) HandleHttp() http.Handler {
 
 	router.HandleFunc("/tour/{year}/etappe", createEtappe(ts)).Methods("POST")
 
-	router.HandleFunc("/tour/{year}/etappe/{etappeUid}", addEtappeResults(ts)).Methods("POST")
+	router.HandleFunc("/tour/{year}/etappe/{etappeUid}", addEtappeResults(ts)).Methods("PUT")
 
 	router.HandleFunc("/tour/{year}/cyclist", createCyclist(ts)).Methods("POST")
 

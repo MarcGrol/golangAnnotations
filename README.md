@@ -20,12 +20,12 @@ This first implementation focuses on essing the work on the following topics:
 
 A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. See [./examples/web/tourService.go](./examples/web/tourService.go)
 
-    // {"Annotation":"RestService","With":{"Path":"/person"}}
+    // @RestService( path = "/person" )
     type Service struct {
        ...
     }
     
-    // {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/person/:uid"}}
+    // @RestOperation( method" = "GET", path :"/person/:uid" )
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
@@ -36,7 +36,7 @@ Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.
 
 A regular golang struct definition with our own "Event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
     
-    // {"Annotation":"Event","With":{"Aggregate":"Tour"}}
+    // @Event( aggregate = Tour" )
     type TourEtappeCreated struct {
         ...
     }        

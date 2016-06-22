@@ -4,7 +4,7 @@ import "github.com/MarcGrol/astTools/model/annotation"
 
 const (
 	typeEvent      = "Event"
-	ParamAggregate = "Aggregate"
+	ParamAggregate = "aggregate"
 )
 
 // Register makes the annotation-registry aware of this annotation
@@ -13,8 +13,8 @@ func Register() {
 }
 
 func validateEventAnnotation(annot annotation.Annotation) bool {
-	if annot.Annotation == typeEvent {
-		val, hasAggr := annot.With[ParamAggregate]
+	if annot.Name == typeEvent {
+		val, hasAggr := annot.Attributes[ParamAggregate]
 		return (hasAggr && val != "")
 	}
 	return false

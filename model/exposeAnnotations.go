@@ -15,7 +15,7 @@ func init() {
 
 func (s Struct) IsEvent() bool {
 	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
-	if !ok || annotation.Annotation != "Event" {
+	if !ok || annotation.Name != "Event" {
 		return false
 	}
 	return ok
@@ -24,14 +24,14 @@ func (s Struct) IsEvent() bool {
 func (s Struct) GetAggregateName() string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
-		return val.With[eventAnno.ParamAggregate]
+		return val.Attributes[eventAnno.ParamAggregate]
 	}
 	return ""
 }
 
 func (s Struct) IsRestService() bool {
 	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
-	if !ok || annotation.Annotation != "RestService" {
+	if !ok || annotation.Name != "RestService" {
 		return false
 	}
 	return ok
@@ -40,14 +40,14 @@ func (s Struct) IsRestService() bool {
 func (o Struct) GetRestServicePath() string {
 	val, ok := annotation.ResolveAnnotations(o.DocLines)
 	if ok {
-		return val.With[restAnno.ParamPath]
+		return val.Attributes[restAnno.ParamPath]
 	}
 	return ""
 }
 
 func (o Operation) IsRestOperation() bool {
 	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
-	if !ok || annotation.Annotation != "RestOperation" {
+	if !ok || annotation.Name != "RestOperation" {
 		return false
 	}
 	return ok
@@ -56,7 +56,7 @@ func (o Operation) IsRestOperation() bool {
 func (o Operation) GetRestOperationPath() string {
 	val, ok := annotation.ResolveAnnotations(o.DocLines)
 	if ok {
-		return val.With[restAnno.ParamPath]
+		return val.Attributes[restAnno.ParamPath]
 	}
 	return ""
 }
@@ -64,7 +64,7 @@ func (o Operation) GetRestOperationPath() string {
 func (o Operation) GetRestOperationMethod() string {
 	val, ok := annotation.ResolveAnnotations(o.DocLines)
 	if ok {
-		return val.With[restAnno.ParamMethod]
+		return val.Attributes[restAnno.ParamMethod]
 	}
 	return ""
 }

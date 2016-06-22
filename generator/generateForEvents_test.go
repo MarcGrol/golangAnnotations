@@ -17,7 +17,7 @@ func TestGenerateForStructs(t *testing.T) {
 
 	s := []model.Struct{
 		{
-			DocLines:    []string{`// {"Annotation":"Event","With":{"Aggregate":"Test"}}`},
+			DocLines:    []string{`//@Event(aggregate = "Test")`},
 			PackageName: "testData",
 			Name:        "MyStruct",
 			Fields: []model.Field{

@@ -1,9 +1,6 @@
 package annotation
 
-import (
-	"encoding/json"
-	"strings"
-)
+import "strings"
 
 type ValidationFunc func(annot Annotation) bool
 
@@ -24,8 +21,8 @@ func RegisterAnnotation(name string, paramNames []string, validator ValidationFu
 }
 
 type Annotation struct {
-	Annotation string
-	With       map[string]string
+	Name       string
+	Attributes map[string]string
 }
 
 func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
@@ -41,12 +38,17 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
 		annotation, err := parseAnnotation(annotationDocline)
-		if err != nil {
-			//log.Printf("*** Error unmarshalling RestOperationAnnotation %s: %+v", annotationDocline, err)
-			continue
+		if err == nil {
+			//log.Printf("*** Error parsing text-annotation %s: %+v", annotationDocline, err)
+			// try the other format
+			annotation, err = parseAnnotation(annotationDocline)
+			if err != nil {
+				//log.Printf("*** Error parsing json-annotation %s: %+v", annotationDocline, err)
+				continue
+			}
 		}
 
-		if annotation.Annotation != descriptor.name {
+		if annotation.Name != descriptor.name {
 			//log.Printf("*** Annotation-line '%s' did NOT match %s", annotationDocline, descriptor.name)
 			continue
 		}
@@ -61,15 +63,4 @@ func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 		return annotation, true
 	}
 	return Annotation{}, false
-}
-
-func parseAnnotation(annotationDocline string) (Annotation, error) {
-	withoutComment := strings.TrimLeft(strings.TrimSpace(annotationDocline), "/")
-
-	var annotation Annotation
-	err := json.Unmarshal([]byte(withoutComment), &annotation)
-	if err != nil {
-		return annotation, err
-	}
-	return annotation, nil
 }

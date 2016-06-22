@@ -32,13 +32,11 @@ type EtappeResult struct {
 	SprintRankings []string `json:"sprintRankings"`
 }
 
-// {"Annotation":"RestService","With":{"Path":"/api"}}
-// @RestService(Path = "/api")
+// @RestService( path = "/api" )
 type TourService struct {
 }
 
-// {"Annotation":"RestOperation","With":{"Method":"GET", "Path":"/tour/{year}"}}
-// @RestOperation(Method = "GET", Path = "/tour/{year}")
+// @RestOperation( method = "GET", path = "/tour/{year}" )
 func (ts TourService) getTourOnUid(year int) (Tour, error) {
 	return Tour{
 		Year:     2016,
@@ -47,8 +45,7 @@ func (ts TourService) getTourOnUid(year int) (Tour, error) {
 	}, nil
 }
 
-// {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/etappe"}}
-// @RestOperation(Method = "POST", Path = "/tour/{year}/etappe")
+// @RestOperation( method = "POST", path = "/tour/{year}/etappe" )
 func (ts *TourService) createEtappe(year int, etappe Etappe) (Etappe, error) {
 	dateString := "2016-07-14"
 	day, _ := time.Parse(dateString, dateString)
@@ -60,14 +57,12 @@ func (ts *TourService) createEtappe(year int, etappe Etappe) (Etappe, error) {
 	}, nil
 }
 
-// {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/etappe/{etappeUid}"}}
-// @RestOperation(Method = "PUT", Path = "/tour/:year/etappe/:etappeUid")
+// @RestOperation( method = "PUT", path = "/tour/{year}/etappe/{etappeUid}" )
 func (ts *TourService) addEtappeResults(year int, etappeUid string, results EtappeResult) error {
 	return nil
 }
 
-// {"Annotation":"RestOperation","With":{"Method":"POST", "Path":"/tour/{year}/cyclist"}}
-// @RestOperation(Method = "POST", Path = "/tour/{year}/cyclist")
+// @RestOperation( method = "POST", path = "/tour/{year}/cyclist" )
 func (ts *TourService) createCyclist(year int, cyclist Cyclist) (Cyclist, error) {
 	return Cyclist{
 		UID:    "42",
@@ -76,8 +71,7 @@ func (ts *TourService) createCyclist(year int, cyclist Cyclist) (Cyclist, error)
 	}, nil
 }
 
-// {"Annotation":"RestOperation","With":{"Method":"DELETE", "Path":"/tour/{year}/cyclist/{cyclistUid}"}}
-// @RestOperation(Method = "DELETE", Path = "/tour/{year}/cyclist/{cyclistUid}")
+// @RestOperation( method = "DELETE", path = "/tour/{year}/cyclist/{cyclistUid}" )
 func (ts *TourService) markCyclistAbondoned(year int, cyclistUid string) error {
 	return nil
 }
