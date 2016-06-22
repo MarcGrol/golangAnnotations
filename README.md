@@ -17,6 +17,7 @@ This first implementation focuses on essing the work on the following topics:
     $ go get github.com/MarcGrol/astTools
     $ cd ${GOPATH/src/github.com/MarcGrol/astTools
     $ go install ./...
+    $ go test ./...
 
 ## Http-server related annotations ("jax-rs"-like). 
 
