@@ -20,12 +20,12 @@ This first implementation focuses on essing the work on the following topics:
 
 A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. See [./examples/web/tourService.go](./examples/web/tourService.go)
 
-    // @RestService( path = "/person" )
+    // @RestService( path = "/api" )
     type Service struct {
        ...
     }
     
-    // @RestOperation( method" = "GET", path :"/person/:uid" )
+    // @RestOperation( method" = "GET", path = "/person/{uid}" )
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
