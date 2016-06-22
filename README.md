@@ -25,7 +25,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
        ...
     }
     
-    // @RestOperation( method" = "GET", path = "/person/{uid}" )
+    // @RestOperation( method = "GET", path = "/person/{uid}" )
     func (s Service) getPerson(uid string) (Person,error) {
         ...
     }        
