@@ -6,6 +6,8 @@ From this intermediate representation, we can easily generate boring and error-p
 This first implementation focuses on essing the work on the following topics:
 - web-services (jax-rs like):
     - Generate server-side http-handling for a regular "service"
+    - Generate helpers to ease integration testing of web-services
+
 - event-sourcing:
     - Describe which events belong to a specific aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
@@ -30,7 +32,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) has been created in [examples/web](examples/web)
+Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) and [./examples/web/httpTourService.go](./examples/web/httpTourService.go) has been created in [examples/web](examples/web)
 
 ## Event-sourcing related annotations:
 
