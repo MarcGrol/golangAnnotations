@@ -181,13 +181,11 @@ func determineTargetPath(inputDir string, packageName string) (string, error) {
 	if goPath == "" {
 		return "", fmt.Errorf("GOPATH not set")
 	}
-	//log.Printf("GOPATH:%s", goPath)
 
 	workDir, err := os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("Error getting working dir:%s", err)
 	}
-	//log.Printf("work-dir:%s", workDir)
 
 	if !strings.Contains(workDir, goPath) {
 		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
