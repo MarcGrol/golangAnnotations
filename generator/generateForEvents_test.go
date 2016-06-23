@@ -46,7 +46,6 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.NoError(t, err)
 	data, err = ioutil.ReadFile("./testData/aggregates.go")
 	assert.NoError(t, err)
-	t.Log("data:" + string(data))
 	assert.Contains(t, string(data), "type TestAggregate interface {")
 	assert.Contains(t, string(data), "ApplyMyStruct(event MyStruct)")
 	assert.Contains(t, string(data), "func ApplyTestEvent(envelop Envelope, aggregateRoot TestAggregate) error {")
