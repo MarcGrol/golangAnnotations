@@ -1,5 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/mrb/hob.png?branch=master)](http://travis-ci.org/mrb/hob)
-
+https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master
 
 # Golang annotations
 
