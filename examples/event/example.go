@@ -2,7 +2,7 @@ package event
 
 import "time"
 
-//go:generate astTools -input-dir .
+//go:generate golangAnnotations -input-dir .
 
 // @Event( aggregate = "Tour")
 type TourCreated struct {
