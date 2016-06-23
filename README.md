@@ -1,7 +1,7 @@
 # Golang ast-tool
 
 Tool to help parsing your own golang source-code (using the abstract-syntax-tree tools from the standard library) into an intermediate representation.
-From this intermediate representation, we can easily generate predictable and error-phrone boilerplate source-code.
+From this intermediate representation, we can easily generate predictable and error-phrone boilerplate source-code. Annotations are used to pass instructions to the code-generator.
 
 This first implementation focuses on essing the work on the following topics:
 - web-services (jax-rs like):
@@ -13,13 +13,13 @@ This first implementation focuses on essing the work on the following topics:
     - Type-strong boiler-plate code to build an aggregate from individual events
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
 
-## Preparation
+## Installing the software
     $ go get github.com/MarcGrol/astTools
     $ cd ${GOPATH/src/github.com/MarcGrol/astTools
     $ go install ./...
     $ go test ./...
 
-## Http-server related annotations ("jax-rs"-like). 
+## How to use http-server related annotations ("jax-rs"-like)?
 
 A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. See [./examples/web/tourService.go](./examples/web/tourService.go)
 
@@ -35,7 +35,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
 
 Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) and [./examples/web/TourServiceHelpers_test.go](./examples/web/TourServiceHelpers_test.go) has been created in [examples/web](examples/web)
 
-## Event-sourcing related annotations:
+## How to use event-sourcing related annotations?
 
 A regular golang struct definition with our own "Event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
     
