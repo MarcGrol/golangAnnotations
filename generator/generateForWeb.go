@@ -59,11 +59,12 @@ import (
 {{ $structName := .Name }}
 
 func (ts *{{.Name}}) HttpHandler() http.Handler {
-	servicePrefix := "{{.GetRestServicePath}}"
 	router := mux.NewRouter().StrictSlash(true)
+	subRouter := router.PathPrefix("{{.GetRestServicePath}}").Subrouter()
+
 	{{range .Operations}}
 		{{if .IsRestOperation}}
-			router.HandleFunc( servicePrefix + "{{.GetRestOperationPath}}", {{.Name}}(ts)).Methods("{{.GetRestOperationMethod}}")
+			subRouter.HandleFunc(  "{{.GetRestOperationPath}}", {{.Name}}(ts)).Methods("{{.GetRestOperationMethod}}")
 		{{end}}
 	{{end}}
 	return router
