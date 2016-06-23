@@ -9,7 +9,6 @@ Example:
         ...
     } 
 
-
 The golangAnnotations-tool parses any golang source-code (using the abstract-syntax-tree tools from the standard go library) into an intermediate representation.
 From this intermediate representation,the tool generates predictable and error-phrone boilerplate source-code. The annotations are used as instructions to the code-generator.
 
