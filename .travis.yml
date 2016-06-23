@@ -7,6 +7,6 @@ go:
 script:
  - go test -v ./...
 
- before_install:
-   - cp .netrc ~
-   - chmod 600 .netrc
+before_install:
+ - cp .netrc ~
+ - chmod 600 .netrc
