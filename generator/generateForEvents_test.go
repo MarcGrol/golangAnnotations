@@ -51,4 +51,8 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Contains(t, string(data), "ApplyMyStruct(event MyStruct)")
 	assert.Contains(t, string(data), "func ApplyTestEvent(envelop Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func ApplyTestEvents(envelopes []Envelope, aggregateRoot TestAggregate) error {")
+
+	os.Remove("./testData/aggregates.go")
+	os.Remove("./testData/wrappers.go")
+
 }

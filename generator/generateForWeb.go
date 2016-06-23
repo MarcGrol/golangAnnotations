@@ -27,7 +27,7 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/%sHelpers_test.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, service.Name)
 				err = generateFileFromTemplate(service, "helpers", target)
 				if err != nil {
 					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)

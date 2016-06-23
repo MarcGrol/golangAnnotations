@@ -11,7 +11,8 @@ import (
 )
 
 func TestGenerateForWeb(t *testing.T) {
-	os.Remove("./testData/httpWeb.go")
+	os.Remove("./testData/httpMyService.go")
+	os.Remove("./testData/httpMyServiceHelpers_test.go")
 
 	s := []model.Struct{
 		{
@@ -48,4 +49,17 @@ func TestGenerateForWeb(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func (ts *MyService) HttpHandler() http.Handler {")
 	assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
+
+	// check that generated files exisst
+	_, err = os.Stat("./testData/httpMyService.go")
+	assert.NoError(t, err)
+
+	// check that generate code has 4 helper functions for MyStruct
+	data, err = ioutil.ReadFile("./testData/httpMyServiceHelpers_test.go")
+	assert.NoError(t, err)
+	assert.Contains(t, string(data), "func doitTestHelper")
+
+	os.Remove("./testData/httpMyService.go")
+	os.Remove("./testData/httpMyServiceHelpers_test.go")
+
 }
