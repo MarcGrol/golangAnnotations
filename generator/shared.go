@@ -177,9 +177,6 @@ func getPackageName(structs []model.Struct) (string, error) {
 }
 
 func determineTargetPath(inputDir string, packageName string) (string, error) {
-	//log.Printf("inputDir:%s", inputDir)
-	//log.Printf("package:%s", packageName)
-
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
 		return "", fmt.Errorf("GOPATH not set")
