@@ -9,8 +9,8 @@ Example:
     } 
 
 
-The golangAnnotationsTool parses your own golang source-code (using the abstract-syntax-tree tools from the standard go library) into an intermediate representation.
-From this intermediate representation, we can easily generate predictable and error-phrone boilerplate source-code. The annotations are used as instructions to the code-generator.
+The golangAnnotations-tool parses any golang source-code (using the abstract-syntax-tree tools from the standard go library) into an intermediate representation.
+From this intermediate representation,the tool generates predictable and error-phrone boilerplate source-code. The annotations are used as instructions to the code-generator.
 
 This first implementation focuses on essing the work on the following topics:
 - web-services (jax-rs like):
@@ -18,7 +18,7 @@ This first implementation focuses on essing the work on the following topics:
     - Generate helpers to ease integration testing of web-services
 
 - event-sourcing:
-    - Describe which events belong to a specific aggregate
+    - Describe which events belong to which aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
 
@@ -57,17 +57,11 @@ Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./e
 
 ### Command to trigger code-generation:
 
-    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations/
-    $ ${GOPATH}/bin/golangAnnotations -input-dir ./examples/event
-
-
-## Example integrated in tool-chain
-
 We use the "go:generate" mechanism to trigger our astTools. See [example.go](./examples/event/example.go).
 
     //go:generate golangAnnotations -input-dir .
 
-### command:
+### Command to trigger code-generation:
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
     $ go fmt ./...
