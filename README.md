@@ -60,8 +60,8 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
 
 ### command:
     $ cd ${GOPATH/src/github.com/MarcGrol/astTools
-    $ rm wrappers.go aggregates.go
     $ go generate ./...
+    $ go fmt ./...
     
 Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event/](examples/event/) 
 
