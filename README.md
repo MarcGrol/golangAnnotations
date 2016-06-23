@@ -1,4 +1,4 @@
-# Golang ast-tool
+# Golang annotations
 
 Tool to help parsing your own golang source-code (using the abstract-syntax-tree tools from the standard library) into an intermediate representation.
 From this intermediate representation, we can easily generate predictable and error-phrone boilerplate source-code. Annotations are used to pass instructions to the code-generator.
