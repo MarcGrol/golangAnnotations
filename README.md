@@ -1,5 +1,4 @@
-https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master
-
+[![Build Status](https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master)](https://travis-ci.org/MarcGrol/golangAnnotations)
 # Golang annotations
 
 This repository provides annotations for golang. The annotations live inside comments.
