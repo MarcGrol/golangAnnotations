@@ -64,7 +64,8 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
 
     //go:generate golangAnnotations -input-dir .
 
-### Command to trigger code-generation:
+So can can use the regular toolchain to trigger code-genaration
+
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
     $ go fmt ./...
