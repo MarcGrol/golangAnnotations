@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetTour(t *testing.T) {
-	respCode, tour, err := getTourOnUidTestHelper("/tour/2016")
+	respCode, tour, err := getTourOnUidTestHelper("/api/tour/2016")
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respCode)
@@ -25,7 +25,7 @@ func TestCreatCyclist(t *testing.T) {
 		Points: 42,
 	}
 
-	respCode, result, err := createCyclistTestHelper("/tour/2016/cyclist", cyclist)
+	respCode, result, err := createCyclistTestHelper("/api/tour/2016/cyclist", cyclist)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respCode)
 	assert.Equal(t, "42", result.UID)
@@ -42,7 +42,7 @@ func TestCreatEtappe(t *testing.T) {
 		Day:            date,
 	}
 
-	respCode, result, err := createEtappeTestHelper("/tour/2016/etappe", etappe)
+	respCode, result, err := createEtappeTestHelper("/api/tour/2016/etappe", etappe)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, respCode)
 	assert.Equal(t, "14", result.UID)
@@ -59,13 +59,13 @@ func TestCreatEtappeResult(t *testing.T) {
 		SprintRankings: []string{"31", "32", "33"},
 	}
 
-	respCode, err := addEtappeResultsTestHelper("/tour/2016/etappe/14", results)
+	respCode, err := addEtappeResultsTestHelper("/api/tour/2016/etappe/14", results)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, respCode)
 }
 
 func TestMarkCyclistAbandoned(t *testing.T) {
-	respCode, err := markCyclistAbondonedTestHelper("/tour/2016/cyclist/42")
+	respCode, err := markCyclistAbondonedTestHelper("/api/tour/2016/cyclist/42")
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, respCode)

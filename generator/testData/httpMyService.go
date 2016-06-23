@@ -14,9 +14,10 @@ import (
 )
 
 func (ts *MyService) HttpHandler() http.Handler {
+	servicePrefix := "/api"
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/person", doit(ts)).Methods("GET")
+	router.HandleFunc(servicePrefix+"/person", doit(ts)).Methods("GET")
 
 	return router
 }

@@ -14,17 +14,18 @@ import (
 )
 
 func (ts *TourService) HttpHandler() http.Handler {
+	servicePrefix := "/api"
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/tour/{year}", getTourOnUid(ts)).Methods("GET")
+	router.HandleFunc(servicePrefix+"/tour/{year}", getTourOnUid(ts)).Methods("GET")
 
-	router.HandleFunc("/tour/{year}/etappe", createEtappe(ts)).Methods("POST")
+	router.HandleFunc(servicePrefix+"/tour/{year}/etappe", createEtappe(ts)).Methods("POST")
 
-	router.HandleFunc("/tour/{year}/etappe/{etappeUid}", addEtappeResults(ts)).Methods("PUT")
+	router.HandleFunc(servicePrefix+"/tour/{year}/etappe/{etappeUid}", addEtappeResults(ts)).Methods("PUT")
 
-	router.HandleFunc("/tour/{year}/cyclist", createCyclist(ts)).Methods("POST")
+	router.HandleFunc(servicePrefix+"/tour/{year}/cyclist", createCyclist(ts)).Methods("POST")
 
-	router.HandleFunc("/tour/{year}/cyclist/{cyclistUid}", markCyclistAbondoned(ts)).Methods("DELETE")
+	router.HandleFunc(servicePrefix+"/tour/{year}/cyclist/{cyclistUid}", markCyclistAbondoned(ts)).Methods("DELETE")
 
 	return router
 }
