@@ -14,8 +14,8 @@ This first implementation focuses on essing the work on the following topics:
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
 
 ## Installing the software
-    $ go get github.com/MarcGrol/astTools
-    $ cd ${GOPATH/src/github.com/MarcGrol/astTools
+    $ go get github.com/MarcGrol/golangAnnotations
+    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go install ./...
     $ go test ./...
 
@@ -59,7 +59,7 @@ We use the "go:generate" mechanism to trigger our astTools. See [example.go](./e
     //go:generate astTools -input-dir .
 
 ### command:
-    $ cd ${GOPATH/src/github.com/MarcGrol/astTools
+    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
     $ go fmt ./...
     
