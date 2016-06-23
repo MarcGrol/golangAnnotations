@@ -57,15 +57,15 @@ Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./e
 
 ### Command to trigger code-generation:
 
-    $ cd ${GOPATH/src/github.com/MarcGrol/astTools/
-    $ ${GOPATH}/bin/astTools -input-dir ./examples/event
+    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations/
+    $ ${GOPATH}/bin/golangAnnotations -input-dir ./examples/event
 
 
 ## Example integrated in tool-chain
 
 We use the "go:generate" mechanism to trigger our astTools. See [example.go](./examples/event/example.go).
 
-    //go:generate astTools -input-dir .
+    //go:generate golangAnnotations -input-dir .
 
 ### command:
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
