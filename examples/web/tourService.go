@@ -2,7 +2,7 @@ package web
 
 import "time"
 
-//go:generate astTools -input-dir .
+//go:generate golangAnnotations -input-dir .
 
 type Tour struct {
 	Year     int       `json:"year"`
