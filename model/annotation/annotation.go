@@ -38,27 +38,19 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
 		annotation, err := parseAnnotation(annotationDocline)
-		if err == nil {
-			//log.Printf("*** Error parsing text-annotation %s: %+v", annotationDocline, err)
-			// try the other format
-			annotation, err = parseAnnotation(annotationDocline)
-			if err != nil {
-				//log.Printf("*** Error parsing json-annotation %s: %+v", annotationDocline, err)
-				continue
-			}
+		annotation, err = parseAnnotation(annotationDocline)
+		if err != nil {
+			continue
 		}
 
 		if annotation.Name != descriptor.name {
-			//log.Printf("*** Annotation-line '%s' did NOT match %s", annotationDocline, descriptor.name)
 			continue
 		}
 
 		ok := descriptor.validator(annotation)
 		if !ok {
-			//log.Printf("*** Annotation-line '%s' of type %s is invalid %+v", annotationDocline, descriptor.name, annotation)
 			continue
 		}
-		//log.Printf("Valid %s annotation -line '%s'", annotation.Annotation, annotationDocline)
 
 		return annotation, true
 	}

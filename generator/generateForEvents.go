@@ -25,13 +25,13 @@ func GenerateForEvents(inputDir string, structs []model.Struct) error {
 	aggregates := make(map[string]map[string]string)
 	eventCount := 0
 	for _, s := range structs {
-		if s.IsEvent() {
-			events, ok := aggregates[s.GetAggregateName()]
+		if IsEvent(s) {
+			events, ok := aggregates[GetAggregateName(s)]
 			if !ok {
 				events = make(map[string]string)
 			}
 			events[s.Name] = s.Name
-			aggregates[s.GetAggregateName()] = events
+			aggregates[GetAggregateName(s)] = events
 			eventCount++
 		}
 	}
@@ -159,21 +159,21 @@ type Envelope struct {
 
 const (
 {{range .Structs}}
-{{if .IsEvent}}
+{{if IsEvent . }}
 	{{.Name}}EventName = "{{.Name}}"
 {{end}}
 {{end}}
 )
 
 {{range .Structs}}
-{{if .IsEvent}}
+{{if IsEvent . }}
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     envelope := new(Envelope)
     envelope.Uuid = uuid.NewV1().String()
     envelope.SequenceNumber = 0 // Set later by event-store
     envelope.Timestamp = time.Now()
-    envelope.AggregateName = {{.GetAggregateName}}AggregateName // from annotation!
+    envelope.AggregateName = {{GetAggregateName . }}AggregateName // from annotation!
     envelope.AggregateUid = uid
     envelope.EventTypeName = {{.Name}}EventName
     blob, err := json.Marshal(s)

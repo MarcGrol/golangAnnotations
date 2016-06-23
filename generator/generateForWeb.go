@@ -17,7 +17,7 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 		return err
 	}
 	for _, service := range structs {
-		if service.IsRestService() {
+		if IsRestService(service) {
 			{
 				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
 				err = generateFileFromTemplate(service, "handlers", target)
@@ -60,18 +60,19 @@ import (
 
 func (ts *{{.Name}}) HttpHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
-	subRouter := router.PathPrefix("{{.GetRestServicePath}}").Subrouter()
+	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
 
 	{{range .Operations}}
-		{{if .IsRestOperation}}
-			subRouter.HandleFunc(  "{{.GetRestOperationPath}}", {{.Name}}(ts)).Methods("{{.GetRestOperationMethod}}")
+		{{if IsRestOperation . }}
+			subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
 		{{end}}
 	{{end}}
 	return router
 }
 
 {{range $idxOper, $oper := .Operations}}
-{{if .IsRestOperation}}
+
+{{if IsRestOperation $oper}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -81,8 +82,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		// extract url-params
 		{{range .InputArgs}}
-			{{if .IsPrimitive}}
-				{{if .IsNumber}}
+			{{if IsPrimitive . }}
+				{{if IsNumber . }}
 					{{.Name}}String, exists := pathParams["{{.Name}}"]
 					if !exists {
 						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
@@ -103,10 +104,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{end}}
 		{{end}}
 
-		{{if .HasInput }}
+		{{if HasInput . }}
 			// read abd parse request body
-			var {{.GetInputArgName}} {{.GetInputArgType}}
-			err = json.NewDecoder(r.Body).Decode( &{{.GetInputArgName}} )
+			var {{GetInputArgName . }} {{GetInputArgType . }}
+			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
 				handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
 				return
@@ -114,10 +115,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
 
 		// call business logic
-		{{if .HasOutput }}
-			result, err := service.{{$oper.Name}}({{.GetInputParamString}})
+		{{if HasOutput . }}
+			result, err := service.{{$oper.Name}}({{GetInputParamString . }})
 		{{else}}
-			err = service.{{$oper.Name}}({{.GetInputParamString}})
+			err = service.{{$oper.Name}}({{GetInputParamString . }})
 		{{end}}
 		if err != nil {
 			handleError(err, w)
@@ -125,7 +126,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		}
 
 		// write response body
-		{{if .HasOutput }}
+		{{if HasOutput . }}
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
 			err = json.NewEncoder(w).Encode(result)
@@ -189,33 +190,33 @@ import (
 
 {{range .Operations}}
 
-{{if .IsRestOperation}}
-func {{.Name}}TestHelper(url string {{if .HasInput}}, input {{.GetInputArgType}} {{end}} )  (int {{if .HasOutput }},*{{.GetOutputArgType}}{{end}},error) {
+{{if IsRestOperation . }}
+func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},*{{GetOutputArgType . }}{{end}},error) {
 
 	recorder := httptest.NewRecorder()
 
-	{{if .HasInput}}
+	{{if HasInput . }}
 		requestBody, _ := json.Marshal(input)
-		req, err := http.NewRequest("{{.GetRestOperationMethod}}", url, strings.NewReader(string(requestBody)))
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestBody)))
 	{{else}}
-		req, err := http.NewRequest("{{.GetRestOperationMethod}}", url, nil)
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{end}}
 	if err != nil {
-		{{if .HasOutput }}
+		{{if HasOutput . }}
 			return 0, nil, err
 		{{else}}
 			return 0,  err
 		{{end}}
 	}
-	{{if .HasOutput }}
+	{{if HasOutput . }}
 		req.Header.Set("Accept", "application/json")
 	{{end}}
 
 	webservice := {{$structName}}{}
 	webservice.HttpHandler().ServeHTTP(recorder, req)
 
-	{{if .HasOutput }}
-		var resp {{.GetOutputArgType}}
+	{{if HasOutput . }}
+		var resp {{GetOutputArgType . }}
 		dec := json.NewDecoder(recorder.Body)
 		err = dec.Decode(&resp)
 		if err != nil {
