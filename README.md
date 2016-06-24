@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master)](https://travis-ci.org/MarcGrol/golangAnnotations)
-[![Coverage Status](https://coveralls.io/repos/github/astropy/astropy/badge.svg)](https://coveralls.io/github/astropy/astropy)# Golang annotations
+[![Coverage Status](https://coveralls.io/repos/github/astropy/astropy/badge.svg)](https://coveralls.io/github/astropy/astropy)
+
+# Golang annotations
 
 This repository provides annotations for golang. The annotations live inside comments.
 Example:
