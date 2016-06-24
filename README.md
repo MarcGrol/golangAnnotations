@@ -3,7 +3,12 @@
 
 # Golang annotations
 
-This repository provides annotations for golang. The annotations live inside comments.
+
+## Summary
+
+The golangAnnotations-tool parses your golang source-code into an intermediate representation.
+Using this intermediate representation, the tool uses your annotations to generate predictable and error-phrone source-code. Bottom line, a lot less code needs to be written.
+
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
@@ -11,10 +16,12 @@ Example:
         ...
     } 
 
-The golangAnnotations-tool parses any golang source-code (using the abstract-syntax-tree tools from the standard go library) into an intermediate representation.
-From this intermediate representation,the tool generates predictable and error-phrone boilerplate source-code. The annotations are used as instructions to the code-generator.
+## Getting the software
+    $ go get github.com/MarcGrol/golangAnnotations
 
-This first implementation focuses on essing the work on the following topics:
+## Currently supported annotations
+
+This first implementation provides the following kind of annotations:
 - web-services (jax-rs like):
     - Generate server-side http-handling for a regular "service"
     - Generate helpers to ease integration testing of web-services
@@ -23,12 +30,6 @@ This first implementation focuses on essing the work on the following topics:
     - Describe which events belong to which aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
-
-## Installing the software
-    $ go get github.com/MarcGrol/golangAnnotations
-    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
-    $ go install ./...
-    $ go test ./...
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
