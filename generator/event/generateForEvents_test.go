@@ -6,6 +6,7 @@ import (
 
 	"io/ioutil"
 
+	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,5 +54,22 @@ func TestGenerateForEvents(t *testing.T) {
 
 	os.Remove("./testData/aggregates.go")
 	os.Remove("./testData/wrappers.go")
+}
 
+func TestIsEvent(t *testing.T) {
+	eventAnnotation.Register()
+	s := model.Struct{
+		DocLines: []string{
+			`//@Event( aggregate = "person")`},
+	}
+	assert.True(t, IsEvent(s))
+}
+
+func TestGetAggregateName(t *testing.T) {
+	eventAnnotation.Register()
+	s := model.Struct{
+		DocLines: []string{
+			`//@Event( aggregate = "person")`},
+	}
+	assert.Equal(t, "person", GetAggregateName(s))
 }

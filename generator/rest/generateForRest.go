@@ -27,7 +27,7 @@ func Generate(inputDir string, structs []model.Struct) error {
 		if IsRestService(service) {
 			{
 				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, "handlers", HandlersTemplate, customTemplateFuncs, target)
+				err = generationUtil.GenerateFileFromTemplate(service, "handlers", handlersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
 					return err
@@ -61,7 +61,6 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":              HasOutput,
 	"IsPrimitive":            IsPrimitive,
 	"IsNumber":               IsNumber,
-	"ToFirstUpper":           ToFirstUpper,
 }
 
 func IsRestService(s model.Struct) bool {
@@ -163,14 +162,7 @@ func IsNumber(f model.Field) bool {
 	return f.TypeName == "int"
 }
 
-func ToFirstUpper(in string) string {
-	if len(in) == 0 {
-		return in
-	}
-	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
-}
-
-var HandlersTemplate string = `
+var handlersTemplate string = `
 // Generated automatically: do not edit manually
 
 package {{.PackageName}}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
@@ -82,7 +81,6 @@ func Generate(inputDir string, structs []model.Struct) error {
 var customTemplateFuncs = template.FuncMap{
 	"IsEvent":          IsEvent,
 	"GetAggregateName": GetAggregateName,
-	"ToFirstUpper":     ToFirstUpper,
 }
 
 func IsEvent(s model.Struct) bool {
@@ -99,13 +97,6 @@ func GetAggregateName(s model.Struct) string {
 		return val.Attributes["aggregate"]
 	}
 	return ""
-}
-
-func ToFirstUpper(in string) string {
-	if len(in) == 0 {
-		return in
-	}
-	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
 }
 
 var aggregateTemplate string = `

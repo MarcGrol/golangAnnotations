@@ -1,11 +1,13 @@
 package rest
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"io/ioutil"
 
+	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -62,4 +64,118 @@ func TestGenerateForWeb(t *testing.T) {
 	os.Remove("./testData/httpMyService.go")
 	os.Remove("./testData/httpMyServiceHelpers_test.go")
 
+}
+
+func TestIsRestService(t *testing.T) {
+	restAnnotation.Register()
+	s := model.Struct{
+		DocLines: []string{
+			`//@RestService( path = "/api")`},
+	}
+	assert.True(t, IsRestService(s))
+}
+
+func TestGetRestServicePath(t *testing.T) {
+	restAnnotation.Register()
+	s := model.Struct{
+		DocLines: []string{
+			`//@RestService( path = "/api")`},
+	}
+	assert.Equal(t, "/api", GetRestServicePath(s))
+}
+
+func TestIsRestOperation(t *testing.T) {
+	assert.True(t, IsRestOperation(createOper("GET")))
+}
+
+func TestGetRestOperationMethod(t *testing.T) {
+	assert.Equal(t, "GET", GetRestOperationMethod(createOper("GET")))
+}
+
+func TestGetRestOperationPath(t *testing.T) {
+	assert.Equal(t, "/api/person", GetRestOperationPath(createOper("DONTCARE")))
+}
+
+func TestHasInputGet(t *testing.T) {
+	assert.False(t, HasInput(createOper("GET")))
+}
+
+func TestHasInputDelete(t *testing.T) {
+	assert.False(t, HasInput(createOper("DELETE")))
+}
+
+func TestHasInputPost(t *testing.T) {
+	assert.True(t, HasInput(createOper("POST")))
+}
+
+func TestHasInputPut(t *testing.T) {
+	assert.True(t, HasInput(createOper("PUT")))
+}
+
+func TestGetInputArgTypeString(t *testing.T) {
+	restAnnotation.Register()
+	o := model.Operation{
+		InputArgs: []model.Field{
+			model.Field{TypeName: "string"},
+		},
+	}
+	assert.Equal(t, "", GetInputArgType(o))
+}
+
+func TestGetInputArgTypePerson(t *testing.T) {
+	assert.Equal(t, "Person", GetInputArgType(createOper("DONTCARE")))
+}
+
+func TestGetInputArgName(t *testing.T) {
+	assert.Equal(t, "person", GetInputArgName(createOper("DONTCARE")))
+}
+
+func TestGetInputParamString(t *testing.T) {
+	assert.Equal(t, "uid,person", GetInputParamString(createOper("DONTCARE")))
+}
+
+func TestHasOutput(t *testing.T) {
+	assert.True(t, HasOutput(createOper("DONTCARE")))
+}
+
+func TestGetOutputArgType(t *testing.T) {
+	assert.Equal(t, "Person", GetOutputArgType(createOper("DONTCARE")))
+}
+
+func TestIsPrimitiveTrue(t *testing.T) {
+	f := model.Field{Name: "uid", TypeName: "string"}
+	assert.True(t, IsPrimitive(f))
+}
+
+func TestIsPrimitiveFalse(t *testing.T) {
+	f := model.Field{Name: "person", TypeName: "Person"}
+	assert.False(t, IsPrimitive(f))
+}
+
+func TestIsNumberTrue(t *testing.T) {
+	f := model.Field{Name: "uid", TypeName: "int"}
+	assert.True(t, IsNumber(f))
+}
+
+func TestIsNumberFalse(t *testing.T) {
+	f := model.Field{Name: "uid", TypeName: "string"}
+	assert.False(t, IsNumber(f))
+}
+
+func createOper(method string) model.Operation {
+	restAnnotation.Register()
+	o := model.Operation{
+		DocLines: []string{
+			fmt.Sprintf("//@RestOperation( method = \"%s\", path = \"/api/person\")", method),
+		},
+		InputArgs: []model.Field{
+			model.Field{Name: "uid", TypeName: "string"},
+			model.Field{Name: "person", TypeName: "Person"},
+		},
+		OutputArgs: []model.Field{
+			model.Field{TypeName: "Person"},
+			model.Field{TypeName: "error"},
+		},
+	}
+	return o
 }

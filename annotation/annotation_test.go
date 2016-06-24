@@ -10,7 +10,7 @@ func TestGarbage(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("Event", []string{}, validateOk)
 
-	_, ok := ResolveAnnotation(`// wvdwadbvb`)
+	_, ok := ResolveAnnotations([]string{`// wvdwadbvb`})
 	assert.False(t, ok)
 }
 
@@ -18,7 +18,7 @@ func TestInvalidSyntax(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("Event", []string{}, validateOk)
 
-	_, ok := ResolveAnnotation(`// @X( a = "A" `)
+	_, ok := ResolveAnnotations([]string{`// @X( a = "A" `})
 	assert.False(t, ok)
 }
 
@@ -26,7 +26,7 @@ func TestTokensInValue(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("Event", []string{}, validateOk)
 
-	annotation, ok := ResolveAnnotation(`// @Event( aggregate = "@A@")`)
+	annotation, ok := ResolveAnnotations([]string{`// @Event( aggregate = "@A@")`})
 	assert.True(t, ok)
 	assert.Equal(t, "@A@", annotation.Attributes["aggregate"])
 }
@@ -35,7 +35,7 @@ func TestUnknownName(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("X", []string{}, validateOk)
 
-	_, ok := ResolveAnnotation(`// @Y( a = "A" `)
+	_, ok := ResolveAnnotations([]string{`// @Y( a = "A" `})
 	assert.False(t, ok)
 }
 
@@ -43,7 +43,7 @@ func TestCorrectAnnotation(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("X", []string{}, validateOk)
 
-	annotation, ok := ResolveAnnotation(`// @X( a = "A" )`)
+	annotation, ok := ResolveAnnotations([]string{`// @X( a = "A" )`})
 	assert.True(t, ok)
 	assert.Equal(t, "X", annotation.Name)
 	assert.Equal(t, "A", annotation.Attributes["a"])
@@ -53,7 +53,7 @@ func TestAnnotationWithValidationError(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("X", []string{}, validateError)
 
-	_, ok := ResolveAnnotation(`// @X( a = "A" )`)
+	_, ok := ResolveAnnotations([]string{`// @X( a = "A" )`})
 	assert.False(t, ok)
 }
 

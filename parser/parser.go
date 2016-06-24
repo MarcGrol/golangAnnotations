@@ -83,6 +83,7 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 	return packages, nil
 }
 
+/*
 func dumpFile(srcFilename string) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
@@ -109,7 +110,7 @@ func dumpFilesInDir(dirName string) {
 		}
 	}
 }
-
+*/
 func (v *AstVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 
