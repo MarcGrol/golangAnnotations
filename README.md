@@ -16,6 +16,9 @@ Example:
         ...
     } 
 
+## Getting the software
+    $ go get github.com/MarcGrol/golangAnnotations
+
 ## Currently supported annotations
 
 This first implementation provides the following kind of annotations:
@@ -27,12 +30,6 @@ This first implementation provides the following kind of annotations:
     - Describe which events belong to which aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
     - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
-
-## Installing the software
-    $ go get github.com/MarcGrol/golangAnnotations
-    $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
-    $ go install ./...
-    $ go test ./...
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
