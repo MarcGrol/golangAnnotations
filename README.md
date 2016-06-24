@@ -3,6 +3,9 @@
 
 # Golang annotations
 
+
+## Summary
+
 The golangAnnotations-tool parses your golang source-code into an intermediate representation.
 From this intermediate representation, the tool uses your annotations to generate predictable and error-phrone  source-code. 
 
