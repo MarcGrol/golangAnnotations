@@ -13,6 +13,7 @@ Example:
         ...
     } 
 
+## Currently supported annotations
 
 This first implementation provides the following kind of annotations:
 - web-services (jax-rs like):
