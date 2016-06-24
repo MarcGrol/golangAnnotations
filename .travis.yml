@@ -10,4 +10,4 @@ install:
 script:
  - PATH="$HOME/gopath/bin:$PATH"
  - go test -v ./...
- - coverage.sh --coveralls
+ - scripts/coverage.sh --coveralls
