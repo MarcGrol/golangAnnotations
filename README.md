@@ -3,7 +3,9 @@
 
 # Golang annotations
 
-This repository provides annotations for golang. The annotations live inside comments.
+The golangAnnotations-tool parses your golang source-code into an intermediate representation.
+From this intermediate representation, the tool uses your annotations to generate predictable and error-phrone  source-code. 
+
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
@@ -11,10 +13,8 @@ Example:
         ...
     } 
 
-The golangAnnotations-tool parses any golang source-code (using the abstract-syntax-tree tools from the standard go library) into an intermediate representation.
-From this intermediate representation,the tool generates predictable and error-phrone boilerplate source-code. The annotations are used as instructions to the code-generator.
 
-This first implementation focuses on essing the work on the following topics:
+This first implementation provides the following kind of annotations:
 - web-services (jax-rs like):
     - Generate server-side http-handling for a regular "service"
     - Generate helpers to ease integration testing of web-services
