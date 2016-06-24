@@ -2,5 +2,12 @@ language: go
 go:
  - 1.6.2
 
+install:
+ - go get -t ./...
+ - go get code.google.com/p/go.tools/cmd/cover
+ - go get github.com/mattn/goveralls
+
 script:
+ - PATH="$HOME/gopath/bin:$PATH"
  - go test -v ./...
+ - coverage.sh --coveralls
