@@ -2,6 +2,11 @@ package annotation
 
 import "strings"
 
+type Annotation struct {
+	Name       string
+	Attributes map[string]string
+}
+
 type ValidationFunc func(annot Annotation) bool
 
 type annotationDescriptor struct {
@@ -18,11 +23,6 @@ func ClearRegisteredAnnotations() {
 
 func RegisterAnnotation(name string, paramNames []string, validator ValidationFunc) {
 	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
-}
-
-type Annotation struct {
-	Name       string
-	Attributes map[string]string
 }
 
 func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {

@@ -1,4 +1,4 @@
-package generator
+package event
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/MarcGrol/astTools/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ func TestGenerateForEvents(t *testing.T) {
 			},
 		},
 	}
-	err := GenerateForEvents("testData", s)
+	err := Generate("testData", s)
 	assert.Nil(t, err)
 
 	// check that generated files exisst

@@ -59,7 +59,7 @@ Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./e
 
 ### Command to trigger code-generation:
 
-We use the "go:generate" mechanism to trigger our astTools. See [example.go](./examples/event/example.go).
+We use the "go:generate" mechanism to trigger our goAnnotations-executable. See [example.go](./examples/event/example.go).
 
     //go:generate golangAnnotations -input-dir .
 

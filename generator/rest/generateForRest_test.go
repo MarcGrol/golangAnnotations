@@ -1,4 +1,4 @@
-package generator
+package rest
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/MarcGrol/astTools/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +37,7 @@ func TestGenerateForWeb(t *testing.T) {
 			},
 		})
 
-	err := GenerateForWeb("testData", s)
+	err := Generate("testData", s)
 	assert.Nil(t, err)
 
 	// check that generated files exisst

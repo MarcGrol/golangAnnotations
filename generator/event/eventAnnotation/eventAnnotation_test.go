@@ -1,9 +1,9 @@
-package eventAnno
+package eventAnnotation
 
 import (
 	"testing"
 
-	"github.com/MarcGrol/astTools/model/annotation"
+	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/stretchr/testify/assert"
 )
 

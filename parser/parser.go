@@ -8,7 +8,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/MarcGrol/astTools/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 type AstVisitor struct {

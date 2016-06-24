@@ -1,18 +1,25 @@
-package generator
+package rest
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"strings"
 
-	"github.com/MarcGrol/astTools/model"
+	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func GenerateForWeb(inputDir string, structs []model.Struct) error {
-	packageName, err := getPackageName(structs)
+func Generate(inputDir string, structs []model.Struct) error {
+	restAnnotation.Register()
+
+	packageName, err := generationUtil.GetPackageName(structs)
 	if err != nil {
 		return err
 	}
-	targetDir, err := determineTargetPath(inputDir, packageName)
+	targetDir, err := generationUtil.DetermineTargetPath(inputDir, packageName)
 	if err != nil {
 		return err
 	}
@@ -20,7 +27,7 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 		if IsRestService(service) {
 			{
 				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
-				err = generateFileFromTemplate(service, "handlers", target)
+				err = generationUtil.GenerateFileFromTemplate(service, "handlers", HandlersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
 					return err
@@ -28,7 +35,7 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 			}
 			{
 				target := fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, service.Name)
-				err = generateFileFromTemplate(service, "helpers", target)
+				err = generationUtil.GenerateFileFromTemplate(service, "helpers", HelpersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
 					return err
@@ -40,7 +47,130 @@ func GenerateForWeb(inputDir string, structs []model.Struct) error {
 	return nil
 }
 
-var handlersTemplate string = `
+var customTemplateFuncs = template.FuncMap{
+	"IsRestService":          IsRestService,
+	"GetRestServicePath":     GetRestServicePath,
+	"IsRestOperation":        IsRestOperation,
+	"GetRestOperationPath":   GetRestOperationPath,
+	"GetRestOperationMethod": GetRestOperationMethod,
+	"HasInput":               HasInput,
+	"GetInputArgType":        GetInputArgType,
+	"GetInputArgName":        GetInputArgName,
+	"GetInputParamString":    GetInputParamString,
+	"GetOutputArgType":       GetOutputArgType,
+	"HasOutput":              HasOutput,
+	"IsPrimitive":            IsPrimitive,
+	"IsNumber":               IsNumber,
+	"ToFirstUpper":           ToFirstUpper,
+}
+
+func IsRestService(s model.Struct) bool {
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if !ok || annotation.Name != "RestService" {
+		return false
+	}
+	return ok
+}
+
+func GetRestServicePath(o model.Struct) string {
+	val, ok := annotation.ResolveAnnotations(o.DocLines)
+	if ok {
+		return val.Attributes["path"]
+	}
+	return ""
+}
+
+func IsRestOperation(o model.Operation) bool {
+	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
+	if !ok || annotation.Name != "RestOperation" {
+		return false
+	}
+	return ok
+}
+
+func GetRestOperationPath(o model.Operation) string {
+	val, ok := annotation.ResolveAnnotations(o.DocLines)
+	if ok {
+		return val.Attributes["path"]
+	}
+	return ""
+}
+
+func GetRestOperationMethod(o model.Operation) string {
+	val, ok := annotation.ResolveAnnotations(o.DocLines)
+	if ok {
+		return val.Attributes["method"]
+	}
+	return ""
+}
+
+func HasInput(o model.Operation) bool {
+	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
+		return true
+	}
+	return false
+}
+
+func GetInputArgType(o model.Operation) string {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName != "int" && arg.TypeName != "string" {
+			return arg.TypeName
+		}
+	}
+	return ""
+}
+
+func GetInputArgName(o model.Operation) string {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName != "int" && arg.TypeName != "string" {
+			return arg.Name
+		}
+	}
+	return ""
+}
+
+func GetInputParamString(o model.Operation) string {
+	args := []string{}
+	for _, arg := range o.InputArgs {
+		args = append(args, arg.Name)
+	}
+	return strings.Join(args, ",")
+}
+
+func HasOutput(o model.Operation) bool {
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName != "error" {
+			return true
+		}
+	}
+	return false
+}
+
+func GetOutputArgType(o model.Operation) string {
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName != "error" {
+			return arg.TypeName
+		}
+	}
+	return ""
+}
+
+func IsPrimitive(f model.Field) bool {
+	return f.TypeName == "int" || f.TypeName == "string"
+}
+
+func IsNumber(f model.Field) bool {
+	return f.TypeName == "int"
+}
+
+func ToFirstUpper(in string) string {
+	if len(in) == 0 {
+		return in
+	}
+	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
+}
+
+var HandlersTemplate string = `
 // Generated automatically: do not edit manually
 
 package {{.PackageName}}
@@ -174,7 +304,7 @@ func determineHttpCode(err error) int {
 
 `
 
-var helpersTemplate string = `
+var HelpersTemplate string = `
 // Generated automatically: do not edit manually
 
 package {{.PackageName}}

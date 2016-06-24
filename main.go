@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/MarcGrol/astTools/generator"
-	"github.com/MarcGrol/astTools/parser"
+	"github.com/MarcGrol/golangAnnotations/generator/event"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
 const (
@@ -27,15 +28,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = generator.GenerateForEvents(*inputDir, harvest.Structs)
+	err = event.Generate(*inputDir, harvest.Structs)
 	if err != nil {
 		log.Printf("Error generating event code:%s", err)
 		os.Exit(1)
 	}
 
-	err = generator.GenerateForWeb(*inputDir, harvest.Structs)
+	err = rest.Generate(*inputDir, harvest.Structs)
 	if err != nil {
-		log.Printf("Error generating http code:%s", err)
+		log.Printf("Error generating rest code:%s", err)
 		os.Exit(1)
 	}
 

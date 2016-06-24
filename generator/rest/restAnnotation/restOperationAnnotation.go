@@ -1,24 +1,24 @@
-package restAnno
+package restAnnotation
 
-import "github.com/MarcGrol/astTools/model/annotation"
+import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
 	typeRestOperation = "RestOperation"
 	typeRestService   = "RestService"
-	ParamPath         = "path"
-	ParamMethod       = "method"
+	paramPath         = "path"
+	paramMethod       = "method"
 )
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
-	annotation.RegisterAnnotation(typeRestOperation, []string{ParamMethod, ParamPath}, validateRestOperationAnnotation)
-	annotation.RegisterAnnotation(typeRestService, []string{ParamPath}, validateRestServiceAnnotation)
+	annotation.RegisterAnnotation(typeRestOperation, []string{paramMethod, paramPath}, validateRestOperationAnnotation)
+	annotation.RegisterAnnotation(typeRestService, []string{paramPath}, validateRestServiceAnnotation)
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == typeRestOperation {
-		path, hasPath := annot.Attributes[ParamPath]
-		method, hasMethod := annot.Attributes[ParamMethod]
+		path, hasPath := annot.Attributes[paramPath]
+		method, hasMethod := annot.Attributes[paramMethod]
 		return ((hasPath && path != "") && hasMethod && method != "")
 	}
 	return false
@@ -26,7 +26,7 @@ func validateRestOperationAnnotation(annot annotation.Annotation) bool {
 
 func validateRestServiceAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == typeRestService {
-		_, ok := annot.Attributes[ParamPath]
+		_, ok := annot.Attributes[paramPath]
 		return ok
 	}
 	return false

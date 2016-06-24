@@ -1,10 +1,15 @@
-package generator
+package event
 
 import (
 	"fmt"
+	"html/template"
 	"log"
+	"strings"
 
-	"github.com/MarcGrol/astTools/model"
+	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 type AggregateMap struct {
@@ -17,8 +22,10 @@ type Structs struct {
 	Structs     []model.Struct
 }
 
-func GenerateForEvents(inputDir string, structs []model.Struct) error {
-	packageName, err := getPackageName(structs)
+func Generate(inputDir string, structs []model.Struct) error {
+	eventAnnotation.Register()
+
+	packageName, err := generationUtil.GetPackageName(structs)
 	if err != nil {
 		return err
 	}
@@ -37,7 +44,7 @@ func GenerateForEvents(inputDir string, structs []model.Struct) error {
 	}
 
 	if eventCount > 0 {
-		targetDir, err := determineTargetPath(inputDir, packageName)
+		targetDir, err := generationUtil.DetermineTargetPath(inputDir, packageName)
 		if err != nil {
 			return err
 		}
@@ -49,7 +56,7 @@ func GenerateForEvents(inputDir string, structs []model.Struct) error {
 				AggregateMap: aggregates,
 			}
 
-			err = generateFileFromTemplate(data, "aggregates", target)
+			err = generationUtil.GenerateFileFromTemplate(data, "aggregates", aggregateTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating aggregates (%s)", err)
 				return err
@@ -62,7 +69,7 @@ func GenerateForEvents(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generateFileFromTemplate(data, "wrappers", target)
+			err = generationUtil.GenerateFileFromTemplate(data, "wrappers", wrappersTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for structs (%s)", err)
 				return err
@@ -70,6 +77,35 @@ func GenerateForEvents(inputDir string, structs []model.Struct) error {
 		}
 	}
 	return nil
+}
+
+var customTemplateFuncs = template.FuncMap{
+	"IsEvent":          IsEvent,
+	"GetAggregateName": GetAggregateName,
+	"ToFirstUpper":     ToFirstUpper,
+}
+
+func IsEvent(s model.Struct) bool {
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if !ok || annotation.Name != "Event" {
+		return false
+	}
+	return ok
+}
+
+func GetAggregateName(s model.Struct) string {
+	val, ok := annotation.ResolveAnnotations(s.DocLines)
+	if ok {
+		return val.Attributes["aggregate"]
+	}
+	return ""
+}
+
+func ToFirstUpper(in string) string {
+	if len(in) == 0 {
+		return in
+	}
+	return strings.ToUpper(fmt.Sprintf("%c", in[0])) + in[1:]
 }
 
 var aggregateTemplate string = `
