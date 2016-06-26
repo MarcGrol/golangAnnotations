@@ -61,6 +61,9 @@ Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./e
 ### Command to trigger code-generation:
 
 We use the "go:generate" mechanism to trigger our goAnnotations-executable. See [example.go](./examples/event/example.go).
+In order to trigger this mechanisme we use a '//go:genarate' comment with the command to be executed.
+
+example:
 
     //go:generate golangAnnotations -input-dir .
 
