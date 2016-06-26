@@ -10,4 +10,5 @@ install:
 script:
  - PATH="$HOME/gopath/bin:$PATH"
  - go test -v ./...
- - $HOME/gopath/bin/goveralls -service=travis-ci
+ - scripts/coverage.sh
+ - $HOME/gopath/bin/goveralls -coverprofile=.cover/cover.out -service=travis-ci
