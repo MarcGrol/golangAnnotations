@@ -26,6 +26,10 @@ func GetPackageName(structs []model.Struct) (string, error) {
 }
 
 func DetermineTargetPath(inputDir string, packageName string) (string, error) {
+	if inputDir == "" || packageName == "" {
+		return "", fmt.Errorf("Input params not set")
+	}
+
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
 		return "", fmt.Errorf("GOPATH not set")
