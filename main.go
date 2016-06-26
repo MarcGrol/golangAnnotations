@@ -24,19 +24,19 @@ func main() {
 
 	harvest, err := parser.ParseSourceDir(*inputDir, ".*.go")
 	if err != nil {
-		log.Printf("Error finding structs in %s:%s", *inputDir, err)
+		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
 	}
 
 	err = event.Generate(*inputDir, harvest.Structs)
 	if err != nil {
-		log.Printf("Error generating event code:%s", err)
+		log.Printf("Error generating event-related code:%s", err)
 		os.Exit(1)
 	}
 
 	err = rest.Generate(*inputDir, harvest.Structs)
 	if err != nil {
-		log.Printf("Error generating rest code:%s", err)
+		log.Printf("Error generating rest-related code:%s", err)
 		os.Exit(1)
 	}
 
