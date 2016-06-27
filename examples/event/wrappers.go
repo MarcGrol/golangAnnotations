@@ -50,21 +50,22 @@ var getUid getUidFunc = func() string {
 }
 
 func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = TourAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = TourCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling TourCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  TourAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  TourCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsTourCreated(envelope *Envelope) bool {
@@ -97,21 +98,22 @@ func UnWrapTourCreated(envelop *Envelope) (*TourCreated, error) {
 }
 
 func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = TourAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = CyclistCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling CyclistCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  TourAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  CyclistCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsCyclistCreated(envelope *Envelope) bool {
@@ -144,21 +146,22 @@ func UnWrapCyclistCreated(envelop *Envelope) (*CyclistCreated, error) {
 }
 
 func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = TourAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = EtappeCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling EtappeCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  TourAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  EtappeCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsEtappeCreated(envelope *Envelope) bool {
@@ -191,21 +194,22 @@ func UnWrapEtappeCreated(envelop *Envelope) (*EtappeCreated, error) {
 }
 
 func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = TourAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = EtappeResultsCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling EtappeResultsCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  TourAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  EtappeResultsCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsEtappeResultsCreated(envelope *Envelope) bool {
@@ -238,21 +242,22 @@ func UnWrapEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, error
 }
 
 func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = GamblerAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = GamblerCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling GamblerCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  GamblerAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  GamblerCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsGamblerCreated(envelope *Envelope) bool {
@@ -285,21 +290,22 @@ func UnWrapGamblerCreated(envelop *Envelope) (*GamblerCreated, error) {
 }
 
 func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = GamblerAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = GamblerTeamCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling GamblerTeamCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  GamblerAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  GamblerTeamCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsGamblerTeamCreated(envelope *Envelope) bool {
@@ -332,21 +338,22 @@ func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, error) {
 }
 
 func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
-	envelope := new(Envelope)
-	envelope.Uuid = getUid()
-	envelope.SequenceNumber = uint64(0) // Set later by event-store
-	envelope.Timestamp = getTime()
-	envelope.AggregateName = NewsAggregateName // from annotation!
-	envelope.AggregateUid = uid
-	envelope.EventTypeName = NewsItemCreatedEventName
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling NewsItemCreated payload %+v", err)
 		return nil, err
 	}
-	envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid:           getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp:      getTime(),
+		AggregateName:  NewsAggregateName, // from annotation!
+		AggregateUid:   uid,
+		EventTypeName:  NewsItemCreatedEventName,
+		EventData:      string(blob),
+	}
 
-	return envelope, nil
+	return &envelope, nil
 }
 
 func IsNewsItemCreated(envelope *Envelope) bool {

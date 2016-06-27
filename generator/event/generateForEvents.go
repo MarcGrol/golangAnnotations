@@ -222,21 +222,22 @@ var getUid getUidFunc = func() string {
 {{if IsEvent . }}
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
-	envelope := new(Envelope)
-    envelope.Uuid = getUid()
-    envelope.SequenceNumber = uint64(0) // Set later by event-store
-    envelope.Timestamp = getTime()
-    envelope.AggregateName = {{GetAggregateName . }}AggregateName // from annotation!
-    envelope.AggregateUid = uid
-    envelope.EventTypeName = {{.Name}}EventName
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-    envelope.EventData = string(blob)
+	envelope := Envelope{
+		Uuid: getUid(),
+		SequenceNumber: uint64(0), // Set later by event-store
+		Timestamp: getTime(),
+		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
+		AggregateUid: uid,
+		EventTypeName: {{.Name}}EventName,
+		EventData: string(blob),
+    }
 
-    return envelope, nil
+    return &envelope, nil
 }
 
 func Is{{.Name}}(envelope *Envelope) bool {
