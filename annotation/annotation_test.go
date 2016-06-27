@@ -26,7 +26,7 @@ func TestTokensInValue(t *testing.T) {
 	ClearRegisteredAnnotations()
 	RegisterAnnotation("Event", []string{}, validateOk)
 
-	annotation, ok := ResolveAnnotations([]string{`// @Event( aggregate = "@A@")`})
+	annotation, ok := ResolveAnnotations([]string{`// @SomethingElse( aggregate = "@A@")`, `// @Event( aggregate = "@A@")`})
 	assert.True(t, ok)
 	assert.Equal(t, "@A@", annotation.Attributes["aggregate"])
 }

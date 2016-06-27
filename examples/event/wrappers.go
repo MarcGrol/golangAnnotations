@@ -37,11 +37,23 @@ const (
 	NewsItemCreatedEventName = "NewsItemCreated"
 )
 
+type getTimeFunc func() time.Time
+
+var getTime getTimeFunc = func() time.Time {
+	return time.Now()
+}
+
+type getUidFunc func() string
+
+var getUid getUidFunc = func() string {
+	return uuid.NewV1().String()
+}
+
 func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = TourCreatedEventName
@@ -86,9 +98,9 @@ func UnWrapTourCreated(envelop *Envelope) (*TourCreated, error) {
 
 func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = CyclistCreatedEventName
@@ -133,9 +145,9 @@ func UnWrapCyclistCreated(envelop *Envelope) (*CyclistCreated, error) {
 
 func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = EtappeCreatedEventName
@@ -180,9 +192,9 @@ func UnWrapEtappeCreated(envelop *Envelope) (*EtappeCreated, error) {
 
 func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = TourAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = EtappeResultsCreatedEventName
@@ -227,9 +239,9 @@ func UnWrapEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, error
 
 func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = GamblerAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = GamblerCreatedEventName
@@ -274,9 +286,9 @@ func UnWrapGamblerCreated(envelop *Envelope) (*GamblerCreated, error) {
 
 func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = GamblerAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = GamblerTeamCreatedEventName
@@ -321,9 +333,9 @@ func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, error) {
 
 func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
 	envelope := new(Envelope)
-	envelope.Uuid = uuid.NewV1().String()
-	envelope.SequenceNumber = 0 // Set later by event-store
-	envelope.Timestamp = time.Now()
+	envelope.Uuid = getUid()
+	envelope.SequenceNumber = uint64(0) // Set later by event-store
+	envelope.Timestamp = getTime()
 	envelope.AggregateName = NewsAggregateName // from annotation!
 	envelope.AggregateUid = uid
 	envelope.EventTypeName = NewsItemCreatedEventName

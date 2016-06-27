@@ -74,6 +74,20 @@ func Generate(inputDir string, structs []model.Struct) error {
 				return err
 			}
 		}
+		{
+			target := fmt.Sprintf("%s/wrappers_test.go", targetDir)
+
+			data := Structs{
+				PackageName: packageName,
+				Structs:     structs,
+			}
+			err = generationUtil.GenerateFileFromTemplate(data, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
+			if err != nil {
+				log.Fatalf("Error generating wrappers-test for structs (%s)", err)
+				return err
+			}
+		}
+
 	}
 	return nil
 }
@@ -192,14 +206,26 @@ const (
 {{end}}
 )
 
+type getTimeFunc func() time.Time
+
+var getTime getTimeFunc = func() time.Time {
+	return time.Now()
+}
+
+type getUidFunc func() string
+
+var getUid getUidFunc = func() string {
+	return uuid.NewV1().String()
+}
+
 {{range .Structs}}
 {{if IsEvent . }}
 
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
-    envelope := new(Envelope)
-    envelope.Uuid = uuid.NewV1().String()
-    envelope.SequenceNumber = 0 // Set later by event-store
-    envelope.Timestamp = time.Now()
+	envelope := new(Envelope)
+    envelope.Uuid = getUid()
+    envelope.SequenceNumber = uint64(0) // Set later by event-store
+    envelope.Timestamp = getTime()
     envelope.AggregateName = {{GetAggregateName . }}AggregateName // from annotation!
     envelope.AggregateUid = uid
     envelope.EventTypeName = {{.Name}}EventName
@@ -243,4 +269,52 @@ func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
 }
 {{end}}
 {{end}}
+`
+var wrappersTestTemplate string = `
+// Generated automatically: do not edit manually
+
+package {{.PackageName}}
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func testGetTime() time.Time {
+	t, _ := time.Parse(time.RFC3339Nano, "2003-02-11T11:50:51.123Z")
+	return t
+}
+
+func testGetUid() string {
+	return "1234321"
+}
+
+{{range .Structs}}
+{{if IsEvent . }}
+
+func Test{{.Name}}Wrapper(t *testing.T) {
+	getUid = testGetUid
+	getTime = testGetTime
+
+	event := {{.Name}}{
+	}
+	wrapped, err := event.Wrap("UID_{{.Name}}")
+	assert.NoError(t, err)
+	assert.True(t, Is{{.Name}}(wrapped))
+    assert.Equal( t, "{{GetAggregateName . }}", wrapped.AggregateName)
+    assert.Equal( t, "{{.Name}}", wrapped.EventTypeName)
+	assert.Equal( t, "UID_{{.Name}}", wrapped.AggregateUid)
+    assert.Equal( t, "1234321", wrapped.Uuid)
+    assert.Equal( t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	assert.Equal(t, uint64(0), wrapped.SequenceNumber)
+	again, ok := GetIfIs{{.Name}}(wrapped)
+	assert.True(t, ok)
+	assert.NotNil(t,again)
+}
+{{end}}
+{{end}}
+
+
 `
