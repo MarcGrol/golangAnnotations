@@ -11,45 +11,74 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-type AstVisitor struct {
-	PackageName string
-	Structs     []model.Struct
-	Operations  []model.Operation
-	Interfaces  []model.Interface
+var (
+	debugAstOfSources = false
+)
+
+type ParsedSources struct {
+	Structs    []model.Struct
+	Operations []model.Operation
+	Interfaces []model.Interface
 }
 
-func ParseSourceFile(srcFilename string) (*AstVisitor, error) {
+func ParseSourceFile(srcFilename string) (ParsedSources, error) {
+	if debugAstOfSources {
+		dumpFile(srcFilename)
+	}
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
-		return nil, err
+		return ParsedSources{}, err
 	}
-	v := AstVisitor{}
+	v := astVisitor{}
 	ast.Walk(&v, f)
-	return &v, nil
+
+	embedMethodsInStructs(&v)
+
+	result := ParsedSources{
+		Structs:    v.Structs,
+		Operations: v.Operations,
+		Interfaces: v.Interfaces,
+	}
+	return result, nil
 }
 
-func ParseSourceDir(dirName string, filenameRegex string) (*AstVisitor, error) {
+func ParseSourceDir(dirName string, filenameRegex string) (ParsedSources, error) {
+	if debugAstOfSources {
+		dumpFilesInDir(dirName)
+	}
 	packages, err := parseDir(dirName, filenameRegex)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return nil, err
+		return ParsedSources{}, err
 	}
 
-	v := AstVisitor{}
+	v := astVisitor{}
 	for _, p := range packages {
 		for _, f := range p.Files {
 			ast.Walk(&v, f)
 		}
 	}
 
-	allStructs := make(map[string]*model.Struct)
-	for idx, _ := range v.Structs {
-		allStructs[(&v.Structs[idx]).Name] = &v.Structs[idx]
+	embedMethodsInStructs(&v)
+
+	result := ParsedSources{
+		Structs:    v.Structs,
+		Operations: v.Operations,
+		Interfaces: v.Interfaces,
 	}
-	for idx, _ := range v.Operations {
-		oper := v.Operations[idx]
+
+	return result, nil
+}
+
+func embedMethodsInStructs(visistor *astVisitor) {
+	allStructs := make(map[string]*model.Struct)
+	for idx, _ := range visistor.Structs {
+		allStructs[(&visistor.Structs[idx]).Name] = &visistor.Structs[idx]
+	}
+	for idx, _ := range visistor.Operations {
+		oper := visistor.Operations[idx]
 		if oper.RelatedStruct != nil {
 			found, exists := allStructs[(*oper.RelatedStruct).TypeName]
 			if exists {
@@ -58,7 +87,6 @@ func ParseSourceDir(dirName string, filenameRegex string) (*AstVisitor, error) {
 		}
 	}
 
-	return &v, nil
 }
 
 func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
@@ -83,7 +111,6 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 	return packages, nil
 }
 
-/*
 func dumpFile(srcFilename string) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
@@ -110,8 +137,15 @@ func dumpFilesInDir(dirName string) {
 		}
 	}
 }
-*/
-func (v *AstVisitor) Visit(node ast.Node) ast.Visitor {
+
+type astVisitor struct {
+	PackageName string
+	Structs     []model.Struct
+	Operations  []model.Operation
+	Interfaces  []model.Interface
+}
+
+func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 
 		// package-name is in isolated node

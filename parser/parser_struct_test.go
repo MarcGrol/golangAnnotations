@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestParseStructsInFileDebug(t *testing.T) {
+	debugAstOfSources = true
+	// writes to stdout
+	ParseSourceFile("structs/example.go")
+}
+
 func TestParseStructsInFile(t *testing.T) {
 
 	harvest, err := ParseSourceFile("structs/example.go")
@@ -58,6 +64,12 @@ func TestParseStructsInFile(t *testing.T) {
 			s.Fields[8])
 
 	}
+}
+
+func TestParseStructsInDirDebug(t *testing.T) {
+	debugAstOfSources = true
+	// writes to stdout
+	ParseSourceDir("structs", ".*xample.*")
 }
 
 func TestParseStructsInDir(t *testing.T) {
