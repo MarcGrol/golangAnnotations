@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"html/template"
+	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"

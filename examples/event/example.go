@@ -48,9 +48,9 @@ type GamblerCreated struct {
 
 // @Event(aggregate="Gambler")
 type GamblerTeamCreated struct {
-	GamblerUid      string `json:"gamblerUid"`
-	Year            int    `json:"year"`
-	GamblerCyclists []int  `json:"gamblerCyclists"`
+	GamblerUid      string   `json:"gamblerUid"`
+	Year            int      `json:"year"`
+	GamblerCyclists []string `json:"gamblerCyclists"`
 }
 
 // @Event(aggregate="News")

@@ -15,13 +15,7 @@ var (
 	debugAstOfSources = false
 )
 
-type ParsedSources struct {
-	Structs    []model.Struct
-	Operations []model.Operation
-	Interfaces []model.Interface
-}
-
-func ParseSourceFile(srcFilename string) (ParsedSources, error) {
+func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)
 	}
@@ -29,14 +23,14 @@ func ParseSourceFile(srcFilename string) (ParsedSources, error) {
 	f, err := parser.ParseFile(fset, srcFilename, nil, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
-		return ParsedSources{}, err
+		return model.ParsedSources{}, err
 	}
 	v := astVisitor{}
 	ast.Walk(&v, f)
 
 	embedMethodsInStructs(&v)
 
-	result := ParsedSources{
+	result := model.ParsedSources{
 		Structs:    v.Structs,
 		Operations: v.Operations,
 		Interfaces: v.Interfaces,
@@ -44,14 +38,14 @@ func ParseSourceFile(srcFilename string) (ParsedSources, error) {
 	return result, nil
 }
 
-func ParseSourceDir(dirName string, filenameRegex string) (ParsedSources, error) {
+func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
 	}
 	packages, err := parseDir(dirName, filenameRegex)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return ParsedSources{}, err
+		return model.ParsedSources{}, err
 	}
 
 	v := astVisitor{}
@@ -63,7 +57,7 @@ func ParseSourceDir(dirName string, filenameRegex string) (ParsedSources, error)
 
 	embedMethodsInStructs(&v)
 
-	result := ParsedSources{
+	result := model.ParsedSources{
 		Structs:    v.Structs,
 		Operations: v.Operations,
 		Interfaces: v.Interfaces,

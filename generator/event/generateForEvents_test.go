@@ -28,7 +28,7 @@ func TestGenerateForEvents(t *testing.T) {
 			},
 		},
 	}
-	err := Generate("testData", s)
+	err := Generate("testData", model.ParsedSources{Structs: s})
 	assert.Nil(t, err)
 
 	// check that generated files exisst

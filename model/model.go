@@ -1,5 +1,11 @@
 package model
 
+type ParsedSources struct {
+	Structs    []Struct
+	Operations []Operation
+	Interfaces []Interface
+}
+
 type Operation struct {
 	PackageName   string
 	DocLines      []string

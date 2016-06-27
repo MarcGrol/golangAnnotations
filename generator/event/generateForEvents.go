@@ -2,8 +2,8 @@ package event
 
 import (
 	"fmt"
-	"html/template"
 	"log"
+	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
@@ -21,7 +21,11 @@ type Structs struct {
 	Structs     []model.Struct
 }
 
-func Generate(inputDir string, structs []model.Struct) error {
+func Generate(inputDir string, parsedSource model.ParsedSources) error {
+	return generate(inputDir, parsedSource.Structs)
+}
+
+func generate(inputDir string, structs []model.Struct) error {
 	eventAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageName(structs)
@@ -95,6 +99,8 @@ func Generate(inputDir string, structs []model.Struct) error {
 var customTemplateFuncs = template.FuncMap{
 	"IsEvent":          IsEvent,
 	"GetAggregateName": GetAggregateName,
+	"HasValueForField": HasValueForField,
+	"ValueForField":    ValueForField,
 }
 
 func IsEvent(s model.Struct) bool {
@@ -109,6 +115,33 @@ func GetAggregateName(s model.Struct) string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
 		return val.Attributes["aggregate"]
+	}
+	return ""
+}
+
+func HasValueForField(field model.Field) bool {
+	if field.TypeName == "int" || field.TypeName == "string" || field.TypeName == "bool" {
+		return true
+	}
+	return false
+}
+
+func ValueForField(field model.Field) string {
+	if field.TypeName == "int" {
+		if field.IsSlice {
+			return "[]int{1,2}"
+		} else {
+			return "42"
+		}
+	} else if field.TypeName == "string" {
+		if field.IsSlice {
+			return "[]string{" + fmt.Sprintf("\"Eaample1%s\"", field.Name) + "," +
+				fmt.Sprintf("\"Eaample2%s\"", field.Name) + "}"
+		} else {
+			return fmt.Sprintf("\"Eaample%s\"", field.Name)
+		}
+	} else if field.TypeName == "bool" {
+		return "true"
 	}
 	return ""
 }
@@ -279,6 +312,7 @@ package {{.PackageName}}
 import (
 	"testing"
 	"time"
+	"reflect"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -300,22 +334,23 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	getTime = testGetTime
 
 	event := {{.Name}}{
+	   {{range .Fields}}
+	   {{if HasValueForField .}} {{.Name}}: {{ValueForField .}}, {{end}} {{end}}
 	}
 	wrapped, err := event.Wrap("UID_{{.Name}}")
 	assert.NoError(t, err)
 	assert.True(t, Is{{.Name}}(wrapped))
-    assert.Equal( t, "{{GetAggregateName . }}", wrapped.AggregateName)
-    assert.Equal( t, "{{.Name}}", wrapped.EventTypeName)
-	assert.Equal( t, "UID_{{.Name}}", wrapped.AggregateUid)
-    assert.Equal( t, "1234321", wrapped.Uuid)
-    assert.Equal( t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+    assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
+    assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
+	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUid)
+    assert.Equal(t, "1234321", wrapped.Uuid)
+    assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
 	assert.Equal(t, uint64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
 	assert.True(t, ok)
 	assert.NotNil(t,again)
+	reflect.DeepEqual(event, *again)
 }
 {{end}}
 {{end}}
-
-
 `

@@ -2,12 +2,12 @@ package generationUtil
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/model"
 )

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/parser"
@@ -28,17 +29,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = event.Generate(*inputDir, harvest.Structs)
-	if err != nil {
-		log.Printf("Error generating event-related code:%s", err)
-		os.Exit(1)
-	}
+	generator.Register("event", event.Generate)
+	generator.Register("rest", rest.Generate)
 
-	err = rest.Generate(*inputDir, harvest.Structs)
-	if err != nil {
-		log.Printf("Error generating rest-related code:%s", err)
-		os.Exit(1)
-	}
+	generator.RunAllGenerators(*inputDir, harvest)
 
 	os.Exit(0)
 }

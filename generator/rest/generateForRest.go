@@ -2,9 +2,9 @@ package rest
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"strings"
+	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -12,7 +12,11 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func Generate(inputDir string, structs []model.Struct) error {
+func Generate(inputDir string, parsedSource model.ParsedSources) error {
+	return generate(inputDir, parsedSource.Structs)
+}
+
+func generate(inputDir string, structs []model.Struct) error {
 	restAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageName(structs)
