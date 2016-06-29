@@ -2,7 +2,10 @@ package generator
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/MarcGrol/golangAnnotations/generator/event"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
@@ -10,7 +13,20 @@ type GenerateFunc func(inputDir string, parsedSources model.ParsedSources) error
 
 var registeredGenerators map[string]GenerateFunc = make(map[string]GenerateFunc)
 
-func Register(name string, generateFunc GenerateFunc) error {
+func init() {
+	err := register("event", event.Generate)
+	if err != nil {
+		log.Printf("Error registering event-annotation-generator")
+	}
+
+	err = register("rest", rest.Generate)
+	if err != nil {
+		log.Printf("Error registering rest-annotation-generator")
+
+	}
+}
+
+func register(name string, generateFunc GenerateFunc) error {
 	_, exists := registeredGenerators[name]
 	if exists {
 		return fmt.Errorf("Generator module %s already exists", name)

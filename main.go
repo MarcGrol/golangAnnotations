@@ -7,8 +7,6 @@ import (
 	"os"
 
 	"github.com/MarcGrol/golangAnnotations/generator"
-	"github.com/MarcGrol/golangAnnotations/generator/event"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
@@ -28,9 +26,6 @@ func main() {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
 	}
-
-	generator.Register("event", event.Generate)
-	generator.Register("rest", rest.Generate)
 
 	generator.RunAllGenerators(*inputDir, harvest)
 
