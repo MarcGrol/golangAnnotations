@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master)](https://travis-ci.org/MarcGrol/golangAnnotations)
 [![Coverage Status](https://coveralls.io/repos/github/MarcGrol/golangAnnotations/badge.svg)](https://coveralls.io/github/MarcGrol/golangAnnotations)
-[![Issue Count](https://codeclimate.com/github/MarcGrol/golangAnnotations/badges/issue_count.svg)](https://codeclimate.com/github/MarcGrol/golangAnnotations)
 # Golang annotations
 
 [Detailed explanation](https://github.com/MarcGrol/golangAnnotations/wiki)
