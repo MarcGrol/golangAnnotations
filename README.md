@@ -3,6 +3,7 @@
 [![Issue Count](https://codeclimate.com/github/MarcGrol/golangAnnotations/badges/issue_count.svg)](https://codeclimate.com/github/MarcGrol/golangAnnotations)
 # Golang annotations
 
+[Why this library was created](https://github.com/MarcGrol/golangAnnotations/wiki)
 
 ## Summary
 
