@@ -131,7 +131,7 @@ func TestGetInputArgName(t *testing.T) {
 }
 
 func TestGetInputParamString(t *testing.T) {
-	assert.Equal(t, "uid,person", GetInputParamString(createOper("DONTCARE")))
+	assert.Equal(t, "ctx,uid,person", GetInputParamString(createOper("DONTCARE")))
 }
 
 func TestHasOutput(t *testing.T) {
@@ -169,6 +169,7 @@ func createOper(method string) model.Operation {
 			fmt.Sprintf("//@RestOperation( method = \"%s\", path = \"/api/person\")", method),
 		},
 		InputArgs: []model.Field{
+			model.Field{Name: "ctx", TypeName: "context.Context"},
 			model.Field{Name: "uid", TypeName: "string"},
 			model.Field{Name: "person", TypeName: "Person"},
 		},

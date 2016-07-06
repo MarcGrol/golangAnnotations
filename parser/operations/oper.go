@@ -1,5 +1,7 @@
 package operations
 
+import "golang.org/x/net/context"
+
 type Person struct {
 	Name string
 }
@@ -9,7 +11,7 @@ type Service struct {
 }
 
 // docline for getPersons
-func (serv *Service) getPersons() ([]Person, error) {
+func (serv *Service) getPersons(ctx context.Context) ([]Person, error) {
 	return []Person{
 		{Name: "Marc"},
 		{Name: "Eva"},

@@ -8,6 +8,7 @@ import (
 )
 
 func TestStructOperationsInDir(t *testing.T) {
+	dumpFilesInDir("./operations")
 	harvest, err := ParseSourceDir("./operations", ".*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 2, len(harvest.Operations))
@@ -19,7 +20,9 @@ func TestStructOperationsInDir(t *testing.T) {
 		assert.Equal(t, "getPersons", o.Name)
 		assertField(t, model.Field{Name: "serv", TypeName: "Service", IsPointer: true}, *o.RelatedStruct)
 
-		assert.Equal(t, 0, len(o.InputArgs))
+		assert.Equal(t, 1, len(o.InputArgs))
+		assert.Equal(t, "ctx", o.InputArgs[0].Name)
+		assert.Equal(t, "context.Context", o.InputArgs[0].TypeName)
 
 		assert.Equal(t, 2, len(o.OutputArgs))
 		assertField(t, model.Field{TypeName: "Person", IsSlice: true}, o.OutputArgs[0])

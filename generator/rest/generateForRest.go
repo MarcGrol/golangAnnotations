@@ -65,6 +65,8 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":              HasOutput,
 	"IsPrimitive":            IsPrimitive,
 	"IsNumber":               IsNumber,
+	"HasContext":             HasContext,
+	"GetContextName":         GetContextName,
 }
 
 func IsRestService(s model.Struct) bool {
@@ -109,14 +111,36 @@ func GetRestOperationMethod(o model.Operation) string {
 
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
-		return true
+		for _, arg := range o.InputArgs {
+			if arg.TypeName != "context.Context" {
+				return true
+			}
+		}
 	}
 	return false
 }
 
+func HasContext(o model.Operation) bool {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName == "context.Context" {
+			return true
+		}
+	}
+	return false
+}
+
+func GetContextName(o model.Operation) string {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName == "context.Context" {
+			return arg.Name
+		}
+	}
+	return ""
+}
+
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
 			return arg.TypeName
 		}
 	}
@@ -125,7 +149,7 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
 			return arg.Name
 		}
 	}
@@ -178,6 +202,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Duxxie/platform/lib/ctx"
 	"github.com/MarcGrol/microgen/lib/myerrors"
 	"github.com/gorilla/mux"
 )
@@ -186,6 +211,10 @@ import (
 
 func (ts *{{.Name}}) HttpHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
+	return ts.HttpHandlerWithRouter(router)
+}
+
+func (ts *{{.Name}}) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
 	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
 
 	{{range .Operations}}
@@ -203,6 +232,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 
+		{{if HasContext $oper }}
+			{{GetContextName $oper }} := ctx.New.CreateContext(r)
+		{{end}}
 		pathParams := mux.Vars(r)
 		log.Printf("pathParams:%+v", pathParams)
 

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -426,6 +427,17 @@ func _extractField(input *ast.Field) model.Field {
 		if ok {
 			field.TypeName = ident.Name
 		}
+	}
+	{
+		sel, ok := input.Type.(*ast.SelectorExpr)
+		if ok {
+			x, ok := sel.X.(*ast.Ident)
+			if ok {
+				field.Name = x.Name
+				field.TypeName = fmt.Sprintf("%s.%s", x.Name, sel.Sel.Name)
+			}
+		}
+
 	}
 
 	return field
