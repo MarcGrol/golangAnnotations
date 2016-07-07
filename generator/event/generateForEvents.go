@@ -262,7 +262,7 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     }
 	envelope := Envelope{
 		Uuid: getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp: getTime(),
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
 		AggregateUid: uid,
@@ -345,7 +345,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUid)
     assert.Equal(t, "1234321", wrapped.Uuid)
     assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
-	assert.Equal(t, uint64(0), wrapped.SequenceNumber)
+	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
 	assert.True(t, ok)
 	assert.NotNil(t,again)
