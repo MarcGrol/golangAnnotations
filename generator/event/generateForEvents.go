@@ -223,7 +223,7 @@ import (
 
 type Envelope struct {
 	Uuid           string
-	SequenceNumber uint64
+	SequenceNumber int64
 	Timestamp      time.Time
 	AggregateName  string
 	AggregateUid   string
