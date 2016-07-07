@@ -309,8 +309,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		// write response body
 		{{if HasOutput . }}
-			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
 			err = json.NewEncoder(w).Encode(result)
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
