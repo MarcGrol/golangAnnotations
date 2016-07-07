@@ -53,6 +53,8 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":          IsRestService,
+	"NeedsIntegerConversion": NeedsIntegerConversion,
+	"NeedsContext":           NeedsContext,
 	"GetRestServicePath":     GetRestServicePath,
 	"IsRestOperation":        IsRestOperation,
 	"GetRestOperationPath":   GetRestOperationPath,
@@ -75,6 +77,28 @@ func IsRestService(s model.Struct) bool {
 		return false
 	}
 	return ok
+}
+
+func NeedsIntegerConversion(s model.Struct) bool {
+	for _, oper := range s.Operations {
+		for _, arg := range oper.InputArgs {
+			if arg.TypeName == "int" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func NeedsContext(s model.Struct) bool {
+	for _, oper := range s.Operations {
+		for _, arg := range oper.InputArgs {
+			if arg.TypeName == "context.Context" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func GetRestServicePath(o model.Struct) string {
@@ -200,9 +224,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	{{if NeedsIntegerConversion .}}"strconv"{{end}}
 
-	"github.com/Duxxie/platform/lib/ctx"
+	{{if NeedsContext .}}"github.com/Duxxie/platform/lib/ctx"{{end}}
 	"github.com/MarcGrol/microgen/lib/myerrors"
 	"github.com/gorilla/mux"
 )
