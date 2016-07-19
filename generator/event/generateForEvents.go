@@ -170,7 +170,6 @@ var AggregateEvents map[string][]string = map[string][]string{
 
 {{range $aggr, $events := .AggregateMap}}
 type {{$aggr}}Aggregate interface {
-	ApplyAll(envelopes []Envelope)
 	{{range $aggregName, $eventName := $events}}
 		Apply{{$eventName}}(event {{$eventName}})
 	{{end}}
