@@ -65,8 +65,8 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 
 		// write response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
 			log.Printf("Error encoding response payload %+v", err)
@@ -114,8 +114,8 @@ func createEtappe(service *TourService) http.HandlerFunc {
 
 		// write response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
 			log.Printf("Error encoding response payload %+v", err)
@@ -213,8 +213,8 @@ func createCyclist(service *TourService) http.HandlerFunc {
 
 		// write response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
 			log.Printf("Error encoding response payload %+v", err)

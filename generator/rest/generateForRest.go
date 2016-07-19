@@ -226,7 +226,7 @@ import (
 	"net/http"
 	{{if NeedsIntegerConversion .}}"strconv"{{end}}
 
-	{{if NeedsContext .}}"github.com/Duxxie/platform/lib/ctx"{{end}}
+	{{if NeedsContext .}}"github.com/Duxxie/platform/backend/lib/ctx"{{end}}
 	"github.com/MarcGrol/microgen/lib/myerrors"
 	"github.com/gorilla/mux"
 )
