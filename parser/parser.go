@@ -412,6 +412,32 @@ func _extractField(input *ast.Field) model.Field {
 			}
 		}
 	}
+
+	{
+		var mapKey string = ""
+		var mapValue string = ""
+
+		mapType, ok := input.Type.(*ast.MapType)
+		if ok {
+			{
+				key, ok := mapType.Key.(*ast.Ident)
+				if ok {
+					mapKey = key.Name
+				}
+			}
+			{
+				value, ok := mapType.Value.(*ast.Ident)
+				if ok {
+					mapValue = value.Name
+				}
+			}
+		}
+		if mapKey != "" && mapValue != "" {
+			field.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue )
+		}
+
+	}
+
 	{
 		star, ok := input.Type.(*ast.StarExpr)
 		if ok {
@@ -437,7 +463,6 @@ func _extractField(input *ast.Field) model.Field {
 				field.TypeName = fmt.Sprintf("%s.%s", x.Name, sel.Sel.Name)
 			}
 		}
-
 	}
 
 	return field

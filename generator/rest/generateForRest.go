@@ -67,6 +67,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":              HasOutput,
 	"IsPrimitive":            IsPrimitive,
 	"IsNumber":               IsNumber,
+	"IsAuthContextArg":       IsAuthContextArg,
 	"HasContext":             HasContext,
 	"GetContextName":         GetContextName,
 }
@@ -100,6 +101,7 @@ func NeedsContext(s model.Struct) bool {
 	}
 	return false
 }
+
 
 func GetRestServicePath(o model.Struct) string {
 	val, ok := annotation.ResolveAnnotations(o.DocLines)
@@ -206,6 +208,10 @@ func GetOutputArgType(o model.Operation) string {
 	return ""
 }
 
+func IsAuthContextArg(arg model.Field) bool {
+	return arg.Name == "authContext" && arg.TypeName == "map[string]string"
+}
+
 func IsPrimitive(f model.Field) bool {
 	return f.TypeName == "int" || f.TypeName == "string"
 }
@@ -282,7 +288,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
 						return
 					}
+					{{end}}
 				{{end}}
+				{{if IsAuthContextArg .}}
+				authContext := map[string]string {
+					"caregiverUid": r.Header.Get("X-caregiver-uid"),
+					"caregiverEmail": r.Header.Get("X-caregiver-email"),
+				}
+				{{else}}
 			{{end}}
 		{{end}}
 
