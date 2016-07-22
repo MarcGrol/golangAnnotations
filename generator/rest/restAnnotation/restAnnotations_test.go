@@ -30,7 +30,7 @@ func TestPartialIncompleteRestOperationAnnotation(t *testing.T) {
 	Register()
 
 	_, ok := annotation.ResolveAnnotations([]string{`// @RestOperation( Method = "GET")`})
-	assert.False(t, ok)
+	assert.True(t, ok)
 }
 
 func TestPartialIncompleteRestOperationAnnotation2(t *testing.T) {

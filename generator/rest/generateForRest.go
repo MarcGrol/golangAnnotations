@@ -292,8 +292,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				{{end}}
 				{{if IsAuthContextArg .}}
 				authContext := map[string]string {
-					"caregiverUid": r.Header.Get("X-caregiver-uid"),
-					"caregiverEmail": r.Header.Get("X-caregiver-email"),
+					"enduserRole": r.Header.Get("X-enduser-role"),
+					"enduserUid": r.Header.Get("X-enduser-uid"),
 				}
 				{{else}}
 			{{end}}

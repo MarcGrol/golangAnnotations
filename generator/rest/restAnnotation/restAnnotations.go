@@ -17,9 +17,8 @@ func Register() {
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == typeRestOperation {
-		path, hasPath := annot.Attributes[paramPath]
 		method, hasMethod := annot.Attributes[paramMethod]
-		return ((hasPath && path != "") && hasMethod && method != "")
+		return ( hasMethod && method != "")
 	}
 	return false
 }
