@@ -59,6 +59,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperation":        IsRestOperation,
 	"GetRestOperationPath":   GetRestOperationPath,
 	"GetRestOperationMethod": GetRestOperationMethod,
+	"HasOperationsWithInput": HasOperationsWithInput,
 	"HasInput":               HasInput,
 	"GetInputArgType":        GetInputArgType,
 	"UsesQueryParams":        UsesQueryParams,
@@ -103,12 +104,21 @@ func NeedsContext(s model.Struct) bool {
 	return false
 }
 
-func GetRestServicePath(o model.Struct) string {
-	val, ok := annotation.ResolveAnnotations(o.DocLines)
+func GetRestServicePath(s model.Struct) string {
+	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
 		return val.Attributes["path"]
 	}
 	return ""
+}
+
+func HasOperationsWithInput(s model.Struct) bool {
+	for _,o := range s.Operations {
+		if HasInput(*o) == true {
+			return true
+		}
+	}
+	return false
 }
 
 func IsRestOperation(o model.Operation) bool {
@@ -134,6 +144,8 @@ func GetRestOperationMethod(o model.Operation) string {
 	}
 	return ""
 }
+
+
 
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
@@ -347,7 +359,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-         		errorh.NewInvalidInputErrorf(1, "Error psrsing request body: %s", err), w)
+         		errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error psrsing request body: %s", err), w)
 				return
 			}
 		{{end}}
@@ -389,7 +401,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	_"strings"
+	{{if HasOperationsWithInput .}}"strings"{{end}}
 )
 
 {{ $structName := .Name }}
