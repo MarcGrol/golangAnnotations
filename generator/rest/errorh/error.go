@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -108,6 +107,9 @@ func (err Error) GetErrorCode() int {
 }
 
 func HandleHttpError(err error, w http.ResponseWriter) {
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(GetHttpCode(err))
+
 	errorBody := struct {
 		ErrorCode    int          `json:"errorCode"`
 		ErrorMessage string       `json:"errorMessage"`
@@ -117,28 +119,7 @@ func HandleHttpError(err error, w http.ResponseWriter) {
 		ErrorMessage: err.Error(),
 		FieldErrors:  getFieldErrors(err),
 	}
-	blob, err := json.Marshal(errorBody)
-	if err != nil {
-		log.Printf("Error marshalling error response payload %+v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.WriteHeader(determineHttpCode(err))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(blob)
-}
-
-func determineHttpCode(err error) int {
-	if IsNotFoundError(err) {
-		return http.StatusNotFound
-	} else if IsInternalError(err) {
-		return http.StatusInternalServerError
-	} else if IsInvalidInputError(err) {
-		return http.StatusBadRequest
-	} else if IsNotAuthorizedError(err) {
-		return http.StatusForbidden
-	} else {
-		return http.StatusInternalServerError
-	}
+	json.NewEncoder(w).Encode(errorBody)
 }
 
 func getFieldErrors(err error) []FieldError {

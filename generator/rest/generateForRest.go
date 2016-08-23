@@ -69,6 +69,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":              HasOutput,
 	"IsPrimitive":            IsPrimitive,
 	"IsNumber":               IsNumber,
+	"IsInputArgMandatory": 	  IsInputArgMandatory,
 	"IsAuthContextArg":       IsAuthContextArg,
 	"HasContext":             HasContext,
 	"GetContextName":         GetContextName,
@@ -185,6 +186,7 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
+
 func UsesQueryParams(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "GET"  {
 		count := 0
@@ -206,6 +208,7 @@ func GetInputArgName(o model.Operation) string {
 	}
 	return ""
 }
+
 
 func GetInputParamString(o model.Operation) string {
 	args := []string{}
@@ -232,6 +235,30 @@ func GetOutputArgType(o model.Operation) string {
 	}
 	return ""
 }
+
+
+func findArgInArray( array []string, toMatch string ) bool {
+	for _,p := range array {
+		if strings.Trim(p, " ") == toMatch {
+			return true
+		}
+	}
+	return false
+}
+
+func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
+	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
+	if !ok || annotation.Name != "RestOperation" {
+		return false
+	}
+	optionals, ok :=  annotation.Attributes["optionalargs"]
+	if !ok {
+		return true
+	}
+
+	return !findArgInArray(strings.Split(optionals, " "),arg.Name)
+}
+
 
 func IsAuthContextArg(arg model.Field) bool {
 	return arg.Name == "authContext" && arg.TypeName == "map[string]string"
@@ -300,6 +327,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{range .InputArgs}}
 			{{if IsPrimitive . }}
 				{{if IsNumber . }}
+					{{.Name}} := 0
 					{{if UsesQueryParams $oper }}
 					{{.Name}}String := r.URL.Query().Get("{{.Name}}")
 					if {{.Name}}String == "" {
@@ -307,14 +335,17 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{.Name}}String, exists := pathParams["{{.Name}}"]
 					if !exists {
 					{{end}}
+					{{if IsInputArgMandatory $oper .}}
 						validationErrors = append(validationErrors, errorh.FieldError{
 						SubCode: 1000,
 						Field:   "{{.Name}}",
 						Msg:     "Missing value for mandatory parameter %s",
 						Args:    []string{"{{.Name}}"},
 					 })
-					}
-					{{.Name}}, err := strconv.Atoi({{.Name}}String)
+					 {{end}}
+					} else {
+					{{if IsInputArgMandatory $oper .}}
+					{{.Name}}, err = strconv.Atoi({{.Name}}String)
 					if err != nil {
 						validationErrors = append(validationErrors, errorh.FieldError{
 						SubCode: 1000,
@@ -322,7 +353,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						Msg:     "Invalid value for mandatory parameter %s",
 						Args:    []string{"{{.Name}}"},
 					 })
-					}
+					 }
+					 }
+					 {{end}}
 				{{else}}
 					{{if UsesQueryParams $oper }}
 					{{.Name}} := r.URL.Query().Get("{{.Name}}")
@@ -331,12 +364,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{.Name}}, exists := pathParams["{{.Name}}"]
 					if !exists {
 					{{end}}
+					{{if IsInputArgMandatory $oper .}}
 						validationErrors = append(validationErrors, errorh.FieldError{
 						SubCode: 1000,
 						Field:   "{{.Name}}",
 						Msg:     "Missing value for mandatory parameter %s",
 						Args:    []string{"{{.Name}}"},
 					 })
+					 {{end}}
 					}
 					{{end}}
 				{{end}}
