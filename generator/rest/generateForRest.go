@@ -61,6 +61,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetRestOperationMethod": GetRestOperationMethod,
 	"HasInput":               HasInput,
 	"GetInputArgType":        GetInputArgType,
+	"UsesQueryParams":        UsesQueryParams,
 	"GetInputArgName":        GetInputArgName,
 	"GetInputParamString":    GetInputParamString,
 	"GetOutputArgType":       GetOutputArgType,
@@ -101,7 +102,6 @@ func NeedsContext(s model.Struct) bool {
 	}
 	return false
 }
-
 
 func GetRestServicePath(o model.Struct) string {
 	val, ok := annotation.ResolveAnnotations(o.DocLines)
@@ -173,6 +173,19 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
+func UsesQueryParams(o model.Operation) bool {
+	if GetRestOperationMethod(o) == "GET"  {
+		count := 0
+		for _,arg := range o.InputArgs {
+			if arg.TypeName != "context.Context" && arg.Name != "authContext" {
+				count++
+			}
+		}
+		return count > 1
+	}
+	return false
+}
+
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
@@ -227,13 +240,12 @@ package {{.PackageName}}
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	{{if NeedsIntegerConversion .}}"strconv"{{end}}
 
 	{{if NeedsContext .}}"github.com/Duxxie/platform/backend/lib/ctx"{{end}}
-	"github.com/MarcGrol/microgen/lib/myerrors"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
 )
 
@@ -265,28 +277,54 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasContext $oper }}
 			{{GetContextName $oper }} := ctx.New.CreateContext(r)
 		{{end}}
+
+		{{if UsesQueryParams $oper }} {{else}}
 		pathParams := mux.Vars(r)
 		log.Printf("pathParams:%+v", pathParams)
+		{{end}}
 
 		// extract url-params
+	    validationErrors := []errorh.FieldError{}
 		{{range .InputArgs}}
 			{{if IsPrimitive . }}
 				{{if IsNumber . }}
+					{{if UsesQueryParams $oper }}
+					{{.Name}}String := r.URL.Query().Get("{{.Name}}")
+					if {{.Name}}String == "" {
+					{{else}}
 					{{.Name}}String, exists := pathParams["{{.Name}}"]
 					if !exists {
-						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
-						return
+					{{end}}
+						validationErrors = append(validationErrors, errorh.FieldError{
+						SubCode: 1000,
+						Field:   "{{.Name}}",
+						Msg:     "Missing value for mandatory parameter %s",
+						Args:    []string{"{{.Name}}"},
+					 })
 					}
 					{{.Name}}, err := strconv.Atoi({{.Name}}String)
 					if err != nil {
-						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param '{{.Name}}'")), w)
-						return
+						validationErrors = append(validationErrors, errorh.FieldError{
+						SubCode: 1000,
+						Field:   "{{.Name}}",
+						Msg:     "Invalid value for mandatory parameter %s",
+						Args:    []string{"{{.Name}}"},
+					 })
 					}
 				{{else}}
+					{{if UsesQueryParams $oper }}
+					{{.Name}} := r.URL.Query().Get("{{.Name}}")
+					if {{.Name}} == "" {
+					{{else}}
 					{{.Name}}, exists := pathParams["{{.Name}}"]
 					if !exists {
-						handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param '{{.Name}}'")), w)
-						return
+					{{end}}
+						validationErrors = append(validationErrors, errorh.FieldError{
+						SubCode: 1000,
+						Field:   "{{.Name}}",
+						Msg:     "Missing value for mandatory parameter %s",
+						Args:    []string{"{{.Name}}"},
+					 })
 					}
 					{{end}}
 				{{end}}
@@ -299,12 +337,17 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{end}}
 		{{end}}
 
+        if len(validationErrors) > 0 {
+            errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
+            return
+        }
+
 		{{if HasInput . }}
 			// read abd parse request body
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-				handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
+         		errorh.NewInvalidInputErrorf(1, "Error psrsing request body: %s", err), w)
 				return
 			}
 		{{end}}
@@ -316,7 +359,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
 		{{end}}
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -335,37 +378,6 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 {{end}}
 {{end}}
 
-
-func handleError(err error, w http.ResponseWriter) {
-	errorBody := struct {
-		ErrorMessage string
-	}{
-		err.Error(),
-	}
-	blob, err := json.Marshal(errorBody)
-	if err != nil {
-		log.Printf("Error marshalling error response payload %+v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.WriteHeader(determineHttpCode(err))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(blob)
-}
-
-func determineHttpCode(err error) int {
-	if myerrors.IsNotFoundError(err) {
-		return http.StatusNotFound
-	} else if myerrors.IsInternalError(err) {
-		return http.StatusInternalServerError
-	} else if myerrors.IsInvalidInputError(err) {
-		return http.StatusBadRequest
-	} else if myerrors.IsNotAuthorizedError(err) {
-		return http.StatusForbidden
-	} else {
-		return http.StatusInternalServerError
-	}
-}
-
 `
 
 var HelpersTemplate string = `
@@ -377,7 +389,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
+	_"strings"
 )
 
 {{ $structName := .Name }}

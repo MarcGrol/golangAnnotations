@@ -433,7 +433,7 @@ func _extractField(input *ast.Field) model.Field {
 			}
 		}
 		if mapKey != "" && mapValue != "" {
-			field.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue )
+			field.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
 		}
 
 	}
