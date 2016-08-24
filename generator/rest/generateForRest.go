@@ -348,7 +348,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{.Name}}, err = strconv.Atoi({{.Name}}String)
 					if err != nil {
 						validationErrors = append(validationErrors, errorh.FieldError{
-						SubCode: 1000,
+						SubCode: 1001,
 						Field:   "{{.Name}}",
 						Msg:     "Invalid value for mandatory parameter %s",
 						Args:    []string{"{{.Name}}"},
