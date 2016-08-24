@@ -7,19 +7,6 @@ import (
 	"net/http"
 )
 
-type Error struct {
-	underlyingError error
-	errorType       int
-	errorCode       int
-	fieldErrors     []FieldError // only applicable for invalidinput
-}
-
-const (
-	errorTypeInternal      = 500
-	errorTypeInvalidInput  = 400
-	errorTypeNotFound      = 404
-	errorTypeNotAuthorized = 403
-)
 
 func NewInternalErrorf(code int, format string, args ...interface{}) *Error {
 	return NewInternalError(code, fmt.Errorf(format, args...))
@@ -27,26 +14,29 @@ func NewInternalErrorf(code int, format string, args ...interface{}) *Error {
 
 func NewInternalError(code int, err error) *Error {
 	newError := new(Error)
-	newError.errorCode = code
+	newError.ErrorCode = code
 	newError.underlyingError = err
-	newError.errorType = errorTypeInternal
+	newError.ErrorMessage =  err.Error()
+	newError.httpErrorType = http.StatusInternalServerError
 	return newError
 }
 
 func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error {
 	newError := new(Error)
-	newError.errorCode = code
+	newError.ErrorCode = code
 	newError.underlyingError = fmt.Errorf(format, args...)
-	newError.errorType = errorTypeInvalidInput
+	newError.ErrorMessage = newError.underlyingError.Error()
+	newError.httpErrorType = http.StatusBadRequest
 	return newError
 }
 
 func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
 	newError := new(Error)
-	newError.errorCode = code
-	newError.underlyingError = errors.New("Input validation error")
-	newError.errorType = errorTypeInvalidInput
-	newError.fieldErrors = fieldErrors
+	newError.ErrorCode = code
+	newError.underlyingError =  errors.New("Input validation error")
+	newError.ErrorMessage = newError.underlyingError.Error()
+	newError.httpErrorType = http.StatusBadRequest
+	newError.FieldErrors = fieldErrors
 	return newError
 }
 
@@ -56,9 +46,10 @@ func NewNotFoundErrorf(code int, format string, args ...interface{}) *Error {
 
 func NewNotFoundError(code int, err error) *Error {
 	newError := new(Error)
-	newError.errorCode = code
-	newError.underlyingError = err
-	newError.errorType = errorTypeNotFound
+	newError.ErrorCode = code
+	newError.underlyingError =  err
+	newError.ErrorMessage = err.Error()
+	newError.httpErrorType = http.StatusNotFound
 	return newError
 }
 
@@ -68,55 +59,52 @@ func NewNotAuthorizedErrorf(code int, format string, args ...interface{}) *Error
 
 func NewNotAuthorizedError(code int, err error) *Error {
 	newError := new(Error)
-	newError.errorCode = code
+	newError.ErrorCode = code
 	newError.underlyingError = err
-	newError.errorType = errorTypeNotAuthorized
+	newError.ErrorMessage = newError.underlyingError.Error()
+	newError.httpErrorType = http.StatusForbidden
 	return newError
 }
 
 func (err Error) Error() string {
-	return err.underlyingError.Error()
+	return err.ErrorMessage
 }
 
 func (err Error) IsInternalError() bool {
-	return err.errorType == errorTypeInternal
+	return err.httpErrorType == http.StatusInternalServerError
 }
 
 func (err Error) IsInvalidInputError() bool {
-	return err.errorType == errorTypeInvalidInput
+	return err.httpErrorType ==  http.StatusBadRequest
 }
 
 func (err Error) GetFieldErrors() []FieldError {
-	return err.fieldErrors
+	return err.FieldErrors
 }
 
 func (err Error) IsNotFoundError() bool {
-	return err.errorType == errorTypeNotFound
+	return err.httpErrorType ==  http.StatusNotFound
 }
 
 func (err Error) IsNotAuthorizedError() bool {
-	return err.errorType == errorTypeNotAuthorized
+	return err.httpErrorType == http.StatusForbidden
 }
 
 func (err Error) GetHttpCode() int {
-	return err.errorType
+	return err.httpErrorType
 }
 
 func (err Error) GetErrorCode() int {
-	return err.errorCode
+	return err.ErrorCode
 }
 
 func HandleHttpError(err error, w http.ResponseWriter) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(GetHttpCode(err))
 
-	errorBody := struct {
-		ErrorCode    int          `json:"errorCode"`
-		ErrorMessage string       `json:"errorMessage"`
-		FieldErrors  []FieldError `json:"fieldErrors"`
-	}{
+	errorBody := Error{
 		ErrorCode:    geErrorCode(err),
-		ErrorMessage: err.Error(),
+		ErrorMessage :err.Error(),
 		FieldErrors:  getFieldErrors(err),
 	}
 	json.NewEncoder(w).Encode(errorBody)

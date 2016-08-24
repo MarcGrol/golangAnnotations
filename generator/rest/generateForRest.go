@@ -436,6 +436,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+
 	{{if HasOperationsWithInput .}}"strings"{{end}}
 )
 
@@ -444,7 +446,8 @@ import (
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},*{{GetOutputArgType . }}{{end}},error) {
+
+func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},*{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	recorder := httptest.NewRecorder()
 
@@ -456,11 +459,12 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 	{{end}}
 	if err != nil {
 		{{if HasOutput . }}
-			return 0, nil, err
+			return 0, nil, nil, err
 		{{else}}
-			return 0,  err
+			return 0,  nil, err
 		{{end}}
 	}
+	req.RequestURI = url
 	{{if HasOutput . }}
 		req.Header.Set("Accept", "application/json")
 	{{end}}
@@ -469,15 +473,25 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 	webservice.HttpHandler().ServeHTTP(recorder, req)
 
 	{{if HasOutput . }}
-		var resp {{GetOutputArgType . }}
-		dec := json.NewDecoder(recorder.Body)
-		err = dec.Decode(&resp)
-		if err != nil {
-			return recorder.Code, nil, err
+		if recorder.Code == http.StatusOK {
+			var resp {{GetOutputArgType . }}
+			dec := json.NewDecoder(recorder.Body)
+			err = dec.Decode(&resp)
+			if err != nil {
+				return recorder.Code, nil, nil, err
+			}
+			return recorder.Code, &resp, nil, nil
+		} else {
+			var errorResp errorh.Error
+			dec := json.NewDecoder(recorder.Body)
+			err = dec.Decode(&errorResp)
+			if err != nil {
+				return recorder.Code, nil, nil, err
+			}
+			return recorder.Code, nil, &errorResp, nil
 		}
-		return recorder.Code, &resp, nil
 	{{else}}
-		return recorder.Code, nil
+		return recorder.Code, nil, nil
 	{{end}}
 }
 {{end}}

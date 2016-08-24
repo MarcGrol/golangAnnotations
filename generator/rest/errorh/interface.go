@@ -1,5 +1,21 @@
 package errorh
 
+
+type Error struct {
+	httpErrorType   int
+	underlyingError error
+	ErrorMessage    string `json:"errorMessage"`
+	ErrorCode       int `json:"errorCode"`
+	FieldErrors     []FieldError  `json:"fieldErrors"` // only applicable for invalidinput
+}
+
+type FieldError struct {
+	SubCode int  		`json:"subCode"`
+	Field   string  	`json:"field"`
+	Msg     string  	`json:"msg"`
+	Args    []string 	`json:"args"`
+}
+
 type ErrorWithCodes interface {
 	GetHttpCode() int
 	GetErrorCode() int
@@ -21,13 +37,6 @@ type NotAuthorized interface {
 	error
 	ErrorWithCodes
 	IsNotAuthorizedError() bool
-}
-
-type FieldError struct {
-	SubCode int  		`json:"subCode"`
-	Field   string  	`json:"field"`
-	Msg     string  	`json:"msg"`
-	Args    []string 	`json:"args"`
 }
 
 type InvalidInput interface {
