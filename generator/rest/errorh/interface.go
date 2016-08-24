@@ -24,10 +24,10 @@ type NotAuthorized interface {
 }
 
 type FieldError struct {
-	SubCode int
-	Field   string
-	Msg     string
-	Args    []string
+	SubCode int  		`json:"subCode"`
+	Field   string  	`json:"field"`
+	Msg     string  	`json:"msg"`
+	Args    []string 	`json:"args"`
 }
 
 type InvalidInput interface {
