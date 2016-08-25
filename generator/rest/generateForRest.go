@@ -239,6 +239,7 @@ func GetOutputArgType(o model.Operation) string {
 
 func findArgInArray( array []string, toMatch string ) bool {
 	for _,p := range array {
+		log.Printf("arg:%v matches: %v", p,toMatch)
 		if strings.Trim(p, " ") == toMatch {
 			return true
 		}
@@ -251,12 +252,12 @@ func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	if !ok || annotation.Name != "RestOperation" {
 		return false
 	}
-	optionals, ok :=  annotation.Attributes["optionalargs"]
+	optionalArgsString, ok :=  annotation.Attributes["optionalargs"]
 	if !ok {
 		return true
 	}
 
-	return !findArgInArray(strings.Split(optionals, " "),arg.Name)
+	return !findArgInArray(strings.Split(optionalArgsString, ","),arg.Name)
 }
 
 
