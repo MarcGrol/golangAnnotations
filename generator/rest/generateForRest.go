@@ -62,6 +62,8 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOperationsWithInput": HasOperationsWithInput,
 	"HasInput":               HasInput,
 	"GetInputArgType":        GetInputArgType,
+	"GetOutputArgDeclaration": GetOutputArgDeclaration,
+	"GetOutputArgName":			GetOutputArgName,
 	"UsesQueryParams":        UsesQueryParams,
 	"GetInputArgName":        GetInputArgName,
 	"GetInputParamString":    GetInputParamString,
@@ -230,16 +232,57 @@ func HasOutput(o model.Operation) bool {
 func GetOutputArgType(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if arg.TypeName != "error" {
-			return arg.TypeName
+			slice := ""
+			if arg.IsSlice {
+				slice = "[]"
+			}
+			pointer := ""
+			if arg.IsPointer {
+				pointer = "*"
+			}
+			return fmt.Sprintf("%s%s%s", slice, pointer, arg.TypeName)
 		}
 	}
 	return ""
 }
 
 
+func GetOutputArgDeclaration(o model.Operation) string {
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName != "error" {
+			pointer := ""
+			addressOf := ""
+			if arg.IsPointer {
+				pointer = "*"
+				addressOf = "&"
+			}
+
+			if arg.IsSlice {
+				return fmt.Sprintf("[]%s%s = []%s%s{}", pointer, arg.TypeName, pointer, arg.TypeName)
+
+			} else {
+				return fmt.Sprintf("%s%s = %s%s{}", pointer, arg.TypeName, addressOf, arg.TypeName)
+			}
+		}
+	}
+	return ""
+}
+
+func GetOutputArgName(o model.Operation) string {
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName != "error" {
+			if !arg.IsPointer || arg.IsSlice {
+
+				return "&resp"
+			}
+			return "resp"
+		}
+	}
+	return ""
+}
+
 func findArgInArray( array []string, toMatch string ) bool {
 	for _,p := range array {
-		log.Printf("arg:%v matches: %v", p,toMatch)
 		if strings.Trim(p, " ") == toMatch {
 			return true
 		}
@@ -330,11 +373,11 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				{{if IsNumber . }}
 					{{.Name}} := 0
 					{{if UsesQueryParams $oper }}
-					{{.Name}}String := r.URL.Query().Get("{{.Name}}")
-					if {{.Name}}String == "" {
+						{{.Name}}String := r.URL.Query().Get("{{.Name}}")
+						if {{.Name}}String == "" {
 					{{else}}
-					{{.Name}}String, exists := pathParams["{{.Name}}"]
-					if !exists {
+						{{.Name}}String, exists := pathParams["{{.Name}}"]
+						if !exists {
 					{{end}}
 					{{if IsInputArgMandatory $oper .}}
 						validationErrors = append(validationErrors, errorh.FieldError{
@@ -343,44 +386,46 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						Msg:     "Missing value for mandatory parameter %s",
 						Args:    []string{"{{.Name}}"},
 					 })
+					 {{else}}
+					 // optional parameter
 					 {{end}}
 					} else {
-					{{if IsInputArgMandatory $oper .}}
-					{{.Name}}, err = strconv.Atoi({{.Name}}String)
-					if err != nil {
-						validationErrors = append(validationErrors, errorh.FieldError{
-						SubCode: 1001,
-						Field:   "{{.Name}}",
-						Msg:     "Invalid value for mandatory parameter %s",
-						Args:    []string{"{{.Name}}"},
-					 })
+						{{.Name}}, err = strconv.Atoi({{.Name}}String)
+						if err != nil {
+							validationErrors = append(validationErrors, errorh.FieldError{
+							SubCode: 1001,
+							Field:   "{{.Name}}",
+							Msg:     "Invalid value for mandatory parameter %s",
+							Args:    []string{"{{.Name}}"},
+						 })
+						 }
 					 }
-					 }
-					 {{end}}
 				{{else}}
 					{{if UsesQueryParams $oper }}
-					{{.Name}} := r.URL.Query().Get("{{.Name}}")
-					if {{.Name}} == "" {
+						{{.Name}} := r.URL.Query().Get("{{.Name}}")
+						if {{.Name}} == "" {
 					{{else}}
-					{{.Name}}, exists := pathParams["{{.Name}}"]
-					if !exists {
-					{{end}}
-					{{if IsInputArgMandatory $oper .}}
-						validationErrors = append(validationErrors, errorh.FieldError{
-						SubCode: 1000,
-						Field:   "{{.Name}}",
-						Msg:     "Missing value for mandatory parameter %s",
-						Args:    []string{"{{.Name}}"},
-					 })
-					 {{end}}
-					}
+						{{.Name}}, exists := pathParams["{{.Name}}"]
+						if !exists {
+						{{end}}
+						{{if IsInputArgMandatory $oper .}}
+								validationErrors = append(validationErrors, errorh.FieldError{
+								SubCode: 1000,
+								Field:   "{{.Name}}",
+								Msg:     "Missing value for mandatory parameter %s",
+								Args:    []string{"{{.Name}}"},
+							 })
+					  	{{else}}
+					  		// optional parameter
+						 {{end}}
+						}
 					{{end}}
 				{{end}}
 				{{if IsAuthContextArg .}}
-				authContext := map[string]string {
-					"enduserRole": r.Header.Get("X-enduser-role"),
-					"enduserUid": r.Header.Get("X-enduser-uid"),
-				}
+					authContext := map[string]string {
+						"enduserRole": r.Header.Get("X-enduser-role"),
+						"enduserUid": r.Header.Get("X-enduser-uid"),
+					}
 				{{else}}
 			{{end}}
 		{{end}}
@@ -448,7 +493,7 @@ import (
 
 {{if IsRestOperation . }}
 
-func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},*{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	recorder := httptest.NewRecorder()
 
@@ -475,13 +520,13 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 
 	{{if HasOutput . }}
 		if recorder.Code == http.StatusOK {
-			var resp {{GetOutputArgType . }}
+			var resp {{GetOutputArgDeclaration . }}
 			dec := json.NewDecoder(recorder.Body)
-			err = dec.Decode(&resp)
+			err = dec.Decode({{GetOutputArgName . }})
 			if err != nil {
 				return recorder.Code, nil, nil, err
 			}
-			return recorder.Code, &resp, nil, nil
+			return recorder.Code, resp, nil, nil
 		} else {
 			var errorResp errorh.Error
 			dec := json.NewDecoder(recorder.Body)
