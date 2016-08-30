@@ -494,6 +494,10 @@ import (
 {{if IsRestOperation . }}
 
 func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
+}
+
+func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	recorder := httptest.NewRecorder()
 
@@ -514,6 +518,9 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 	{{if HasOutput . }}
 		req.Header.Set("Accept", "application/json")
 	{{end}}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 
 	webservice := {{$structName}}{}
 	webservice.HttpHandler().ServeHTTP(recorder, req)
