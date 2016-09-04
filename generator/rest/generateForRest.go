@@ -53,6 +53,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":          IsRestService,
+	"HasAuthContextArg":      HasAuthContextArg,
 	"NeedsIntegerConversion": NeedsIntegerConversion,
 	"NeedsContext":           NeedsContext,
 	"GetRestServicePath":     GetRestServicePath,
@@ -100,6 +101,18 @@ func NeedsContext(s model.Struct) bool {
 	for _, oper := range s.Operations {
 		for _, arg := range oper.InputArgs {
 			if arg.TypeName == "context.Context" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+
+func HasAuthContextArg(s model.Struct) bool {
+	for _, oper := range s.Operations {
+		for _, a := range oper.InputArgs {
+			if IsAuthContextArg(a) {
 				return true
 			}
 		}
@@ -303,7 +316,6 @@ func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	return !findArgInArray(strings.Split(optionalArgsString, ","),arg.Name)
 }
 
-
 func IsAuthContextArg(arg model.Field) bool {
 	return arg.Name == "authContext" && arg.TypeName == "map[string]string"
 }
@@ -469,6 +481,21 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
       }
  }
 {{end}}
+{{end}}
+
+{{if HasAuthContextArg .}}
+func getCredentials(authContext map[string]string, expectedRole string) (string, string, error) {
+	role, found := authContext["enduserRole"]
+	if role != expectedRole {
+		return "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
+	}
+	caregiverUid, found := authContext["enduserUid"]
+	if found == false || caregiverUid == "" {
+		return "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUid)
+	}
+
+	return role, caregiverUid, nil
+}
 {{end}}
 
 `
