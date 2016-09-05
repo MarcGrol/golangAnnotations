@@ -435,6 +435,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				{{end}}
 				{{if IsAuthContextArg .}}
 					authContext := map[string]string {
+						"sessionUid": r.Header.Get("X-session-uid"),
 						"enduserRole": r.Header.Get("X-enduser-role"),
 						"enduserUid": r.Header.Get("X-enduser-uid"),
 					}
@@ -484,17 +485,21 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 {{end}}
 
 {{if HasAuthContextArg .}}
-func getCredentials(authContext map[string]string, expectedRole string) (string, string, error) {
+func getCredentials(authContext map[string]string, expectedRole string) (string, string, string, error) {
 	role, found := authContext["enduserRole"]
 	if role != expectedRole {
-		return "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
 	}
 	caregiverUid, found := authContext["enduserUid"]
 	if found == false || caregiverUid == "" {
-		return "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUid)
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUid)
+	}
+	sessionUid, found := authContext["sessionUid"]
+	if found == false || sessionUid == "" {
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUid)
 	}
 
-	return role, caregiverUid, nil
+	return role, caregiverUid, sessionUid, nil
 }
 {{end}}
 
