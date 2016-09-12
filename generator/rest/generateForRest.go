@@ -53,6 +53,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":          IsRestService,
+	"ExtractImports":         ExtractImports,
 	"HasAuthContextArg":      HasAuthContextArg,
 	"NeedsIntegerConversion": NeedsIntegerConversion,
 	"NeedsContext":           NeedsContext,
@@ -84,6 +85,46 @@ func IsRestService(s model.Struct) bool {
 		return false
 	}
 	return ok
+}
+
+func isImportToBeIgnored( imp string ) bool {
+	if imp == "" {
+		return true
+	}
+	for _, i := range []string{
+		"golang.org/x/net/context",
+		"github.com/gorilla/mux",
+	} {
+		if imp == i {
+			return true
+		}
+	}
+	return false
+}
+
+func ExtractImports(s model.Struct) []string {
+	importsMap := map[string]string{}
+	for _, o := range s.Operations {
+		for _, ia := range o.InputArgs {
+			if isImportToBeIgnored(ia.PackageName ) == false {
+				log.Printf("input-args: %+v", ia)
+				importsMap[ia.PackageName] = ia.PackageName
+			}
+		}
+		for _, oa := range o.OutputArgs {
+			if isImportToBeIgnored(oa.PackageName ) == false {
+				log.Printf("output-args: %+v", oa)
+				importsMap[oa.PackageName] = oa.PackageName
+			}
+		}
+	}
+	importsList := []string{}
+	for _, v := range importsMap {
+		importsList = append(importsList, v)
+	}
+
+	log.Printf("*********** Effective imports: %+v", importsList)
+	return importsList
 }
 
 func NeedsIntegerConversion(s model.Struct) bool {
@@ -271,10 +312,10 @@ func GetOutputArgDeclaration(o model.Operation) string {
 			}
 
 			if arg.IsSlice {
-				return fmt.Sprintf("[]%s%s = []%s%s{}", pointer, arg.TypeName, pointer, arg.TypeName)
+				return fmt.Sprintf("[]%s%s{}", pointer, arg.TypeName)
 
 			} else {
-				return fmt.Sprintf("%s%s = %s%s{}", pointer, arg.TypeName, addressOf, arg.TypeName)
+				return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
 			}
 		}
 	}
@@ -346,12 +387,14 @@ import (
 
 {{ $structName := .Name }}
 
-func (ts *{{.Name}}) HttpHandler() http.Handler {
+// HTTPHandler registers endpoint in new router
+func (ts *{{.Name}}) HTTPHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
-	return ts.HttpHandlerWithRouter(router)
+	return ts.HTTPHandlerWithRouter(router)
 }
 
-func (ts *{{.Name}}) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
+// HTTPHandlerWithRouter registers endpoint in existing router
+func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
 
 	{{range .Operations}}
@@ -365,6 +408,7 @@ func (ts *{{.Name}}) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
 {{range $idxOper, $oper := .Operations}}
 
 {{if IsRestOperation $oper}}
+// {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -490,16 +534,16 @@ func getCredentials(authContext map[string]string, expectedRole string) (string,
 	if role != expectedRole {
 		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
 	}
-	caregiverUid, found := authContext["enduserUid"]
-	if found == false || caregiverUid == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUid)
+	caregiverUID, found := authContext["enduserUid"]
+	if found == false || caregiverUID == "" {
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUID)
 	}
-	sessionUid, found := authContext["sessionUid"]
-	if found == false || sessionUid == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUid)
+	sessionUID, found := authContext["sessionUid"]
+	if found == false || sessionUID == "" {
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUID)
 	}
 
-	return role, caregiverUid, sessionUid, nil
+	return role, caregiverUID, sessionUID, nil
 }
 {{end}}
 
@@ -512,14 +556,41 @@ package {{.PackageName}}
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"os"
+	"fmt"
+	"log"
+	"testing"
 
 	{{if HasOperationsWithInput .}}"strings"{{end}}
+	{{range ExtractImports .}}
+	    "{{.}}"
+	{{end}}
 )
 
 {{ $structName := .Name }}
+
+
+var fp *os.File = nil
+
+func TestMain(m *testing.M) {
+	var err error
+	filename := "test_results_{{.Name}}.md"
+
+	fp, err = os.Create(filename)
+	if err != nil {
+		log.Fatalf("Error opening rest-dump-file %s: %s", filename, err.Error())
+	}
+	fmt.Fprintf(fp, "# Requests and response paloads\n\n\n" )
+
+	defer func() {
+		fp.Close()
+	}()
+
+	m.Run()
+}
 
 {{range .Operations}}
 
@@ -530,6 +601,7 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 }
 
 func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+	fmt.Fprintf(fp, "## Operation %s\n", "{{.Name}}")
 
 	recorder := httptest.NewRecorder()
 
@@ -554,19 +626,19 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req.Header.Set(k, v)
 	}
 
+	payload, err := httputil.DumpRequest(req, true)
+	if err == nil {
+		fmt.Fprintf(fp, "\n### http-request:\n%s\n\n", payload)
+	}
+
 	webservice := {{$structName}}{}
-	webservice.HttpHandler().ServeHTTP(recorder, req)
+	webservice.HTTPHandler().ServeHTTP(recorder, req)
+
+	fmt.Fprintf(fp, "\n### http-response:\n%d\n%s\n\n", recorder.Code, recorder.Body.String())
 
 	{{if HasOutput . }}
-		if recorder.Code == http.StatusOK {
-			var resp {{GetOutputArgDeclaration . }}
-			dec := json.NewDecoder(recorder.Body)
-			err = dec.Decode({{GetOutputArgName . }})
-			if err != nil {
-				return recorder.Code, nil, nil, err
-			}
-			return recorder.Code, resp, nil, nil
-		} else {
+		if recorder.Code != http.StatusOK {
+		    // return error response
 			var errorResp errorh.Error
 			dec := json.NewDecoder(recorder.Body)
 			err = dec.Decode(&errorResp)
@@ -575,6 +647,16 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 			}
 			return recorder.Code, nil, &errorResp, nil
 		}
+
+		// return success response
+		resp := {{GetOutputArgDeclaration . }}
+		dec := json.NewDecoder(recorder.Body)
+		err = dec.Decode({{GetOutputArgName . }})
+		if err != nil {
+			return recorder.Code, nil, nil, err
+		}
+		return recorder.Code, resp, nil, nil
+
 	{{else}}
 		return recorder.Code, nil, nil
 	{{end}}

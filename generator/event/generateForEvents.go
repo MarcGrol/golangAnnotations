@@ -155,10 +155,13 @@ import "fmt"
 
 const (
 {{range $aggr, $events := .AggregateMap}}
+    // {{$aggr}}AggregateName provides constant for the name of {{$aggr}}
     {{$aggr}}AggregateName = "{{$aggr}}"
 {{end}}
 )
-var AggregateEvents map[string][]string = map[string][]string{
+
+// AggregateEvents describes all aggregates with their events
+var AggregateEvents = map[string][]string{
 {{range $aggr, $events := .AggregateMap}}
 	{{$aggr}}AggregateName: []string {
 	{{range $aggregName, $eventName := $events}}
@@ -169,12 +172,14 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 {{range $aggr, $events := .AggregateMap}}
+// {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
 	{{range $aggregName, $eventName := $events}}
 		Apply{{$eventName}}(event {{$eventName}})
 	{{end}}
 }
 
+// Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
@@ -192,6 +197,7 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) err
 	return nil
 }
 
+// Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
 func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelop := range envelopes {
@@ -220,19 +226,28 @@ import (
   "github.com/satori/go.uuid"
 )
 
+// Envelope wraps all types events so it can be easily serialized and stored
 type Envelope struct {
-	Uuid           string
+	// UUID globally unique identifier if this event
+	UUID           string
+	// SequenceNumber currently not used. We use Timestamp to order events over time
 	SequenceNumber int64
+	// Timestamp is used to order events over time
 	Timestamp      time.Time
+	// AggregateName is the name of the aggregate
 	AggregateName  string
-	AggregateUid   string
+	// AggregateUID is the unique identifier of the aggregate
+	AggregateUID   string
+	// EventTypeName is the name of the event
 	EventTypeName  string
+	// EventData is the serialized payload of the event
 	EventData      string
 }
 
 const (
 {{range .Structs}}
 {{if IsEvent . }}
+    // {{.Name}}EventName provides a constant symbol for {{.Name}}
 	{{.Name}}EventName = "{{.Name}}"
 {{end}}
 {{end}}
@@ -244,15 +259,14 @@ var getTime getTimeFunc = func() time.Time {
 	return time.Now()
 }
 
-type getUidFunc func() string
-
-var getUid getUidFunc = func() string {
+var getUID = func() string {
 	return uuid.NewV1().String()
 }
 
 {{range .Structs}}
 {{if IsEvent . }}
 
+// Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     blob, err := json.Marshal(s)
     if err != nil {
@@ -260,11 +274,11 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
         return nil, err
     }
 	envelope := Envelope{
-		Uuid: getUid(),
+		UUID: getUID(),
 		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp: getTime(),
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
-		AggregateUid: uid,
+		AggregateUID: uid,
 		EventTypeName: {{.Name}}EventName,
 		EventData: string(blob),
     }
@@ -272,10 +286,12 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     return &envelope, nil
 }
 
+// Is{{.Name}} detects of envelope carries event of type {{.Name}}
 func Is{{.Name}}(envelope *Envelope) bool {
     return envelope.EventTypeName == {{.Name}}EventName
 }
 
+// GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
 func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     if Is{{.Name}}(envelop) == false {
         return nil, false
@@ -287,6 +303,7 @@ func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     return event, true
 }
 
+// UnWrap{{.Name}} extracts event {{.Name}} from its envelope
 func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelop) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
@@ -321,7 +338,7 @@ func testGetTime() time.Time {
 	return t
 }
 
-func testGetUid() string {
+func testGetUID() string {
 	return "1234321"
 }
 
@@ -329,7 +346,7 @@ func testGetUid() string {
 {{if IsEvent . }}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
-	getUid = testGetUid
+	getUID = testGetUID
 	getTime = testGetTime
 
 	event := {{.Name}}{
@@ -341,8 +358,8 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	assert.True(t, Is{{.Name}}(wrapped))
     assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
     assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
-	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUid)
-    assert.Equal(t, "1234321", wrapped.Uuid)
+	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
+    assert.Equal(t, "1234321", wrapped.UUID)
     assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)

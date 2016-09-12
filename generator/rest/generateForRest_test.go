@@ -49,7 +49,7 @@ func TestGenerateForWeb(t *testing.T) {
 	// check that generate code has 4 helper functions for MyStruct
 	data, err := ioutil.ReadFile("./testData/httpMyService.go")
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "func (ts *MyService) HttpHandler() http.Handler {")
+	assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
 	assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
 
 	// check that generated files exisst

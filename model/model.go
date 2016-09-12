@@ -34,6 +34,7 @@ type Interface struct {
 }
 
 type Field struct {
+	PackageName  string
 	DocLines     []string
 	Name         string
 	TypeName     string
