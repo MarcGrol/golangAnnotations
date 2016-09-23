@@ -205,7 +205,7 @@ func (v *astVisitor)extractGenDeclImports(node ast.Node) {
 						last = first
 					}
 					v.Imports[last] = unquotedImport
-					log.Printf( "Found import %s -> %s",  last, unquotedImport)
+					//log.Printf( "Found import %s -> %s",  last, unquotedImport)
 				}
 		}
 	}

@@ -107,13 +107,11 @@ func ExtractImports(s model.Struct) []string {
 	for _, o := range s.Operations {
 		for _, ia := range o.InputArgs {
 			if isImportToBeIgnored(ia.PackageName ) == false {
-				log.Printf("input-args: %+v", ia)
 				importsMap[ia.PackageName] = ia.PackageName
 			}
 		}
 		for _, oa := range o.OutputArgs {
 			if isImportToBeIgnored(oa.PackageName ) == false {
-				log.Printf("output-args: %+v", oa)
 				importsMap[oa.PackageName] = oa.PackageName
 			}
 		}
@@ -123,7 +121,6 @@ func ExtractImports(s model.Struct) []string {
 		importsList = append(importsList, v)
 	}
 
-	log.Printf("*********** Effective imports: %+v", importsList)
 	return importsList
 }
 
@@ -377,12 +374,23 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"log"
-	"net/http"
-	{{if NeedsIntegerConversion .}}"strconv"{{end}}
+	{{if NeedsIntegerConversion .}}
+		"strconv"
+	{{end}}
 
-	{{if NeedsContext .}}"github.com/Duxxie/platform/backend/lib/ctx"{{end}}
+	{{if NeedsContext .}}
+		"github.com/Duxxie/platform/backend/lib/ctx"
+	{{end}}
+
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
+
+	{{if HasOperationsWithInput .}}
+		{{range ExtractImports .}}
+			"{{.}}"
+		{{end}}
+	{{end}}
+
 )
 
 {{ $structName := .Name }}
@@ -560,20 +568,22 @@ import (
 	"net/http/httputil"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"os"
+	"testing"
 	"fmt"
 	"log"
 	"testing"
 
-	{{if HasOperationsWithInput .}}"strings"{{end}}
+	"strings"
+	"bytes"
 	{{range ExtractImports .}}
-	    "{{.}}"
+		"{{.}}"
 	{{end}}
 )
 
 {{ $structName := .Name }}
 
 
-var fp *os.File = nil
+var fp *os.File
 
 func TestMain(m *testing.M) {
 	var err error
@@ -583,13 +593,15 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("Error opening rest-dump-file %s: %s", filename, err.Error())
 	}
-	fmt.Fprintf(fp, "# Requests and response paloads\n\n\n" )
+	fmt.Fprintf(fp, "# HTTP request and response payloads for all test in package\n\n" )
 
 	defer func() {
 		fp.Close()
 	}()
 
-	m.Run()
+	code := m.Run()
+
+	os.Exit(code)
 }
 
 {{range .Operations}}
@@ -601,13 +613,17 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 }
 
 func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
-	fmt.Fprintf(fp, "## Operation %s\n", "{{.Name}}")
+	fmt.Fprintf(fp, "### Operation %s\n", "{{.Name}}")
 
 	recorder := httptest.NewRecorder()
 
 	{{if HasInput . }}
-		requestBody, _ := json.Marshal(input)
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestBody)))
+		rb, _ := json.Marshal(input)
+		// indent for readability
+		var requestBody bytes.Buffer
+		json.Indent(&requestBody, rb, "    ", "\t")
+
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
 	{{else}}
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{end}}
@@ -626,15 +642,19 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req.Header.Set(k, v)
 	}
 
+	// dump readable request
 	payload, err := httputil.DumpRequest(req, true)
 	if err == nil {
-		fmt.Fprintf(fp, "\n### http-request:\n%s\n\n", payload)
+		fmt.Fprintf(fp, "\n### http-request:\n\n%s\n\n    ", strings.Replace(string(payload), "\n{", "\n    {", 1))
 	}
 
 	webservice := {{$structName}}{}
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
 
-	fmt.Fprintf(fp, "\n### http-response:\n%d\n%s\n\n", recorder.Code, recorder.Body.String())
+    // dump readable response
+	var responseBody bytes.Buffer
+	json.Indent(&responseBody, recorder.Body.Bytes(), "    ", "\t")
+	fmt.Fprintf(fp, "\n\n### http-response:\n\n    %d\n\n    %s\n\n", recorder.Code, responseBody.String())
 
 	{{if HasOutput . }}
 		if recorder.Code != http.StatusOK {

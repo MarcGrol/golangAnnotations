@@ -135,10 +135,10 @@ func ValueForField(field model.Field) string {
 		}
 	} else if field.TypeName == "string" {
 		if field.IsSlice {
-			return "[]string{" + fmt.Sprintf("\"Eaample1%s\"", field.Name) + "," +
-				fmt.Sprintf("\"Eaample2%s\"", field.Name) + "}"
+			return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
+				fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
 		} else {
-			return fmt.Sprintf("\"Eaample%s\"", field.Name)
+			return fmt.Sprintf("\"Example3%s\"", field.Name)
 		}
 	} else if field.TypeName == "bool" {
 		return "true"
@@ -151,7 +151,10 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
-import "fmt"
+import (
+    "fmt"
+    "golang.org/x/net/context"
+)
 
 const (
 {{range $aggr, $events := .AggregateMap}}
@@ -175,12 +178,12 @@ var AggregateEvents = map[string][]string{
 // {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
 	{{range $aggregName, $eventName := $events}}
-		Apply{{$eventName}}(event {{$eventName}})
+		Apply{{$eventName}}(c context.Context, event {{$eventName}})
 	{{end}}
 }
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Event(c context.Context, envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 		case {{$eventName}}EventName:
@@ -188,7 +191,7 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) err
 		if err != nil {
 			return err
 		}
-		aggregateRoot.Apply{{$eventName}}(*event)
+		aggregateRoot.Apply{{$eventName}}(c, *event)
 		break
 	{{end}}
 	default:
@@ -198,10 +201,10 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) err
 }
 
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
-func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Events(c context.Context, envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelop := range envelopes {
-		err = Apply{{$aggr}}Event(envelop, aggregateRoot)
+		err = Apply{{$aggr}}Event(c, envelop, aggregateRoot)
 		if err != nil {
 			break
 		}
