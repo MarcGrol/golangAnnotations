@@ -389,6 +389,8 @@ import (
 		{{range ExtractImports .}}
 			"{{.}}"
 		{{end}}
+	{{else}}
+		"net/http"
 	{{end}}
 
 )
@@ -585,6 +587,10 @@ import (
 
 var fp *os.File
 
+func testCase(name string, description string) {
+	fmt.Fprintf(fp, "\n---\n\n## Test-case '%s'\n\n%s\n\n", name, description)
+}
+
 func TestMain(m *testing.M) {
 	var err error
 	filename := "test_results_{{.Name}}.md"
@@ -621,7 +627,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		rb, _ := json.Marshal(input)
 		// indent for readability
 		var requestBody bytes.Buffer
-		json.Indent(&requestBody, rb, "    ", "\t")
+		json.Indent(&requestBody, rb, "", "\t")
 
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
 	{{else}}
@@ -645,7 +651,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	// dump readable request
 	payload, err := httputil.DumpRequest(req, true)
 	if err == nil {
-		fmt.Fprintf(fp, "\n### http-request:\n\n%s\n\n    ", strings.Replace(string(payload), "\n{", "\n    {", 1))
+		fmt.Fprintf(fp, "\n### http-request:\n\n    %s\n\n    ", strings.Replace(string(payload), "\n", "\n    ", -1))
 	}
 
 	webservice := {{$structName}}{}
@@ -653,8 +659,8 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 
     // dump readable response
 	var responseBody bytes.Buffer
-	json.Indent(&responseBody, recorder.Body.Bytes(), "    ", "\t")
-	fmt.Fprintf(fp, "\n\n### http-response:\n\n    %d\n\n    %s\n\n", recorder.Code, responseBody.String())
+	json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+	fmt.Fprintf(fp, "\n\n### http-response:\n\n    %d\n\n    %s\n\n", recorder.Code, strings.Replace(responseBody.String(), "\n", "\n    ", -1))
 
 	{{if HasOutput . }}
 		if recorder.Code != http.StatusOK {
