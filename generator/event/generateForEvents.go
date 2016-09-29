@@ -229,24 +229,6 @@ import (
   "github.com/satori/go.uuid"
 )
 
-// Envelope wraps all types events so it can be easily serialized and stored
-type Envelope struct {
-	// UUID globally unique identifier if this event
-	UUID           string
-	// SequenceNumber currently not used. We use Timestamp to order events over time
-	SequenceNumber int64
-	// Timestamp is used to order events over time
-	Timestamp      time.Time
-	// AggregateName is the name of the aggregate
-	AggregateName  string
-	// AggregateUID is the unique identifier of the aggregate
-	AggregateUID   string
-	// EventTypeName is the name of the event
-	EventTypeName  string
-	// EventData is the serialized payload of the event
-	EventData      string
-}
-
 const (
 {{range .Structs}}
 {{if IsEvent . }}
