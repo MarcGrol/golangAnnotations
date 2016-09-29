@@ -135,10 +135,10 @@ func ValueForField(field model.Field) string {
 		}
 	} else if field.TypeName == "string" {
 		if field.IsSlice {
-			return "[]string{" + fmt.Sprintf("\"Eaample1%s\"", field.Name) + "," +
-				fmt.Sprintf("\"Eaample2%s\"", field.Name) + "}"
+			return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
+				fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
 		} else {
-			return fmt.Sprintf("\"Eaample%s\"", field.Name)
+			return fmt.Sprintf("\"Example3%s\"", field.Name)
 		}
 	} else if field.TypeName == "bool" {
 		return "true"
@@ -151,14 +151,20 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
-import "fmt"
+import (
+    "fmt"
+    "golang.org/x/net/context"
+)
 
 const (
 {{range $aggr, $events := .AggregateMap}}
+    // {{$aggr}}AggregateName provides constant for the name of {{$aggr}}
     {{$aggr}}AggregateName = "{{$aggr}}"
 {{end}}
 )
-var AggregateEvents map[string][]string = map[string][]string{
+
+// AggregateEvents describes all aggregates with their events
+var AggregateEvents = map[string][]string{
 {{range $aggr, $events := .AggregateMap}}
 	{{$aggr}}AggregateName: []string {
 	{{range $aggregName, $eventName := $events}}
@@ -169,14 +175,15 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 {{range $aggr, $events := .AggregateMap}}
+// {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
-	ApplyAll(envelopes []Envelope)
 	{{range $aggregName, $eventName := $events}}
-		Apply{{$eventName}}(event {{$eventName}})
+		Apply{{$eventName}}(c context.Context, event {{$eventName}})
 	{{end}}
 }
 
-func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+// Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
+func Apply{{$aggr}}Event(c context.Context, envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 		case {{$eventName}}EventName:
@@ -184,7 +191,7 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) err
 		if err != nil {
 			return err
 		}
-		aggregateRoot.Apply{{$eventName}}(*event)
+		aggregateRoot.Apply{{$eventName}}(c, *event)
 		break
 	{{end}}
 	default:
@@ -193,10 +200,11 @@ func Apply{{$aggr}}Event(envelop Envelope, aggregateRoot {{$aggr}}Aggregate) err
 	return nil
 }
 
-func Apply{{$aggr}}Events(envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+// Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
+func Apply{{$aggr}}Events(c context.Context, envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelop := range envelopes {
-		err = Apply{{$aggr}}Event(envelop, aggregateRoot)
+		err = Apply{{$aggr}}Event(c, envelop, aggregateRoot)
 		if err != nil {
 			break
 		}
@@ -221,19 +229,10 @@ import (
   "github.com/satori/go.uuid"
 )
 
-type Envelope struct {
-	Uuid           string
-	SequenceNumber uint64
-	Timestamp      time.Time
-	AggregateName  string
-	AggregateUid   string
-	EventTypeName  string
-	EventData      string
-}
-
 const (
 {{range .Structs}}
 {{if IsEvent . }}
+    // {{.Name}}EventName provides a constant symbol for {{.Name}}
 	{{.Name}}EventName = "{{.Name}}"
 {{end}}
 {{end}}
@@ -245,15 +244,14 @@ var getTime getTimeFunc = func() time.Time {
 	return time.Now()
 }
 
-type getUidFunc func() string
-
-var getUid getUidFunc = func() string {
+var getUID = func() string {
 	return uuid.NewV1().String()
 }
 
 {{range .Structs}}
 {{if IsEvent . }}
 
+// Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     blob, err := json.Marshal(s)
     if err != nil {
@@ -261,11 +259,11 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
         return nil, err
     }
 	envelope := Envelope{
-		Uuid: getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		UUID: getUID(),
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp: getTime(),
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
-		AggregateUid: uid,
+		AggregateUID: uid,
 		EventTypeName: {{.Name}}EventName,
 		EventData: string(blob),
     }
@@ -273,10 +271,12 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     return &envelope, nil
 }
 
+// Is{{.Name}} detects of envelope carries event of type {{.Name}}
 func Is{{.Name}}(envelope *Envelope) bool {
     return envelope.EventTypeName == {{.Name}}EventName
 }
 
+// GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
 func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     if Is{{.Name}}(envelop) == false {
         return nil, false
@@ -288,6 +288,7 @@ func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     return event, true
 }
 
+// UnWrap{{.Name}} extracts event {{.Name}} from its envelope
 func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelop) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
@@ -322,7 +323,7 @@ func testGetTime() time.Time {
 	return t
 }
 
-func testGetUid() string {
+func testGetUID() string {
 	return "1234321"
 }
 
@@ -330,7 +331,7 @@ func testGetUid() string {
 {{if IsEvent . }}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
-	getUid = testGetUid
+	getUID = testGetUID
 	getTime = testGetTime
 
 	event := {{.Name}}{
@@ -342,10 +343,10 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	assert.True(t, Is{{.Name}}(wrapped))
     assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
     assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
-	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUid)
-    assert.Equal(t, "1234321", wrapped.Uuid)
+	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
+    assert.Equal(t, "1234321", wrapped.UUID)
     assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
-	assert.Equal(t, uint64(0), wrapped.SequenceNumber)
+	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
 	assert.True(t, ok)
 	assert.NotNil(t,again)

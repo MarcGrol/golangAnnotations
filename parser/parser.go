@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -9,6 +10,8 @@ import (
 	"regexp"
 
 	"github.com/MarcGrol/golangAnnotations/model"
+	"path/filepath"
+	"strings"
 )
 
 var (
@@ -25,7 +28,9 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return model.ParsedSources{}, err
 	}
-	v := astVisitor{}
+	v := astVisitor{
+		Imports:map[string]string{},
+	}
 	ast.Walk(&v, f)
 
 	embedMethodsInStructs(&v)
@@ -48,7 +53,9 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		return model.ParsedSources{}, err
 	}
 
-	v := astVisitor{}
+	v := astVisitor{
+		Imports: map[string]string{},
+	}
 	for _, p := range packages {
 		for _, f := range p.Files {
 			ast.Walk(&v, f)
@@ -66,13 +73,13 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 	return result, nil
 }
 
-func embedMethodsInStructs(visistor *astVisitor) {
+func embedMethodsInStructs(visitor *astVisitor) {
 	allStructs := make(map[string]*model.Struct)
-	for idx, _ := range visistor.Structs {
-		allStructs[(&visistor.Structs[idx]).Name] = &visistor.Structs[idx]
+	for idx, _ := range visitor.Structs {
+		allStructs[(&visitor.Structs[idx]).Name] = &visitor.Structs[idx]
 	}
-	for idx, _ := range visistor.Operations {
-		oper := visistor.Operations[idx]
+	for idx, _ := range visitor.Operations {
+		oper := visitor.Operations[idx]
 		if oper.RelatedStruct != nil {
 			found, exists := allStructs[(*oper.RelatedStruct).TypeName]
 			if exists {
@@ -134,6 +141,7 @@ func dumpFilesInDir(dirName string) {
 
 type astVisitor struct {
 	PackageName string
+	Imports 	map[string]string
 	Structs     []model.Struct
 	Operations  []model.Operation
 	Interfaces  []model.Interface
@@ -148,9 +156,12 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			v.PackageName = pName
 		}
 
+		// extract all imports into a map
+		v.extractGenDeclImports(node)
+
 		{
 			// if struct, get its fields
-			str, found := extractGenDeclForStruct(node)
+			str, found := extractGenDeclForStruct(node, v.Imports )
 			if found {
 				str.PackageName = v.PackageName
 				v.Structs = append(v.Structs, str)
@@ -159,7 +170,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if interfaces, get its methods
-			iface, found := extractGenDecForInterface(node)
+			iface, found := extractGenDecForInterface(node, v.Imports )
 			if found {
 				iface.PackageName = v.PackageName
 				v.Interfaces = append(v.Interfaces, iface)
@@ -168,7 +179,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if operation, get its signature
-			operation, ok := extractOperation(node)
+			operation, ok := extractOperation(node, v.Imports )
 			if ok {
 				operation.PackageName = v.PackageName
 				v.Operations = append(v.Operations, operation)
@@ -179,14 +190,36 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-func extractGenDeclForStruct(node ast.Node) (model.Struct, bool) {
+
+func (v *astVisitor)extractGenDeclImports(node ast.Node) {
+
+	gd, ok := node.(*ast.GenDecl)
+	if ok {
+		for _, spec := range gd.Specs {
+				is, ok := spec.(*ast.ImportSpec)
+				if ok {
+					quotedImport := is.Path.Value
+					unquotedImport := strings.Trim(quotedImport, "\"")
+					first, last := filepath.Split(unquotedImport)
+					if first == "" {
+						last = first
+					}
+					v.Imports[last] = unquotedImport
+					//log.Printf( "Found import %s -> %s",  last, unquotedImport)
+				}
+		}
+	}
+}
+
+
+func extractGenDeclForStruct(node ast.Node, imports map[string]string) (model.Struct, bool) {
 	found := false
 	var str model.Struct
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it a struct
-		str, found = extractSpecsForStruct(gd.Specs)
+		str, found = extractSpecsForStruct(gd.Specs, imports)
 		if ok {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			str.DocLines = extractDocLines(gd.Doc)
@@ -196,14 +229,14 @@ func extractGenDeclForStruct(node ast.Node) (model.Struct, bool) {
 	return str, found
 }
 
-func extractGenDecForInterface(node ast.Node) (model.Interface, bool) {
+func extractGenDecForInterface(node ast.Node, imports map[string]string) (model.Interface, bool) {
 	found := false
 	var iface model.Interface
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it an interface
-		iface, found = extractSpecsForInterface(gd.Specs)
+		iface, found = extractSpecsForInterface(gd.Specs, imports)
 		if ok {
 			// Docline of interface (that could contain annotations) appear far before the details of the struct
 			iface.DocLines = extractDocLines(gd.Doc)
@@ -213,7 +246,7 @@ func extractGenDecForInterface(node ast.Node) (model.Interface, bool) {
 	return iface, found
 }
 
-func extractSpecsForStruct(specs []ast.Spec) (model.Struct, bool) {
+func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) (model.Struct, bool) {
 	found := false
 	str := model.Struct{}
 
@@ -224,7 +257,7 @@ func extractSpecsForStruct(specs []ast.Spec) (model.Struct, bool) {
 
 			ss, ok := ts.Type.(*ast.StructType)
 			if ok {
-				str.Fields = extractFieldList(ss.Fields)
+				str.Fields = extractFieldList(ss.Fields, imports)
 				found = true
 			}
 		}
@@ -233,7 +266,7 @@ func extractSpecsForStruct(specs []ast.Spec) (model.Struct, bool) {
 	return str, found
 }
 
-func extractSpecsForInterface(specs []ast.Spec) (model.Interface, bool) {
+func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) (model.Interface, bool) {
 	found := false
 	interf := model.Interface{}
 
@@ -244,7 +277,7 @@ func extractSpecsForInterface(specs []ast.Spec) (model.Interface, bool) {
 
 			it, ok := ts.Type.(*ast.InterfaceType)
 			if ok {
-				interf.Methods = extractInterfaceMethods(it.Methods)
+				interf.Methods = extractInterfaceMethods(it.Methods, imports)
 				found = true
 			}
 		}
@@ -254,20 +287,19 @@ func extractSpecsForInterface(specs []ast.Spec) (model.Interface, bool) {
 }
 
 func extractPackageName(node ast.Node) (string, bool) {
-	name := ""
+	found := false
+	packageName := ""
 
-	fil, found := node.(*ast.File)
+	f, found := node.(*ast.File)
 	if found {
-
-		if fil.Name != nil {
-			name = fil.Name.Name
-
+		if f.Name != nil {
+			packageName = f.Name.Name
 		}
 	}
-	return name, found
+	return packageName, found
 }
 
-func extractOperation(node ast.Node) (model.Operation, bool) {
+func extractOperation(node ast.Node, imports map[string]string) (model.Operation, bool) {
 	found := false
 	oper := model.Operation{}
 
@@ -276,7 +308,7 @@ func extractOperation(node ast.Node) (model.Operation, bool) {
 		oper.DocLines = extractDocLines(fd.Doc)
 
 		if fd.Recv != nil {
-			recvd := extractFieldList(fd.Recv)
+			recvd := extractFieldList(fd.Recv, imports)
 			if len(recvd) >= 1 {
 				oper.RelatedStruct = &(recvd[0])
 			}
@@ -287,11 +319,11 @@ func extractOperation(node ast.Node) (model.Operation, bool) {
 		}
 
 		if fd.Type.Params != nil {
-			oper.InputArgs = extractFieldList(fd.Type.Params)
+			oper.InputArgs = extractFieldList(fd.Type.Params, imports)
 		}
 
 		if fd.Type.Results != nil {
-			oper.OutputArgs = extractFieldList(fd.Type.Results)
+			oper.OutputArgs = extractFieldList(fd.Type.Results, imports)
 		}
 	}
 	return oper, found
@@ -324,18 +356,18 @@ func extractTag(tag *ast.BasicLit) (string, bool) {
 	return "", false
 }
 
-func extractFieldList(fl *ast.FieldList) []model.Field {
+func extractFieldList(fl *ast.FieldList, imports map[string]string) []model.Field {
 	fields := []model.Field{}
 	if fl != nil {
 		for _, p := range fl.List {
-			flds := extractFields(p)
+			flds := extractFields(p, imports)
 			fields = append(fields, flds...)
 		}
 	}
 	return fields
 }
 
-func extractInterfaceMethods(fl *ast.FieldList) []model.Operation {
+func extractInterfaceMethods(fl *ast.FieldList, imports map[string]string) []model.Operation {
 	methods := []model.Operation{}
 
 	for _, m := range fl.List {
@@ -347,11 +379,11 @@ func extractInterfaceMethods(fl *ast.FieldList) []model.Operation {
 			ft, found := m.Type.(*ast.FuncType)
 			if found {
 				if ft.Params != nil {
-					oper.InputArgs = extractFieldList(ft.Params)
+					oper.InputArgs = extractFieldList(ft.Params, imports)
 				}
 
 				if ft.Results != nil {
-					oper.OutputArgs = extractFieldList(ft.Results)
+					oper.OutputArgs = extractFieldList(ft.Results, imports)
 				}
 				methods = append(methods, oper)
 			}
@@ -360,16 +392,16 @@ func extractInterfaceMethods(fl *ast.FieldList) []model.Operation {
 	return methods
 }
 
-func extractFields(input *ast.Field) []model.Field {
+func extractFields(input *ast.Field, imports map[string]string) []model.Field {
 	fields := []model.Field{}
 	if input != nil {
 		if len(input.Names) == 0 {
-			field := _extractField(input)
+			field := _extractField(input,imports)
 			fields = append(fields, field)
 		} else {
 			// A single field can refer to multiple: example: x,y int -> x int, y int
 			for _, name := range input.Names {
-				field := _extractField(input)
+				field := _extractField(input,imports)
 				field.Name = name.Name
 				fields = append(fields, field)
 			}
@@ -378,7 +410,7 @@ func extractFields(input *ast.Field) []model.Field {
 	return fields
 }
 
-func _extractField(input *ast.Field) model.Field {
+func _extractField(input *ast.Field, imports map[string]string) model.Field {
 	field := model.Field{}
 
 	field.DocLines = extractDocLines(input.Doc)
@@ -398,6 +430,14 @@ func _extractField(input *ast.Field) model.Field {
 				if ok {
 					field.TypeName = ident.Name
 				}
+				sel, ok := arr.Elt.(*ast.SelectorExpr)
+				if ok {
+					ident, ok = sel.X.(*ast.Ident)
+					if ok {
+						field.TypeName = fmt.Sprintf("%s.%s", ident.Name, sel.Sel.Name)
+						field.PackageName = imports[ident.Name]
+					}
+				}
 			}
 			{
 				star, ok := arr.Elt.(*ast.StarExpr)
@@ -411,13 +451,49 @@ func _extractField(input *ast.Field) model.Field {
 			}
 		}
 	}
+
+	{
+		var mapKey string = ""
+		var mapValue string = ""
+
+		mapType, ok := input.Type.(*ast.MapType)
+		if ok {
+			{
+				key, ok := mapType.Key.(*ast.Ident)
+				if ok {
+					mapKey = key.Name
+				}
+			}
+			{
+				value, ok := mapType.Value.(*ast.Ident)
+				if ok {
+					mapValue = value.Name
+				}
+			}
+		}
+		if mapKey != "" && mapValue != "" {
+			field.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+		}
+
+	}
+
 	{
 		star, ok := input.Type.(*ast.StarExpr)
 		if ok {
 			ident, ok := star.X.(*ast.Ident)
 			if ok {
+				//log.Printf("star ident: %+v", ident.Name)
 				field.TypeName = ident.Name
 				field.IsPointer = true
+			}
+			sel, ok := star.X.(*ast.SelectorExpr)
+			if ok {
+				ident, ok = sel.X.(*ast.Ident)
+				if ok {
+					field.TypeName = fmt.Sprintf( "%s.%s", ident.Name, sel.Sel.Name)
+					field.IsPointer = true
+					field.PackageName = imports[ident.Name]
+				}
 			}
 		}
 	}
@@ -425,6 +501,17 @@ func _extractField(input *ast.Field) model.Field {
 		ident, ok := input.Type.(*ast.Ident)
 		if ok {
 			field.TypeName = ident.Name
+		}
+	}
+	{
+		sel, ok := input.Type.(*ast.SelectorExpr)
+		if ok {
+			x, ok := sel.X.(*ast.Ident)
+			if ok {
+				field.Name = x.Name
+				field.TypeName = fmt.Sprintf("%s.%s", x.Name, sel.Sel.Name)
+				field.PackageName = imports[x.Name]
+			}
 		}
 	}
 

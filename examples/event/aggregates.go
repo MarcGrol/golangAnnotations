@@ -39,8 +39,6 @@ var AggregateEvents map[string][]string = map[string][]string{
 }
 
 type GamblerAggregate interface {
-	ApplyAll(envelopes []Envelope)
-
 	ApplyGamblerCreated(event GamblerCreated)
 
 	ApplyGamblerTeamCreated(event GamblerTeamCreated)
@@ -83,8 +81,6 @@ func ApplyGamblerEvents(envelopes []Envelope, aggregateRoot GamblerAggregate) er
 }
 
 type NewsAggregate interface {
-	ApplyAll(envelopes []Envelope)
-
 	ApplyNewsItemCreated(event NewsItemCreated)
 }
 
@@ -117,8 +113,6 @@ func ApplyNewsEvents(envelopes []Envelope, aggregateRoot NewsAggregate) error {
 }
 
 type TourAggregate interface {
-	ApplyAll(envelopes []Envelope)
-
 	ApplyCyclistCreated(event CyclistCreated)
 
 	ApplyEtappeCreated(event EtappeCreated)

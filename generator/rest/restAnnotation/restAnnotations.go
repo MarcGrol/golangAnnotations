@@ -7,19 +7,19 @@ const (
 	typeRestService   = "RestService"
 	paramPath         = "path"
 	paramMethod       = "method"
+	paramOptional     = "optionalArgs"
 )
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
-	annotation.RegisterAnnotation(typeRestOperation, []string{paramMethod, paramPath}, validateRestOperationAnnotation)
+	annotation.RegisterAnnotation(typeRestOperation, []string{paramMethod, paramPath,paramOptional}, validateRestOperationAnnotation)
 	annotation.RegisterAnnotation(typeRestService, []string{paramPath}, validateRestServiceAnnotation)
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == typeRestOperation {
-		path, hasPath := annot.Attributes[paramPath]
 		method, hasMethod := annot.Attributes[paramMethod]
-		return ((hasPath && path != "") && hasMethod && method != "")
+		return (hasMethod && method != "")
 	}
 	return false
 }

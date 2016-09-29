@@ -2,9 +2,10 @@ package restAnnotation
 
 import (
 	"testing"
-
+	"log"
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/stretchr/testify/assert"
+	"strings"
 )
 
 func TestCorrectRestOperationAnnotation(t *testing.T) {
@@ -30,7 +31,7 @@ func TestPartialIncompleteRestOperationAnnotation(t *testing.T) {
 	Register()
 
 	_, ok := annotation.ResolveAnnotations([]string{`// @RestOperation( Method = "GET")`})
-	assert.False(t, ok)
+	assert.True(t, ok)
 }
 
 func TestPartialIncompleteRestOperationAnnotation2(t *testing.T) {
@@ -39,6 +40,33 @@ func TestPartialIncompleteRestOperationAnnotation2(t *testing.T) {
 
 	_, ok := annotation.ResolveAnnotations([]string{`// @RestOperation( Path = "/foo")`})
 	assert.False(t, ok)
+}
+
+func findArgInArray( array []string, toMatch string ) bool {
+	for _,p := range array {
+		if strings.Trim(p, " ") == toMatch {
+			return true
+		}
+	}
+	return false
+}
+
+func TestOptionalArgRestOperationAnnotation(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	ann, ok := annotation.ResolveAnnotations([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3")`})
+
+	assert.True(t, ok)
+	log.Printf("%+v", ann)
+	optionalArgString, ok :=  ann.Attributes["optionalargs"]
+	log.Printf("optionalArgString:%+v", optionalArgString)
+	assert.True(t, ok)
+	parts := strings.Split(optionalArgString,",")
+	log.Printf("parts:%+v", parts)
+	assert.True(t, findArgInArray(parts,"arg2"))
+	assert.True(t, findArgInArray(parts,"arg3"))
+	assert.False(t, findArgInArray(parts,"arg1"))
 }
 
 func TestCorrectRestServiceAnnotation(t *testing.T) {
@@ -65,3 +93,4 @@ func TestEmptyRestServiceAnnotation(t *testing.T) {
 	_, ok := annotation.ResolveAnnotations([]string{`// @RestService( Path = "")`})
 	assert.True(t, ok)
 }
+

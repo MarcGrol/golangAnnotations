@@ -13,7 +13,7 @@ import (
 
 type Envelope struct {
 	Uuid           string
-	SequenceNumber uint64
+	SequenceNumber int64
 	Timestamp      time.Time
 	AggregateName  string
 	AggregateUid   string
@@ -57,7 +57,7 @@ func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  TourAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -105,7 +105,7 @@ func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  TourAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -153,7 +153,7 @@ func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  TourAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -201,7 +201,7 @@ func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  TourAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -249,7 +249,7 @@ func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  GamblerAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -297,7 +297,7 @@ func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  GamblerAggregateName, // from annotation!
 		AggregateUid:   uid,
@@ -345,7 +345,7 @@ func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
 	}
 	envelope := Envelope{
 		Uuid:           getUid(),
-		SequenceNumber: uint64(0), // Set later by event-store
+		SequenceNumber: int64(0), // Set later by event-store
 		Timestamp:      getTime(),
 		AggregateName:  NewsAggregateName, // from annotation!
 		AggregateUid:   uid,

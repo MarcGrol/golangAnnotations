@@ -15,6 +15,10 @@ import (
 
 func (ts *TourService) HttpHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
+	return ts.HttpHandlerWithRouter(router)
+}
+
+func (ts *TourService) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
 	subRouter := router.PathPrefix("/api/tour").Subrouter()
 
 	subRouter.HandleFunc("/{year}", getTourOnUid(ts)).Methods("GET")
@@ -59,9 +63,8 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 			return
 		}
 
-		// write response body
+		// write OK response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
@@ -108,9 +111,8 @@ func createEtappe(service *TourService) http.HandlerFunc {
 			return
 		}
 
-		// write response body
+		// write OK response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
@@ -163,7 +165,7 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 			return
 		}
 
-		// write response body
+		// write OK response body
 
 		w.WriteHeader(http.StatusNoContent)
 
@@ -207,9 +209,8 @@ func createCyclist(service *TourService) http.HandlerFunc {
 			return
 		}
 
-		// write response body
+		// write OK response body
 
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(result)
 		if err != nil {
@@ -254,7 +255,7 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 			return
 		}
 
-		// write response body
+		// write OK response body
 
 		w.WriteHeader(http.StatusNoContent)
 

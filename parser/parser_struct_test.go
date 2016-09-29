@@ -86,7 +86,7 @@ func TestParseStructsInDir(t *testing.T) {
 			assert.Equal(t, 1, len(s.Fields))
 		}
 		if s.Name == "OtherStruct" {
-			assert.Equal(t, 1, len(s.Fields))
+			assert.Equal(t, 2, len(s.Fields))
 		}
 	}
 }
@@ -103,6 +103,7 @@ func assertField(t *testing.T, expected model.Field, actual model.Field) {
 	//t.Logf("expected: %+v, actual: %+v", expected, actual)
 	assertStringSlice(t, expected.DocLines, actual.DocLines)
 
+	assert.Equal(t, expected.PackageName, actual.PackageName)
 	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, expected.TypeName, actual.TypeName)
 	assert.Equal(t, expected.IsPointer, actual.IsPointer)
