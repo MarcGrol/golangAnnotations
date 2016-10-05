@@ -489,10 +489,16 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{end}}
 				{{end}}
 				{{if IsAuthContextArg .}}
+					language := "nl"
+					langCookie, err := r.Cookie("lang")
+					if err == nil {
+						language = langCookie.Value
+					}
 					authContext := map[string]string {
 						"sessionUid": r.Header.Get("X-session-uid"),
 						"enduserRole": r.Header.Get("X-enduser-role"),
 						"enduserUid": r.Header.Get("X-enduser-uid"),
+						"language": language,
 					}
 				{{else}}
 			{{end}}
