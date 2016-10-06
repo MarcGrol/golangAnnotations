@@ -31,7 +31,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		if IsRestService(service) {
 			{
 				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, "handlers", handlersTemplate, customTemplateFuncs, target)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
 					return err
@@ -39,7 +39,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 			{
 				target := fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, "helpers", HelpersTemplate, customTemplateFuncs, target)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", HelpersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
 					return err
@@ -367,7 +367,7 @@ func IsNumber(f model.Field) bool {
 }
 
 var handlersTemplate string = `
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -551,23 +551,23 @@ func getCredentials(authContext map[string]string, expectedRole string) (string,
 	if role != expectedRole {
 		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
 	}
-	caregiverUID, found := authContext["enduserUid"]
-	if found == false || caregiverUID == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid caregiver-uid %s", caregiverUID)
+	enduserUID, found := authContext["enduserUid"]
+	if found == false || enduserUID == "" {
+		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid enduser-uid %s", enduserUID)
 	}
 	sessionUID, found := authContext["sessionUid"]
 	if found == false || sessionUID == "" {
 		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUID)
 	}
 
-	return role, caregiverUID, sessionUID, nil
+	return role, enduserUID, sessionUID, nil
 }
 {{end}}
 
 `
 
 var HelpersTemplate string = `
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 

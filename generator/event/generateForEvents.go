@@ -59,7 +59,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				AggregateMap: aggregates,
 			}
 
-			err = generationUtil.GenerateFileFromTemplate(data, "aggregates", aggregateTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(data, packageName,"aggregates", aggregateTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating aggregates (%s)", err)
 				return err
@@ -72,7 +72,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data, "wrappers", wrappersTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers", wrappersTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for structs (%s)", err)
 				return err
@@ -85,7 +85,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(data,packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers-test for structs (%s)", err)
 				return err
@@ -147,7 +147,7 @@ func ValueForField(field model.Field) string {
 }
 
 var aggregateTemplate string = `
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -216,7 +216,7 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []Envelope, aggregateRoot
 `
 
 var wrappersTemplate string = `
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -306,7 +306,7 @@ func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
 {{end}}
 `
 var wrappersTestTemplate string = `
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
