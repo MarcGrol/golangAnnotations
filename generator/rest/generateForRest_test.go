@@ -1,5 +1,6 @@
 package rest
 
+
 import (
 	"fmt"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
-
 func TestGenerateForWeb(t *testing.T) {
 	os.Remove("./testData/httpMyService.go")
 	os.Remove("./testData/httpMyServiceHelpers_test.go")

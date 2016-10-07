@@ -77,6 +77,16 @@ var customTemplateFuncs = template.FuncMap{
 	"IsAuthContextArg":       IsAuthContextArg,
 	"HasContext":             HasContext,
 	"GetContextName":         GetContextName,
+	"WithBackTicks": SurroundWithBackTicks,
+	"BackTick": BackTick,
+}
+
+func BackTick() string{
+	return "`"
+}
+
+func SurroundWithBackTicks(body string) string{
+	return fmt.Sprintf("`%s'", body)
 }
 
 func IsRestService(s model.Struct) bool {
@@ -593,29 +603,55 @@ import (
 
 
 var fp *os.File
+var logFp *os.File
 
-func testCase(name string, description string) {
-	fmt.Fprintf(fp, "\n---\n\n## Test-case '%s'\n\n%s\n\n", name, description)
-}
 
-func TestMain(m *testing.M) {
-	var err error
-	filename := "test_results_{{.Name}}.md"
-
-	fp, err = os.Create(filename)
+func openfile( filename string) *os.File {
+	fp, err := os.Create(filename)
 	if err != nil {
 		log.Fatalf("Error opening rest-dump-file %s: %s", filename, err.Error())
 	}
-	fmt.Fprintf(fp, "# HTTP request and response payloads for all test in package\n\n" )
+	return fp
+}
 
+func TestMain(m *testing.M) {
+
+	fp = openfile("test_results_{{.Name}}.md")
 	defer func() {
 		fp.Close()
 	}()
+	fmt.Fprintf(fp, "# HTTP request and response payloads for all test in package\n\n" )
 
+	logFp = openfile("testResultsOf{{.Name}}.go")
+	defer func() {
+		logFp.Close()
+	}()
+	fmt.Fprintf(logFp, "package {{.PackageName}}\n\n" )
+	fmt.Fprintf(logFp, "// Generated automatically based on running of api-tests\n\n" )
+	fmt.Fprintf(logFp, "import \"github.com/Duxxie/platform/backend/lib/testcase\"\n")
+
+	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
+	fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
 	code := m.Run()
+
+	fmt.Fprintf(logFp, "},\n" )
+	fmt.Fprintf(logFp, "}\n" )
 
 	os.Exit(code)
 }
+
+func testCase(name string, description string) {
+	fmt.Fprintf(fp, "\n---\n\n## Test-case '%s'\n\n%s\n\n", name, description)
+
+	fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")
+	fmt.Fprintf(logFp, "\t\tName:\"%s\",\n", name)
+	fmt.Fprintf(logFp, "\t\tDescription:\"%s\",\n", description)
+}
+
+func testCaseDone() {
+	fmt.Fprintf(logFp, "},\n")
+}
+
 
 {{range .Operations}}
 
@@ -627,6 +663,11 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 
 func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 	fmt.Fprintf(fp, "### Operation %s\n", "{{.Name}}")
+
+	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
+	defer func() {
+		fmt.Fprintf(logFp, "\t},\n")
+	}()
 
 	recorder := httptest.NewRecorder()
 
@@ -655,19 +696,41 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req.Header.Set(k, v)
 	}
 
+	fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
+	fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
+	fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", url)
+	fmt.Fprintf(logFp, "\tHeaders:[]string{\"TODO\"},\n")
+	{{if HasInput . }}
+		fmt.Fprintf(logFp, "\tBody:\n" )
+		fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
+		fmt.Fprintf(logFp, ",\n" )
+	{{end}}
+	fmt.Fprintf(logFp, "},\n")
+
 	// dump readable request
 	payload, err := httputil.DumpRequest(req, true)
 	if err == nil {
 		fmt.Fprintf(fp, "\n### http-request:\n\n    %s\n\n    ", strings.Replace(string(payload), "\n", "\n    ", -1))
 	}
 
+	fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
+	defer func() {
+		fmt.Fprintf(logFp, "\t},\n")
+	}()
+
+
 	webservice := {{$structName}}{}
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
+
 
     // dump readable response
 	var responseBody bytes.Buffer
 	json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
 	fmt.Fprintf(fp, "\n\n### http-response:\n\n    %d\n\n    %s\n\n", recorder.Code, strings.Replace(responseBody.String(), "\n", "\n    ", -1))
+
+	fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
+	fmt.Fprintf(logFp, "\tHeaders:[]string{\"TODO\"},\n")
+	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", responseBody.String())
 
 	{{if HasOutput . }}
 		if recorder.Code != http.StatusOK {
