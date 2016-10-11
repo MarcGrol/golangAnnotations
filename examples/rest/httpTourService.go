@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/MarcGrol/microgen/lib/myerrors"
 	"github.com/gorilla/mux"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
 func (ts *TourService) HttpHandler() http.Handler {
@@ -45,12 +45,12 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
 			return
 		}
 		year, err := strconv.Atoi(yearString)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -85,12 +85,12 @@ func createEtappe(service *TourService) http.HandlerFunc {
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
 			return
 		}
 		year, err := strconv.Atoi(yearString)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -98,7 +98,7 @@ func createEtappe(service *TourService) http.HandlerFunc {
 		var etappe Etappe
 		err = json.NewDecoder(r.Body).Decode(&etappe)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
 			return
 		}
 
@@ -133,18 +133,18 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
 			return
 		}
 		year, err := strconv.Atoi(yearString)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
 			return
 		}
 
 		etappeUid, exists := pathParams["etappeUid"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'etappeUid'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'etappeUid'")), w)
 			return
 		}
 
@@ -152,7 +152,7 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 		var results EtappeResult
 		err = json.NewDecoder(r.Body).Decode(&results)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
 			return
 		}
 
@@ -183,12 +183,12 @@ func createCyclist(service *TourService) http.HandlerFunc {
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
 			return
 		}
 		year, err := strconv.Atoi(yearString)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
 			return
 		}
 
@@ -196,7 +196,7 @@ func createCyclist(service *TourService) http.HandlerFunc {
 		var cyclist Cyclist
 		err = json.NewDecoder(r.Body).Decode(&cyclist)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Error decoding request payload:%s", err)), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
 			return
 		}
 
@@ -231,18 +231,18 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
 			return
 		}
 		year, err := strconv.Atoi(yearString)
 		if err != nil {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Invalid path param 'year'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
 			return
 		}
 
 		cyclistUid, exists := pathParams["cyclistUid"]
 		if !exists {
-			handleError(myerrors.NewInvalidInputError(fmt.Errorf("Missing path param 'cyclistUid'")), w)
+			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'cyclistUid'")), w)
 			return
 		}
 
@@ -279,13 +279,13 @@ func handleError(err error, w http.ResponseWriter) {
 }
 
 func determineHttpCode(err error) int {
-	if myerrors.IsNotFoundError(err) {
+	if errorh.IsNotFoundError(err) {
 		return http.StatusNotFound
-	} else if myerrors.IsInternalError(err) {
+	} else if errorh.IsInternalError(err) {
 		return http.StatusInternalServerError
-	} else if myerrors.IsInvalidInputError(err) {
+	} else if errorh.IsInvalidInputError(err) {
 		return http.StatusBadRequest
-	} else if myerrors.IsNotAuthorizedError(err) {
+	} else if errorh.IsNotAuthorizedError(err) {
 		return http.StatusForbidden
 	} else {
 		return http.StatusInternalServerError
