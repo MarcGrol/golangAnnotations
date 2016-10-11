@@ -45,6 +45,14 @@ func generate(inputDir string, structs []model.Struct) error {
 					return err
 				}
 			}
+			{
+				target := fmt.Sprintf("%s/httpTest%s.go", targetDir, service.Name)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
+				if err != nil {
+					log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
+					return err
+				}
+			}
 
 		}
 	}
@@ -591,6 +599,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"sort"
 
 	"strings"
 	"bytes"
@@ -602,7 +611,6 @@ import (
 {{ $structName := .Name }}
 
 
-var fp *os.File
 var logFp *os.File
 
 
@@ -616,19 +624,19 @@ func openfile( filename string) *os.File {
 
 func TestMain(m *testing.M) {
 
-	fp = openfile("test_results_{{.Name}}.md")
-	defer func() {
-		fp.Close()
-	}()
-	fmt.Fprintf(fp, "# HTTP request and response payloads for all test in package\n\n" )
-
-	logFp = openfile("testResultsOf{{.Name}}.go")
+	dirname := "{{.PackageName}}TestLog"
+	if _, err := os.Stat(dirname); os.IsNotExist(err) {
+    	os.Mkdir(dirname, os.ModePerm)
+	}
+	logFp = openfile(dirname + "/testResults.go")
 	defer func() {
 		logFp.Close()
 	}()
-	fmt.Fprintf(logFp, "package {{.PackageName}}\n\n" )
+	fmt.Fprintf(logFp, "package %s\n\n", dirname )
 	fmt.Fprintf(logFp, "// Generated automatically based on running of api-tests\n\n" )
-	fmt.Fprintf(logFp, "import \"github.com/Duxxie/platform/backend/lib/testcase\"\n")
+	fmt.Fprintf(logFp, "import (\n")
+	fmt.Fprintf(logFp, "\"github.com/Duxxie/platform/backend/lib/testcase\"\n")
+	fmt.Fprintf(logFp, ")\n")
 
 	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
 	fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
@@ -641,8 +649,6 @@ func TestMain(m *testing.M) {
 }
 
 func testCase(name string, description string) {
-	fmt.Fprintf(fp, "\n---\n\n## Test-case '%s'\n\n%s\n\n", name, description)
-
 	fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")
 	fmt.Fprintf(logFp, "\t\tName:\"%s\",\n", name)
 	fmt.Fprintf(logFp, "\t\tDescription:\"%s\",\n", description)
@@ -662,7 +668,6 @@ func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType 
 }
 
 func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
-	fmt.Fprintf(fp, "### Operation %s\n", "{{.Name}}")
 
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
@@ -696,10 +701,23 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req.Header.Set(k, v)
 	}
 
+	headersToBeSorted := []string{}
+	for key, values := range req.Header {
+		for _, value := range values {
+			headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+		}
+	}
+	sort.Strings(headersToBeSorted)
+
 	fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
 	fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
 	fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", url)
-	fmt.Fprintf(logFp, "\tHeaders:[]string{\"TODO\"},\n")
+	fmt.Fprintf(logFp, "\tHeaders: []string{\n")
+	for _, h := range headersToBeSorted {
+		fmt.Fprintf(logFp, "\"%s\",\n", h)
+	}
+	fmt.Fprintf(logFp, "\t},\n")
+
 	{{if HasInput . }}
 		fmt.Fprintf(logFp, "\tBody:\n" )
 		fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
@@ -708,28 +726,35 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	fmt.Fprintf(logFp, "},\n")
 
 	// dump readable request
-	payload, err := httputil.DumpRequest(req, true)
-	if err == nil {
-		fmt.Fprintf(fp, "\n### http-request:\n\n    %s\n\n    ", strings.Replace(string(payload), "\n", "\n    ", -1))
-	}
+	//payload, err := httputil.DumpRequest(req, true)
 
 	fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
 	defer func() {
 		fmt.Fprintf(logFp, "\t},\n")
 	}()
 
-
 	webservice := {{$structName}}{}
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
-
 
     // dump readable response
 	var responseBody bytes.Buffer
 	json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
-	fmt.Fprintf(fp, "\n\n### http-response:\n\n    %d\n\n    %s\n\n", recorder.Code, strings.Replace(responseBody.String(), "\n", "\n    ", -1))
 
 	fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
-	fmt.Fprintf(logFp, "\tHeaders:[]string{\"TODO\"},\n")
+
+	headersToBeSorted = []string{}
+	for key, values := range recorder.Header() {
+		for _, value := range values {
+			headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+		}
+	}
+	sort.Strings(headersToBeSorted)
+
+	fmt.Fprintf(logFp, "\tHeaders:[]string{\n")
+	for _, h := range headersToBeSorted {
+		fmt.Fprintf(logFp, "\"%s\",\n", h)
+	}
+	fmt.Fprintf(logFp, "\t},\n")
 	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", responseBody.String())
 
 	{{if HasOutput . }}
@@ -759,4 +784,25 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 }
 {{end}}
 {{end}}
+`
+
+var testServiceTemplate = `
+// Generated automatically by golangAnnotations: do not edit manually
+
+package {{.PackageName}}
+
+import (
+"github.com/Duxxie/platform/backend/lib/testcase"
+"github.com/gorilla/mux"
+)
+
+// HTTPTestHandlerWithRouter registers endpoint in existing router
+func HTTPTestHandlerWithRouter(router *mux.Router, results testcase.TestSuiteDescriptor) *mux.Router {
+	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
+
+	subRouter.HandleFunc("/logs.md", testcase.WriteTestLogsAsMarkdown(results)).Methods("GET")
+
+	return router
+}
+
 `
