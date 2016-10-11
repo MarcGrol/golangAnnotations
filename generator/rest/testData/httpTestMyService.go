@@ -4,7 +4,7 @@
 package testData
 
 import (
-"github.com/Duxxie/platform/backend/lib/testcase"
+"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
 "github.com/gorilla/mux"
 )
 
