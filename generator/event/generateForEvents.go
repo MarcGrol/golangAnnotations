@@ -241,7 +241,11 @@ const (
 type getTimeFunc func() time.Time
 
 var getTime getTimeFunc = func() time.Time {
-	return time.Now()
+	loc, err := time.LoadLocation("Europe/Amsterdam")
+	if err != nil {
+		log.Fatal("***** Error determining timezone: %s", err)
+	}
+	return time.Now().In(loc)
 }
 
 var getUID = func() string {
