@@ -29,7 +29,7 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 		return model.ParsedSources{}, err
 	}
 	v := astVisitor{
-		Imports:map[string]string{},
+		Imports: map[string]string{},
 	}
 	ast.Walk(&v, f)
 
@@ -141,7 +141,7 @@ func dumpFilesInDir(dirName string) {
 
 type astVisitor struct {
 	PackageName string
-	Imports 	map[string]string
+	Imports     map[string]string
 	Structs     []model.Struct
 	Operations  []model.Operation
 	Interfaces  []model.Interface
@@ -161,7 +161,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if struct, get its fields
-			str, found := extractGenDeclForStruct(node, v.Imports )
+			str, found := extractGenDeclForStruct(node, v.Imports)
 			if found {
 				str.PackageName = v.PackageName
 				v.Structs = append(v.Structs, str)
@@ -170,7 +170,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if interfaces, get its methods
-			iface, found := extractGenDecForInterface(node, v.Imports )
+			iface, found := extractGenDecForInterface(node, v.Imports)
 			if found {
 				iface.PackageName = v.PackageName
 				v.Interfaces = append(v.Interfaces, iface)
@@ -179,7 +179,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if operation, get its signature
-			operation, ok := extractOperation(node, v.Imports )
+			operation, ok := extractOperation(node, v.Imports)
 			if ok {
 				operation.PackageName = v.PackageName
 				v.Operations = append(v.Operations, operation)
@@ -190,27 +190,25 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	return v
 }
 
-
-func (v *astVisitor)extractGenDeclImports(node ast.Node) {
+func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
 		for _, spec := range gd.Specs {
-				is, ok := spec.(*ast.ImportSpec)
-				if ok {
-					quotedImport := is.Path.Value
-					unquotedImport := strings.Trim(quotedImport, "\"")
-					first, last := filepath.Split(unquotedImport)
-					if first == "" {
-						last = first
-					}
-					v.Imports[last] = unquotedImport
-					//log.Printf( "Found import %s -> %s",  last, unquotedImport)
+			is, ok := spec.(*ast.ImportSpec)
+			if ok {
+				quotedImport := is.Path.Value
+				unquotedImport := strings.Trim(quotedImport, "\"")
+				first, last := filepath.Split(unquotedImport)
+				if first == "" {
+					last = first
 				}
+				v.Imports[last] = unquotedImport
+				//log.Printf( "Found import %s -> %s",  last, unquotedImport)
+			}
 		}
 	}
 }
-
 
 func extractGenDeclForStruct(node ast.Node, imports map[string]string) (model.Struct, bool) {
 	found := false
@@ -396,12 +394,12 @@ func extractFields(input *ast.Field, imports map[string]string) []model.Field {
 	fields := []model.Field{}
 	if input != nil {
 		if len(input.Names) == 0 {
-			field := _extractField(input,imports)
+			field := _extractField(input, imports)
 			fields = append(fields, field)
 		} else {
 			// A single field can refer to multiple: example: x,y int -> x int, y int
 			for _, name := range input.Names {
-				field := _extractField(input,imports)
+				field := _extractField(input, imports)
 				field.Name = name.Name
 				fields = append(fields, field)
 			}
@@ -490,7 +488,7 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 			if ok {
 				ident, ok = sel.X.(*ast.Ident)
 				if ok {
-					field.TypeName = fmt.Sprintf( "%s.%s", ident.Name, sel.Sel.Name)
+					field.TypeName = fmt.Sprintf("%s.%s", ident.Name, sel.Sel.Name)
 					field.IsPointer = true
 					field.PackageName = imports[ident.Name]
 				}

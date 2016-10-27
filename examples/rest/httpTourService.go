@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
 )
 
 func (ts *TourService) HttpHandler() http.Handler {

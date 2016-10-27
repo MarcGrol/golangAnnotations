@@ -59,7 +59,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				AggregateMap: aggregates,
 			}
 
-			err = generationUtil.GenerateFileFromTemplate(data, packageName,"aggregates", aggregateTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(data, packageName, "aggregates", aggregateTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating aggregates (%s)", err)
 				return err
@@ -79,13 +79,26 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
+			target := fmt.Sprintf("%s/storeEvents.go", targetDir+"/../repo/")
+
+			data := Structs{
+				PackageName: packageName,
+				Structs:     structs,
+			}
+			err = generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", storeEventsTemplate, customTemplateFuncs, target)
+			if err != nil {
+				log.Fatalf("Error generating store-events for structs (%s)", err)
+				return err
+			}
+		}
+		{
 			target := fmt.Sprintf("%s/wrappers_test.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data,packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers-test for structs (%s)", err)
 				return err
@@ -98,6 +111,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsEvent":          IsEvent,
+	"IsRootEvent":      IsRootEvent,
 	"GetAggregateName": GetAggregateName,
 	"HasValueForField": HasValueForField,
 	"ValueForField":    ValueForField,
@@ -117,6 +131,17 @@ func GetAggregateName(s model.Struct) string {
 		return val.Attributes["aggregate"]
 	}
 	return ""
+}
+
+func IsRootEvent(s model.Struct) bool {
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if ok {
+		isRootEvent := annotation.Attributes["isrootevent"]
+		if isRootEvent == "true" {
+			return true
+		}
+	}
+	return false
 }
 
 func HasValueForField(field model.Field) bool {
@@ -256,7 +281,7 @@ var getUID = func() string {
 {{if IsEvent . }}
 
 // Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
+func (s *{{.Name}}) Wrap(sessionUID string) (*Envelope,error) {
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
@@ -264,10 +289,12 @@ func (s *{{.Name}}) Wrap(uid string) (*Envelope,error) {
     }
 	envelope := Envelope{
 		UUID: getUID(),
+		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
 		SequenceNumber: int64(0), // Set later by event-store
+		SessionUID: sessionUID,
 		Timestamp: getTime(),
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
-		AggregateUID: uid,
+		AggregateUID:  s.GetUID(),
 		EventTypeName: {{.Name}}EventName,
 		EventData: string(blob),
     }
@@ -342,13 +369,14 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	   {{range .Fields}}
 	   {{if HasValueForField .}} {{.Name}}: {{ValueForField .}}, {{end}} {{end}}
 	}
-	wrapped, err := event.Wrap("UID_{{.Name}}")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, Is{{.Name}}(wrapped))
     assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
     assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
-	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
-    assert.Equal(t, "1234321", wrapped.UUID)
+	//	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
     assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
@@ -356,6 +384,39 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	assert.NotNil(t,again)
 	reflect.DeepEqual(event, *again)
 }
+{{end}}
+{{end}}
+`
+
+var storeEventsTemplate string = `
+// Generated automatically by golangAnnotations: do not edit manually
+
+package repo
+
+import (
+	"github.com/Duxxie/platform/backend/lib/events"
+	"github.com/Duxxie/platform/backend/lib/events/store"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"golang.org/x/net/context"
+)
+
+{{range .Structs}}
+{{if IsEvent . }}
+
+// StoreEvent{{.Name}} is used to store event of type {{.Name}}
+func StoreEvent{{.Name}}(c context.Context, event events.{{.Name}}, sessionUID string) error {
+	envlp, err := event.Wrap(sessionUID)
+	if err != nil {
+		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+	}
+
+	err = store.New().Put(c, envlp)
+	if err != nil {
+		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+	}
+	return nil
+}
+
 {{end}}
 {{end}}
 `

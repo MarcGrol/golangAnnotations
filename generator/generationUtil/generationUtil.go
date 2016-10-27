@@ -52,7 +52,7 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 }
 
 func GenerateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
-	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", targetFileName, srcName )
+	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", targetFileName, srcName)
 
 	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)
 	if err != nil {

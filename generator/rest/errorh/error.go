@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-
 func NewInternalErrorf(code int, format string, args ...interface{}) *Error {
 	return NewInternalError(code, fmt.Errorf(format, args...))
 }
@@ -16,7 +15,7 @@ func NewInternalError(code int, err error) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
 	newError.underlyingError = err
-	newError.ErrorMessage =  err.Error()
+	newError.ErrorMessage = err.Error()
 	newError.httpErrorType = http.StatusInternalServerError
 	return newError
 }
@@ -33,7 +32,7 @@ func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error 
 func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
-	newError.underlyingError =  errors.New("Input validation error")
+	newError.underlyingError = errors.New("Input validation error")
 	newError.ErrorMessage = newError.underlyingError.Error()
 	newError.httpErrorType = http.StatusBadRequest
 	newError.FieldErrors = fieldErrors
@@ -47,7 +46,7 @@ func NewNotFoundErrorf(code int, format string, args ...interface{}) *Error {
 func NewNotFoundError(code int, err error) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
-	newError.underlyingError =  err
+	newError.underlyingError = err
 	newError.ErrorMessage = err.Error()
 	newError.httpErrorType = http.StatusNotFound
 	return newError
@@ -75,7 +74,7 @@ func (err Error) IsInternalError() bool {
 }
 
 func (err Error) IsInvalidInputError() bool {
-	return err.httpErrorType ==  http.StatusBadRequest
+	return err.httpErrorType == http.StatusBadRequest
 }
 
 func (err Error) GetFieldErrors() []FieldError {
@@ -83,7 +82,7 @@ func (err Error) GetFieldErrors() []FieldError {
 }
 
 func (err Error) IsNotFoundError() bool {
-	return err.httpErrorType ==  http.StatusNotFound
+	return err.httpErrorType == http.StatusNotFound
 }
 
 func (err Error) IsNotAuthorizedError() bool {
@@ -104,7 +103,7 @@ func HandleHttpError(err error, w http.ResponseWriter) {
 
 	errorBody := Error{
 		ErrorCode:    geErrorCode(err),
-		ErrorMessage :err.Error(),
+		ErrorMessage: err.Error(),
 		FieldErrors:  getFieldErrors(err),
 	}
 	json.NewEncoder(w).Encode(errorBody)

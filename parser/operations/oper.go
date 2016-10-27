@@ -1,8 +1,8 @@
 package operations
 
 import (
-	"golang.org/x/net/context"
 	"github.com/MarcGrol/golangAnnotations/parser/structs"
+	"golang.org/x/net/context"
 )
 
 type Person struct {
@@ -32,7 +32,7 @@ func (s Service) getPerson(uid string) (Person, *Person, error) {
 // docline for getForeignStruct
 func (s Service) getForeignStruct(in structs.YetAnotherStruct) (*structs.YetAnotherStruct, error) {
 	p := structs.YetAnotherStruct{
-		Y:42,
+		Y: 42,
 	}
 	return &p, nil
 }

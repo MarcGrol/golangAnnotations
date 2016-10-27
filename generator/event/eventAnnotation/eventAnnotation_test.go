@@ -1,19 +1,21 @@
 package eventAnnotation
 
 import (
-	"testing"
-
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"testing"
 )
 
 func TestCorrectEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	annot, ok := annotation.ResolveAnnotations([]string{`// @Event( aggregate = "test" )`})
+	annot, ok := annotation.ResolveAnnotations([]string{`// @Event( aggregate = "test", isRootEvent = "true" )`})
 	assert.True(t, ok)
+	log.Printf("%+v", annot)
 	assert.Equal(t, "test", annot.Attributes["aggregate"])
+	assert.Equal(t, "true", annot.Attributes["isrootevent"])
 }
 
 func TestIncompleteEventAnnotation(t *testing.T) {

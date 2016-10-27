@@ -1,11 +1,10 @@
-
 // Generated automatically by golangAnnotations: do not edit manually
 
 package testData
 
 import (
-"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
-"github.com/gorilla/mux"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
+	"github.com/gorilla/mux"
 )
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router
@@ -16,4 +15,3 @@ func HTTPTestHandlerWithRouter(router *mux.Router, results testcase.TestSuiteDes
 
 	return router
 }
-

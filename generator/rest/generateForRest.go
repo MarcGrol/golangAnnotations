@@ -60,40 +60,40 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":          IsRestService,
-	"ExtractImports":         ExtractImports,
-	"HasAuthContextArg":      HasAuthContextArg,
-	"NeedsIntegerConversion": NeedsIntegerConversion,
-	"NeedsContext":           NeedsContext,
-	"GetRestServicePath":     GetRestServicePath,
-	"IsRestOperation":        IsRestOperation,
-	"GetRestOperationPath":   GetRestOperationPath,
-	"GetRestOperationMethod": GetRestOperationMethod,
-	"HasOperationsWithInput": HasOperationsWithInput,
-	"HasInput":               HasInput,
-	"GetInputArgType":        GetInputArgType,
+	"IsRestService":           IsRestService,
+	"ExtractImports":          ExtractImports,
+	"HasAuthContextArg":       HasAuthContextArg,
+	"NeedsIntegerConversion":  NeedsIntegerConversion,
+	"NeedsContext":            NeedsContext,
+	"GetRestServicePath":      GetRestServicePath,
+	"IsRestOperation":         IsRestOperation,
+	"GetRestOperationPath":    GetRestOperationPath,
+	"GetRestOperationMethod":  GetRestOperationMethod,
+	"HasOperationsWithInput":  HasOperationsWithInput,
+	"HasInput":                HasInput,
+	"GetInputArgType":         GetInputArgType,
 	"GetOutputArgDeclaration": GetOutputArgDeclaration,
-	"GetOutputArgName":			GetOutputArgName,
-	"UsesQueryParams":        UsesQueryParams,
-	"GetInputArgName":        GetInputArgName,
-	"GetInputParamString":    GetInputParamString,
-	"GetOutputArgType":       GetOutputArgType,
-	"HasOutput":              HasOutput,
-	"IsPrimitive":            IsPrimitive,
-	"IsNumber":               IsNumber,
-	"IsInputArgMandatory": 	  IsInputArgMandatory,
-	"IsAuthContextArg":       IsAuthContextArg,
-	"HasContext":             HasContext,
-	"GetContextName":         GetContextName,
-	"WithBackTicks": SurroundWithBackTicks,
-	"BackTick": BackTick,
+	"GetOutputArgName":        GetOutputArgName,
+	"UsesQueryParams":         UsesQueryParams,
+	"GetInputArgName":         GetInputArgName,
+	"GetInputParamString":     GetInputParamString,
+	"GetOutputArgType":        GetOutputArgType,
+	"HasOutput":               HasOutput,
+	"IsPrimitive":             IsPrimitive,
+	"IsNumber":                IsNumber,
+	"IsInputArgMandatory":     IsInputArgMandatory,
+	"IsAuthContextArg":        IsAuthContextArg,
+	"HasContext":              HasContext,
+	"GetContextName":          GetContextName,
+	"WithBackTicks":           SurroundWithBackTicks,
+	"BackTick":                BackTick,
 }
 
-func BackTick() string{
+func BackTick() string {
 	return "`"
 }
 
-func SurroundWithBackTicks(body string) string{
+func SurroundWithBackTicks(body string) string {
 	return fmt.Sprintf("`%s'", body)
 }
 
@@ -105,7 +105,7 @@ func IsRestService(s model.Struct) bool {
 	return ok
 }
 
-func isImportToBeIgnored( imp string ) bool {
+func isImportToBeIgnored(imp string) bool {
 	if imp == "" {
 		return true
 	}
@@ -124,12 +124,12 @@ func ExtractImports(s model.Struct) []string {
 	importsMap := map[string]string{}
 	for _, o := range s.Operations {
 		for _, ia := range o.InputArgs {
-			if isImportToBeIgnored(ia.PackageName ) == false {
+			if isImportToBeIgnored(ia.PackageName) == false {
 				importsMap[ia.PackageName] = ia.PackageName
 			}
 		}
 		for _, oa := range o.OutputArgs {
-			if isImportToBeIgnored(oa.PackageName ) == false {
+			if isImportToBeIgnored(oa.PackageName) == false {
 				importsMap[oa.PackageName] = oa.PackageName
 			}
 		}
@@ -164,7 +164,6 @@ func NeedsContext(s model.Struct) bool {
 	return false
 }
 
-
 func HasAuthContextArg(s model.Struct) bool {
 	for _, oper := range s.Operations {
 		for _, a := range oper.InputArgs {
@@ -185,7 +184,7 @@ func GetRestServicePath(s model.Struct) string {
 }
 
 func HasOperationsWithInput(s model.Struct) bool {
-	for _,o := range s.Operations {
+	for _, o := range s.Operations {
 		if HasInput(*o) == true {
 			return true
 		}
@@ -216,8 +215,6 @@ func GetRestOperationMethod(o model.Operation) string {
 	}
 	return ""
 }
-
-
 
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
@@ -257,11 +254,10 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
-
 func UsesQueryParams(o model.Operation) bool {
-	if GetRestOperationMethod(o) == "GET"  {
+	if GetRestOperationMethod(o) == "GET" {
 		count := 0
-		for _,arg := range o.InputArgs {
+		for _, arg := range o.InputArgs {
 			if arg.TypeName != "context.Context" && arg.Name != "authContext" {
 				count++
 			}
@@ -279,7 +275,6 @@ func GetInputArgName(o model.Operation) string {
 	}
 	return ""
 }
-
 
 func GetInputParamString(o model.Operation) string {
 	args := []string{}
@@ -315,7 +310,6 @@ func GetOutputArgType(o model.Operation) string {
 	return ""
 }
 
-
 func GetOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if arg.TypeName != "error" {
@@ -350,8 +344,8 @@ func GetOutputArgName(o model.Operation) string {
 	return ""
 }
 
-func findArgInArray( array []string, toMatch string ) bool {
-	for _,p := range array {
+func findArgInArray(array []string, toMatch string) bool {
+	for _, p := range array {
 		if strings.Trim(p, " ") == toMatch {
 			return true
 		}
@@ -364,12 +358,12 @@ func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	if !ok || annotation.Name != "RestOperation" {
 		return false
 	}
-	optionalArgsString, ok :=  annotation.Attributes["optionalargs"]
+	optionalArgsString, ok := annotation.Attributes["optionalargs"]
 	if !ok {
 		return true
 	}
 
-	return !findArgInArray(strings.Split(optionalArgsString, ","),arg.Name)
+	return !findArgInArray(strings.Split(optionalArgsString, ","), arg.Name)
 }
 
 func IsAuthContextArg(arg model.Field) bool {
