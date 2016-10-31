@@ -36,3 +36,11 @@ func (s Service) getForeignStruct(in structs.YetAnotherStruct) (*structs.YetAnot
 	}
 	return &p, nil
 }
+
+// docline for getForeignStructs
+func (s Service) getForeignStructs(ctx context.Context) ([]*structs.YetAnotherStruct, error) {
+	p := &structs.YetAnotherStruct{
+		Y: 42,
+	}
+	return []*structs.YetAnotherStruct{p}, nil
+}

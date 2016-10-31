@@ -437,13 +437,26 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 					}
 				}
 			}
+
 			{
-				star, ok := arr.Elt.(*ast.StarExpr)
+				elt, ok := arr.Elt.(*ast.StarExpr)
 				if ok {
-					ident, ok := star.X.(*ast.Ident)
 					if ok {
-						field.TypeName = ident.Name
-						field.IsPointer = true
+						ident, ok := elt.X.(*ast.Ident)
+						if ok {
+							field.TypeName = ident.Name
+							field.IsPointer = true
+						}
+					}
+
+					x, ok := elt.X.(*ast.SelectorExpr)
+					if ok {
+						xx, ok := x.X.(*ast.Ident)
+						if ok {
+							field.PackageName = imports[xx.Name]
+							field.IsPointer = true
+							field.TypeName = fmt.Sprintf("%s.%s", xx.Name, x.Sel.Name)
+						}
 					}
 				}
 			}
