@@ -26,6 +26,12 @@ type InternalError interface {
 	IsInternalError() bool
 }
 
+type ConflictError interface {
+	error
+	ErrorWithCodes
+	IsConflictError() bool
+}
+
 type NotFound interface {
 	error
 	ErrorWithCodes
@@ -80,6 +86,16 @@ func IsInternalError(err error) bool {
 	}
 	return false
 }
+
+func IsConflictError(err error) bool {
+	if err != nil {
+		if specificError, ok := err.(ConflictError); ok {
+			return specificError.IsConflictError()
+		}
+	}
+	return false
+}
+
 
 func IsInvalidInputError(err error) bool {
 	if err != nil {

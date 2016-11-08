@@ -12,6 +12,7 @@ func TestError(t *testing.T) {
 		err := makeNil()
 		assert.Nil(t, err)
 		assert.False(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsInvalidInputError(err))
 		assert.False(t, IsNotFoundError(err))
 		assert.Equal(t, 500, GetHttpCode(err))
@@ -20,6 +21,7 @@ func TestError(t *testing.T) {
 	{
 		err := errors.New("my unclassified error")
 		assert.False(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsInvalidInputError(err))
 		assert.False(t, IsNotFoundError(err))
 		assert.False(t, IsNotAuthorizedError(err))
@@ -30,6 +32,7 @@ func TestError(t *testing.T) {
 	{
 		err := NewInternalErrorf(1, "my %s error", "internal")
 		assert.True(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsInvalidInputError(err))
 		assert.False(t, IsNotFoundError(err))
 		assert.False(t, IsNotAuthorizedError(err))
@@ -47,6 +50,7 @@ func TestError(t *testing.T) {
 			},
 		})
 		assert.False(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsNotFoundError(err))
 		assert.False(t, IsNotAuthorizedError(err))
 		assert.True(t, IsInvalidInputError(err))
@@ -55,8 +59,21 @@ func TestError(t *testing.T) {
 		assert.Equal(t, 2, GetErrorCode(err))
 	}
 	{
+		err := NewConflictErrorf(3, "my %s error", "conflict")
+		assert.False(t, IsInternalError(err))
+		assert.True(t, IsConflictError(err))
+		assert.False(t, IsInvalidInputError(err))
+		assert.False(t, IsNotFoundError(err))
+		assert.False(t, IsNotAuthorizedError(err))
+		assert.Equal(t, "my conflict error", err.Error())
+		assert.Equal(t, 409, GetHttpCode(err))
+		assert.Equal(t, 3, GetErrorCode(err))
+	}
+
+	{
 		err := NewNotFoundErrorf(3, "my %s error", "not found")
 		assert.False(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsInvalidInputError(err))
 		assert.True(t, IsNotFoundError(err))
 		assert.False(t, IsNotAuthorizedError(err))
@@ -67,6 +84,7 @@ func TestError(t *testing.T) {
 	{
 		err := NewNotAuthorizedErrorf(4, "my %s error", "not authorized")
 		assert.False(t, IsInternalError(err))
+		assert.False(t, IsConflictError(err))
 		assert.False(t, IsInvalidInputError(err))
 		assert.False(t, IsNotFoundError(err))
 		assert.True(t, IsNotAuthorizedError(err))

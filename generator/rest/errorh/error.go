@@ -20,6 +20,20 @@ func NewInternalError(code int, err error) *Error {
 	return newError
 }
 
+func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
+	return NewConflictError(code, fmt.Errorf(format, args...))
+}
+
+func NewConflictError(code int, err error) *Error {
+	newError := new(Error)
+	newError.ErrorCode = code
+	newError.underlyingError = err
+	newError.ErrorMessage = err.Error()
+	newError.httpErrorType = http.StatusConflict
+	return newError
+}
+
+
 func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
@@ -83,6 +97,10 @@ func (err Error) GetFieldErrors() []FieldError {
 
 func (err Error) IsNotFoundError() bool {
 	return err.httpErrorType == http.StatusNotFound
+}
+
+func (err Error) IsConflictError() bool {
+	return err.httpErrorType == http.StatusConflict
 }
 
 func (err Error) IsNotAuthorizedError() bool {
