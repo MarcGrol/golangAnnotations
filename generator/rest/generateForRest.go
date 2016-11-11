@@ -386,17 +386,6 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"log"
-	{{if NeedsIntegerConversion .}}
-		"strconv"
-	{{end}}
-
-	{{if NeedsContext .}}
-		"github.com/Duxxie/platform/backend/lib/ctx"
-	{{end}}
-
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	"github.com/gorilla/mux"
-
 	{{if HasOperationsWithInput .}}
 		{{range ExtractImports .}}
 			"{{.}}"
@@ -404,7 +393,14 @@ import (
 	{{else}}
 		"net/http"
 	{{end}}
-
+	{{if NeedsIntegerConversion .}}
+		"strconv"
+	{{end}}
+	"github.com/gorilla/mux"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	{{if NeedsContext .}}
+		"github.com/Duxxie/platform/backend/lib/ctx"
+	{{end}}
 )
 
 {{ $structName := .Name }}
@@ -584,19 +580,17 @@ var HelpersTemplate string = `
 package {{.PackageName}}
 
 import (
+	"bytes"
 	"encoding/json"
-	"net/http/httptest"
-	"net/http/httputil"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	"os"
-	"testing"
 	"fmt"
 	"log"
-	"testing"
+	"net/http/httptest"
+	"net/http/httputil"
+	"os"
 	"sort"
-
 	"strings"
-	"bytes"
+	"testing"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	{{range ExtractImports .}}
 		"{{.}}"
 	{{end}}
@@ -786,8 +780,8 @@ var testServiceTemplate = `
 package {{.PackageName}}
 
 import (
-"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
-"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
 )
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router
