@@ -386,11 +386,7 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"log"
-	{{if HasOperationsWithInput .}}
-		{{range ExtractImports .}}
-			"{{.}}"
-		{{end}}
-	{{else}}
+	{{if not HasOperationsWithInput .}}
 		"net/http"
 	{{end}}
 	{{if NeedsIntegerConversion .}}
@@ -591,9 +587,6 @@ import (
 	"strings"
 	"testing"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	{{range ExtractImports .}}
-		"{{.}}"
-	{{end}}
 )
 
 {{ $structName := .Name }}
