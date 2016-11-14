@@ -618,13 +618,27 @@ func TestMain(m *testing.M) {
 
 	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
 	fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
+
+	beforeAll()
+
 	code := m.Run()
+
+    afterAll()
 
 	fmt.Fprintf(logFp, "},\n" )
 	fmt.Fprintf(logFp, "}\n" )
 
 	os.Exit(code)
 }
+
+func beforeAll() {
+	mytime.SetMockNow()
+}
+
+func afterAll() {
+    mytime.SetDefaultNow()
+}
+
 
 func testCase(name string, description string) {
 	fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")
