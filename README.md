@@ -17,7 +17,13 @@ Example:
     } 
 
 ## Getting the software
-    $ go get github.com/MarcGrol/golangAnnotations
+
+    $ go get -u -t github.com/MarcGrol/golangAnnotations
+
+## Testing and installing
+
+    $ go test ./... 
+    $ go install ./...
 
 ## Currently supported annotations
 
