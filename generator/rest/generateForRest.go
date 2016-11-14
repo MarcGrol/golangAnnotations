@@ -386,7 +386,7 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"log"
-	{{if not(HasOperationsWithInput) .}}
+	{{if (not HasOperationsWithInput .)}}
 		"net/http"
 	{{end}}
 	{{if NeedsIntegerConversion .}}
