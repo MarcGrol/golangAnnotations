@@ -386,9 +386,6 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"log"
-	{{if (not HasOperationsWithInput)}}
-		"net/http"
-	{{end}}
 	{{if NeedsIntegerConversion .}}
 		"strconv"
 	{{end}}
