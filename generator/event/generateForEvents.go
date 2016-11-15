@@ -268,7 +268,7 @@ type getTimeFunc func() time.Time
 var getTime getTimeFunc = func() time.Time {
 	loc, err := time.LoadLocation("Europe/Amsterdam")
 	if err != nil {
-		log.Fatal("***** Error determining timezone: %s", err)
+		log.Fatalf("***** Error determining timezone: %s", err)
 	}
 	return time.Now().In(loc)
 }

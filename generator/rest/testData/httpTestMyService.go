@@ -4,8 +4,8 @@
 package testData
 
 import (
-"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
-"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
 )
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router
