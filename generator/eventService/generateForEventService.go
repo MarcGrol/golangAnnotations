@@ -142,12 +142,12 @@ func init() {
 	{{range GetEventServiceAggregates .}}
 	{
 	    topic := "{{.}}"
-	    bus.Subscribe(topic, subscriber, handle)
+	    bus.Subscribe(topic, subscriber, handleEvent)
 	}
 	{{end}}
 }
 
-func handle(c context.Context, topic string, envelope events.Envelope) {
+func handleEvent(c context.Context, topic string, envelope events.Envelope) {
     es := &{{$structName}}{}
 
 	logging.New().Info(c, "As %s: received %s event %s.%s on topic %s",
@@ -159,7 +159,7 @@ func handle(c context.Context, topic string, envelope events.Envelope) {
 	{
 	    event, found := events.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-		    es.{{$oper.Name}}(c, envelope.SessionUID, event)
+		    es.{{$oper.Name}}(c, envelope.SessionUID, *event)
 	    }
 	}
 
