@@ -3,7 +3,6 @@ package restAnnotation
 import (
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"strings"
 	"testing"
 )
@@ -58,7 +57,6 @@ func TestOptionalArgRestOperationAnnotation(t *testing.T) {
 	ann, ok := annotation.ResolveAnnotations([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3")`})
 
 	assert.True(t, ok)
-	log.Printf("%+v", ann)
 	optionalArgString, ok := ann.Attributes["optionalargs"]
 	assert.True(t, ok)
 	parts := strings.Split(optionalArgString, ",")

@@ -1,6 +1,9 @@
 package annotation
 
-import "strings"
+import (
+	"strings"
+)
+
 
 type Annotation struct {
 	Name       string
@@ -38,7 +41,6 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
 		annotation, err := parseAnnotation(annotationDocline)
-		annotation, err = parseAnnotation(annotationDocline)
 		if err != nil {
 			continue
 		}

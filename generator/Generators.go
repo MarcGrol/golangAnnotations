@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/MarcGrol/golangAnnotations/generator/event"
+	"github.com/MarcGrol/golangAnnotations/generator/eventService"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
@@ -24,6 +25,11 @@ func init() {
 		log.Printf("Error registering rest-annotation-generator")
 
 	}
+
+	err = register("eventService", eventService.Generate)
+	if err != nil {
+		log.Printf("Error registering eventservice-annotation-generator")
+	}
 }
 
 func register(name string, generateFunc GenerateFunc) error {
@@ -41,6 +47,8 @@ func RunAllGenerators(inputDir string, parsedSources model.ParsedSources) error 
 		if err != nil {
 			return fmt.Errorf("Error generating module %s: %s", name, err)
 		}
+		log.Printf("Run generation module %s", name)
+
 	}
 	return nil
 }
