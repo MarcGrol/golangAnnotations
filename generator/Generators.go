@@ -47,8 +47,6 @@ func RunAllGenerators(inputDir string, parsedSources model.ParsedSources) error 
 		if err != nil {
 			return fmt.Errorf("Error generating module %s: %s", name, err)
 		}
-		log.Printf("Run generation module %s", name)
-
 	}
 	return nil
 }
