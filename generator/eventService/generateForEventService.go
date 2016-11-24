@@ -76,7 +76,7 @@ func GetEventServiceSelfAggregate( s model.Struct) string {
 func GetEventServiceAggregates(s model.Struct) []string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
-		aggregateString, found := val.Attributes["aggregates"]
+		aggregateString, found := val.Attributes["subscriptions"]
 		if found {
 			return strings.Split(aggregateString, ",")
 		}

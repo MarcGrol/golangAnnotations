@@ -19,14 +19,14 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	ann, ok := annotation.ResolveAnnotations([]string{`// @EventService( Self = "caregiver", Aggregates = "order,basket")`})
+	ann, ok := annotation.ResolveAnnotations([]string{`// @EventService( Self = "caregiver", Subscriptions = "order,basket")`})
 	assert.True(t, ok)
 
 	self, ok := ann.Attributes["self"]
 	assert.True(t, ok)
 	assert.Equal(t, "caregiver", self)
 
-	aggregates, ok := ann.Attributes["aggregates"]
+	aggregates, ok := ann.Attributes["subscriptions"]
 	assert.True(t, ok)
 	parts := strings.Split(aggregates, ",")
 	assert.True(t, findArgInArray(parts, "order"))
