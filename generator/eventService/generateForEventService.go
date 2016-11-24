@@ -28,10 +28,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 	for _, service := range structs {
-		log.Printf("Found service: %s", service.Name)
 		if IsEventService(service) {
-			log.Printf("%s is event-service", service.Name)
-
 			{
 				target := fmt.Sprintf("%s/eventHandler.go", targetDir)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
