@@ -208,7 +208,7 @@ type {{$aggr}}Aggregate interface {
 }
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Event(c context.Context, envelop Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 		case {{$eventName}}EventName:
@@ -226,7 +226,7 @@ func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRo
 }
 
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
-func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Events(c context.Context, envelopes []Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelop := range envelopes {
 		err = Apply{{$aggr}}Event(c, envelop, aggregateRoot)
@@ -281,13 +281,13 @@ var getUID = func() string {
 {{if IsEvent . }}
 
 // Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(sessionUID string) (*events.Envelope,error) {
+func (s *{{.Name}}) Wrap(sessionUID string) (*Envelope,error) {
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-	envelope := events.Envelope{
+	envelope := Envelope{
 		UUID: getUID(),
 		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
 		SequenceNumber: int64(0), // Set later by event-store
@@ -304,12 +304,12 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*events.Envelope,error) {
 }
 
 // Is{{.Name}} detects of envelope carries event of type {{.Name}}
-func Is{{.Name}}(envelope *events.Envelope) bool {
+func Is{{.Name}}(envelope *Envelope) bool {
     return envelope.EventTypeName == {{.Name}}EventName
 }
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelop *events.Envelope) (*{{.Name}}, bool) {
+func GetIfIs{{.Name}}(envelop *Envelope) (*{{.Name}}, bool) {
     if Is{{.Name}}(envelop) == false {
         return nil, false
     }
@@ -321,7 +321,7 @@ func GetIfIs{{.Name}}(envelop *events.Envelope) (*{{.Name}}, bool) {
 }
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
+func UnWrap{{.Name}}(envelop *Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelop) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
     }
