@@ -7,9 +7,9 @@ import (
 	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
-	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
 )
 
 func Generate(inputDir string, parsedSource model.ParsedSources) error {
@@ -43,13 +43,11 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":           IsEventService,
-	"IsEventOperation":         IsEventOperation,
-	"GetInputArgType":         GetInputArgType,
-	"GetInputArgName":         GetInputArgName,
-	"GetInputParamString":     GetInputParamString,
-	"GetEventServiceAggregates":GetEventServiceAggregates,
-	"GetEventServiceSelfAggregate":GetEventServiceSelfAggregate,
+	"IsEventService":               IsEventService,
+	"IsEventOperation":             IsEventOperation,
+	"GetInputArgType":              GetInputArgType,
+	"GetEventServiceSubscriptions": GetEventServiceSubscriptions,
+	"GetEventServiceSelfAggregate": GetEventServiceSelfAggregate,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -60,8 +58,7 @@ func IsEventService(s model.Struct) bool {
 	return ok
 }
 
-
-func GetEventServiceSelfAggregate( s model.Struct) string {
+func GetEventServiceSelfAggregate(s model.Struct) string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
 		selfString := val.Attributes["self"]
@@ -70,12 +67,17 @@ func GetEventServiceSelfAggregate( s model.Struct) string {
 	return ""
 }
 
-func GetEventServiceAggregates(s model.Struct) []string {
+func GetEventServiceSubscriptions(s model.Struct) []string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
 		aggregateString, found := val.Attributes["subscriptions"]
 		if found {
-			return strings.Split(aggregateString, ",")
+			splitted := strings.Split(aggregateString, ",")
+			result := []string{}
+			for _, s := range splitted {
+				result = append(result, strings.TrimSpace(s))
+			}
+			return result
 		}
 	}
 	return []string{}
@@ -99,23 +101,6 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
-func GetInputArgName(o model.Operation) string {
-	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
-			return arg.Name
-		}
-	}
-	return ""
-}
-
-func GetInputParamString(o model.Operation) string {
-	args := []string{}
-	for _, arg := range o.InputArgs {
-		args = append(args, arg.Name)
-	}
-	return strings.Join(args, ",")
-}
-
 var handlersTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
@@ -136,10 +121,10 @@ const (
 
 func init() {
 
-	{{range GetEventServiceAggregates .}}
+	{{range GetEventServiceSubscriptions .}}
 	{
-	    topic := "{{.}}"
-	    bus.Subscribe(topic, subscriber, handleEvent)
+		// Subscribe to topic "{{.}}"
+	    bus.Subscribe("{{.}}", subscriber, handleEvent)
 	}
 	{{end}}
 }
@@ -147,16 +132,22 @@ func init() {
 func handleEvent(c context.Context, topic string, envelope events.Envelope) {
     es := &{{$structName}}{}
 
-	logging.New().Info(c, "As %s: received %s event %s.%s on topic %s",
-		subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID, topic)
-
     {{range $idxOper, $oper := .Operations}}
 
 	{{if IsEventOperation $oper}}
 	{
 	    event, found := events.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-		    es.{{$oper.Name}}(c, envelope.SessionUID, *event)
+		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
+		    if err != nil {
+				logging.New().Error(c, "As %s: Error handling %s event %s.%s on topic %s: %s",
+						subscriber, envelope.EventTypeName, envelope.AggregateName,
+						envelope.AggregateUID, topic, err)
+			} else {
+				logging.New().Debug(c, "As %s: Successfully handled %s event %s.%s on topic %s",
+						subscriber, envelope.EventTypeName, envelope.AggregateName,
+						envelope.AggregateUID, topic)
+			}
 	    }
 	}
 

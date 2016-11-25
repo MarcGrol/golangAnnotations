@@ -12,9 +12,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateForWeb(t *testing.T) {
+func cleanup() {
 	os.Remove("./testData/httpMyService.go")
 	os.Remove("./testData/httpMyServiceHelpers_test.go")
+}
+
+func TestGenerateForWeb(t *testing.T) {
+	cleanup()
+	defer cleanup()
 
 	s := []model.Struct{
 		{
@@ -60,10 +65,6 @@ func TestGenerateForWeb(t *testing.T) {
 	data, err = ioutil.ReadFile("./testData/httpMyServiceHelpers_test.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func doitTestHelper")
-
-	os.Remove("./testData/httpMyService.go")
-	os.Remove("./testData/httpMyServiceHelpers_test.go")
-
 }
 
 func TestIsRestService(t *testing.T) {
@@ -169,13 +170,13 @@ func createOper(method string) model.Operation {
 			fmt.Sprintf("//@RestOperation( method = \"%s\", path = \"/api/person\")", method),
 		},
 		InputArgs: []model.Field{
-			model.Field{Name: "ctx", TypeName: "context.Context"},
-			model.Field{Name: "uid", TypeName: "string"},
-			model.Field{Name: "person", TypeName: "Person"},
+			{Name: "ctx", TypeName: "context.Context"},
+			{Name: "uid", TypeName: "string"},
+			{Name: "person", TypeName: "Person"},
 		},
 		OutputArgs: []model.Field{
-			model.Field{TypeName: "Person"},
-			model.Field{TypeName: "error"},
+			{TypeName: "Person"},
+			{TypeName: "error"},
 		},
 	}
 	return o

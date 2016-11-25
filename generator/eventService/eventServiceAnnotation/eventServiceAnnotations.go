@@ -3,8 +3,8 @@ package eventServiceAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	typeEventService = "EventService"
-	paramSelf = "self"
+	typeEventService   = "EventService"
+	paramSelf          = "self"
 	paramSubscriptions = "subscriptions"
 
 	typeEventOperation = "EventOperation"

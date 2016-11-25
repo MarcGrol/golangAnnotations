@@ -96,7 +96,6 @@ func IsConflictError(err error) bool {
 	return false
 }
 
-
 func IsInvalidInputError(err error) bool {
 	if err != nil {
 		if specificError, ok := err.(InvalidInput); ok {

@@ -4,7 +4,6 @@ import (
 	"strings"
 )
 
-
 type Annotation struct {
 	Name       string
 	Attributes map[string]string

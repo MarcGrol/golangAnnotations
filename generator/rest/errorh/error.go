@@ -33,7 +33,6 @@ func NewConflictError(code int, err error) *Error {
 	return newError
 }
 
-
 func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
