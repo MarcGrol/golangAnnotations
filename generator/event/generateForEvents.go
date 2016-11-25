@@ -52,7 +52,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(os.Stdout, "Processing %s...", targetDir)
+		fmt.Fprintf(os.Stdout, "Processing %s...\n", inputDir)
 		{
 			target := fmt.Sprintf("%s/aggregates.go", targetDir)
 
