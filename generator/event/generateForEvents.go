@@ -392,11 +392,9 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 var storeEventsTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
-package repo
+package {{.PackageName}}
 
 import (
-	"github.com/Duxxie/platform/backend/lib/events"
-	"github.com/Duxxie/platform/backend/lib/events/store"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"golang.org/x/net/context"
 )
