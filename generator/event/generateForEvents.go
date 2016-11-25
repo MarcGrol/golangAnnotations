@@ -9,7 +9,6 @@ import (
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
-	"os"
 )
 
 type AggregateMap struct {
@@ -52,7 +51,6 @@ func generate(inputDir string, structs []model.Struct) error {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(os.Stdout, "Processing %s...\n", inputDir)
 		{
 			target := fmt.Sprintf("%s/aggregates.go", targetDir)
 
@@ -81,7 +79,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/storeEvents.go", targetDir+"/../repo/")
+			target := fmt.Sprintf("%s/storeEvents.go", targetDir+"/repo/")
 
 			data := Structs{
 				PackageName: packageName,
