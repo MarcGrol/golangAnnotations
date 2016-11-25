@@ -79,7 +79,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/repo/storeEvents.go", targetDir)
+			target := fmt.Sprintf("%s/store/storeEvents.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,
@@ -392,7 +392,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 var storeEventsTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
-package repo
+package store
 
 import (
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
