@@ -79,7 +79,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/storeEvents.go", targetDir)
+			target := fmt.Sprintf("%s/repo/storeEvents.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,
@@ -392,7 +392,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 var storeEventsTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
-package {{.PackageName}}
+package repo
 
 import (
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
@@ -403,7 +403,7 @@ import (
 {{if IsEvent . }}
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
-func StoreEvent{{.Name}}(c context.Context, event {{.Name}}, sessionUID string) error {
+func StoreEvent{{.Name}}(c context.Context, event {{.PackageName}}{{.Name}}, sessionUID string) error {
 	envlp, err := event.Wrap(sessionUID)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
