@@ -138,6 +138,9 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	{
 	    event, found := events.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
+				logging.New().Debug(c, "As %s: Start handling %s event %s.%s on topic %s",
+						subscriber, envelope.EventTypeName, envelope.AggregateName,
+						envelope.AggregateUID, topic)
 		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
 		    if err != nil {
 				logging.New().Error(c, "As %s: Error handling %s event %s.%s on topic %s: %s",
