@@ -79,7 +79,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/storeEvents.go", targetDir+"/repo/")
+			target := fmt.Sprintf("%s/storeEvents.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,
