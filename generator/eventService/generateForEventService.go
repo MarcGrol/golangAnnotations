@@ -46,6 +46,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsEventService":               IsEventService,
 	"IsEventOperation":             IsEventOperation,
 	"GetInputArgType":              GetInputArgType,
+	"GetInputArgPackage":           GetInputArgPackage,
 	"GetEventServiceSubscriptions": GetEventServiceSubscriptions,
 	"GetEventServiceSelfAggregate": GetEventServiceSelfAggregate,
 }
@@ -101,6 +102,16 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
+func GetInputArgPackage(o model.Operation) string {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+			tn := strings.Split(arg.TypeName, ".")
+			return tn[len(tn)-2]
+		}
+	}
+	return ""
+}
+
 var handlersTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
@@ -136,7 +147,7 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 
 	{{if IsEventOperation $oper}}
 	{
-	    event, found := events.GetIfIs{{GetInputArgType $oper}}(&envelope)
+	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
 				logging.New().Debug(c, "As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
