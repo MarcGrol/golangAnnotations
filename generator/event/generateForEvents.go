@@ -409,7 +409,7 @@ func StoreEvent{{.Name}}(c context.Context, event {{.PackageName}}.{{.Name}}, se
 		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
 	}
 
-	err = store.New().Put(c, envlp)
+	err = New().Put(c, envlp)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
 	}
