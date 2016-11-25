@@ -296,6 +296,7 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*Envelope,error) {
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
 		AggregateUID:  s.GetUID(),
 		EventTypeName: {{.Name}}EventName,
+		EventTypeVersion: 0,
 		EventData: string(blob),
     }
 
