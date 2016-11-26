@@ -11,9 +11,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateForEvents(t *testing.T) {
+func cleanup() {
 	os.Remove("./testData/aggregates.go")
 	os.Remove("./testData/wrappers.go")
+	os.Remove("./store/testDataEventStore.go")
+}
+
+func TestGenerateForEvents(t *testing.T) {
+	cleanup()
+	defer cleanup()
 
 	s := []model.Struct{
 		{
