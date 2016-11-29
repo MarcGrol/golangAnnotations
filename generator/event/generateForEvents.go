@@ -331,6 +331,7 @@ func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
         return nil, err
     }
+    event.Timestamp = envelop.Timestamp
 
     return &event, nil
 }
