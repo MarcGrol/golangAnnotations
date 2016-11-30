@@ -211,7 +211,7 @@ type {{$aggr}}Aggregate interface {
 func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
-		case {{$eventName}}EventName:
+	case {{$eventName}}EventName:
 		event, err := 	UnWrap{{$eventName}}(&envelop)
 		if err != nil {
 			return err
@@ -335,6 +335,25 @@ func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
 
     return &event, nil
 }
+
+// UnWrap{{$aggr}}Event extracts the event from its envelope
+func UnWrap{{$aggr}}Event(envelop *events.Envelope) (*{{$aggr}}Event, error) {
+	switch envelop.EventTypeName {
+	{{range $aggregName, $eventName := $events}}
+	case {{$eventName}}EventName:
+		event, err := UnWrap{{.eventName}}(&envelop)
+		if err != nil {
+			return err
+		}
+		return event
+	{{end}}
+
+	default:
+		return fmt.Errorf("UnWrap{{.Name}}Event: Unexpected event %s", envelop.EventTypeName)
+	}
+	return nil
+}
+
 {{end}}
 {{end}}
 `
