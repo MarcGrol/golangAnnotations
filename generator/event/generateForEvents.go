@@ -237,36 +237,6 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggreg
 	return err
 }
 
-// UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelope *events.Envelope) ({{$aggr}}Event, error) {
-	switch envelope.EventTypeName {
-	{{range $aggregName, $eventName := $events}}
-	case {{$eventName}}EventName:
-		event, err := UnWrap{{$eventName}}(envelope)
-		if err != nil {
-			return nil, err
-		}
-		return event, nil
-	{{end}}
-
-	default:
-		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
-	}
-}
-
-// UnWrap{{$aggr}}Events extracts the events from multiple envelopes
-func UnWrap{{$aggr}}Events(envelopes []events.Envelope) ([]{{$aggr}}Event, error) {
-	events := make([]{{$aggr}}Event, 0, len(envelopes))
-	for _, envelope := range envelopes {
-		event, err := UnWrap{{$aggr}}Event(&envelope)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, event)
-	}
-	return events, nil
-}
-
 {{end}}
 `
 
