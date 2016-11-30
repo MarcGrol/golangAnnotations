@@ -250,7 +250,7 @@ func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	{{end}}
 
 	default:
-		return fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
+		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
 	}
 }
 
