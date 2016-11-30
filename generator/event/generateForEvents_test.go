@@ -47,6 +47,8 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, event MyStruct)")
 	assert.Contains(t, string(data), "func ApplyTestEvent(c context.Context, envelope events.Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func ApplyTestEvents(c context.Context, envelopes []events.Envelope, aggregateRoot TestAggregate) error {")
+	assert.Contains(t, string(data), "func UnWrapTestEvent(envelope *events.Envelope) (events.Event, error) {")
+	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []events.Envelope) ([]events.Event, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
 	data, err = ioutil.ReadFile("./testData/wrappers.go")
