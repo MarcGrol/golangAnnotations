@@ -208,11 +208,11 @@ type {{$aggr}}Aggregate interface {
 }
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	switch envelop.EventTypeName {
+func Apply{{$aggr}}Event(c context.Context, envelope events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+	switch envelope.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
-		event, err := 	UnWrap{{$eventName}}(&envelop)
+		event, err := 	UnWrap{{$eventName}}(&envelope)
 		if err != nil {
 			return err
 		}
@@ -220,7 +220,7 @@ func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRo
 		break
 	{{end}}
 	default:
-		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
+		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
 	}
 	return nil
 }
@@ -228,8 +228,8 @@ func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRo
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
 func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
-	for _, envelop := range envelopes {
-		err = Apply{{$aggr}}Event(c, envelop, aggregateRoot)
+	for _, envelope := range envelopes {
+		err = Apply{{$aggr}}Event(c, envelope, aggregateRoot)
 		if err != nil {
 			break
 		}
@@ -238,11 +238,11 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggreg
 }
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
-	switch envelop.EventTypeName {
+func UnWrap{{$aggr}}Event(envelope *events.Envelope) ({{$aggr}}Event, error) {
+	switch envelope.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
-		event, err := UnWrap{{$eventName}}(envelop)
+		event, err := UnWrap{{$eventName}}(envelope)
 		if err != nil {
 			return nil, err
 		}
@@ -250,15 +250,15 @@ func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	{{end}}
 
 	default:
-		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
+		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
 	}
 }
 
 // UnWrap{{$aggr}}Events extracts the events from multiple envelopes
 func UnWrap{{$aggr}}Events(envelopes []events.Envelope) ([]{{$aggr}}Event, error) {
 	events := make([]{{$aggr}}Event, 0, len(envelopes))
-	for _, envelop := range envelopes {
-		event, err = UnWrap{{$aggr}}Event(envelop)
+	for _, envelope := range envelopes {
+		event, err = UnWrap{{$aggr}}Event(envelope)
 		if err != nil {
 			return nil, err
 		}
@@ -338,11 +338,11 @@ func Is{{.Name}}(envelope *events.Envelope) bool {
 }
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelop *events.Envelope) (*{{.Name}}, bool) {
-    if Is{{.Name}}(envelop) == false {
+func GetIfIs{{.Name}}(envelope *events.Envelope) (*{{.Name}}, bool) {
+    if Is{{.Name}}(envelope) == false {
         return nil, false
     }
-    event,err := UnWrap{{.Name}}(envelop)
+    event,err := UnWrap{{.Name}}(envelope)
     if err != nil {
     	return nil, false
     }
@@ -350,17 +350,17 @@ func GetIfIs{{.Name}}(envelop *events.Envelope) (*{{.Name}}, bool) {
 }
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
-    if Is{{.Name}}(envelop) == false {
+func UnWrap{{.Name}}(envelope *events.Envelope) (*{{.Name}},error) {
+    if Is{{.Name}}(envelope) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
     }
     var event {{.Name}}
-    err := json.Unmarshal([]byte(envelop.EventData), &event)
+    err := json.Unmarshal([]byte(envelope.EventData), &event)
     if err != nil {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-    event.Timestamp = envelop.Timestamp
+    event.Timestamp = envelope.Timestamp
 
     return &event, nil
 }

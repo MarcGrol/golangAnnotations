@@ -45,9 +45,9 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "type TestAggregate interface {")
 	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, event MyStruct)")
-	assert.Contains(t, string(data), "func ApplyTestEvent(c context.Context, envelop events.Envelope, aggregateRoot TestAggregate) error {")
+	assert.Contains(t, string(data), "func ApplyTestEvent(c context.Context, envelope events.Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func ApplyTestEvents(c context.Context, envelopes []events.Envelope, aggregateRoot TestAggregate) error {")
-	assert.Contains(t, string(data), "func UnWrapTestEvent(envelop *events.Envelope) (TestEvent, error) {")
+	assert.Contains(t, string(data), "func UnWrapTestEvent(envelope *events.Envelope) (TestEvent, error) {")
 	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []events.Envelope) ([]TestEvent, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
@@ -55,8 +55,8 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func (s *MyStruct) Wrap(sessionUID string) (*events.Envelope,error) {")
 	assert.Contains(t, string(data), "func IsMyStruct(envelope *events.Envelope) bool {")
-	assert.Contains(t, string(data), "func GetIfIsMyStruct(envelop *events.Envelope) (*MyStruct, bool) {")
-	assert.Contains(t, string(data), "func UnWrapMyStruct(envelop *events.Envelope) (*MyStruct,error) {")
+	assert.Contains(t, string(data), "func GetIfIsMyStruct(envelope *events.Envelope) (*MyStruct, bool) {")
+	assert.Contains(t, string(data), "func UnWrapMyStruct(envelope *events.Envelope) (*MyStruct,error) {")
 
 	_, err = os.Stat("./testData/wrappers.go")
 	assert.NoError(t, err)
