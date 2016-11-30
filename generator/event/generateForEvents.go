@@ -244,15 +244,14 @@ func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	case {{$eventName}}EventName:
 		event, err := UnWrap{{$eventName}}(envelop)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return event
+		return event, nil
 	{{end}}
 
 	default:
 		return fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
 	}
-	return nil
 }
 
 {{end}}
