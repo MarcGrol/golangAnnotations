@@ -242,7 +242,7 @@ func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
-		event, err := UnWrap{{$eventName}}(&envelop)
+		event, err := UnWrap{{$eventName}}(envelop)
 		if err != nil {
 			return err
 		}
