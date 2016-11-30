@@ -202,7 +202,7 @@ var AggregateEvents = map[string][]string{
 {{range $aggr, $events := .AggregateMap}}
 // {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
-	{{range _, $eventName := $events}}
+	{{range $aggregName, $eventName := $events}}
 		Apply{{$eventName}}(c context.Context, event {{$eventName}})
 	{{end}}
 }
@@ -210,7 +210,7 @@ type {{$aggr}}Aggregate interface {
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(c context.Context, envelop events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelop.EventTypeName {
-	{{range _, $eventName := $events}}
+	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
 		event, err := 	UnWrap{{$eventName}}(&envelop)
 		if err != nil {
@@ -339,7 +339,7 @@ func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
 // UnWrap{{GetAggregateName . }}Event extracts the event from its envelope
 func UnWrap{{GetAggregateName . }}Event(envelop *events.Envelope) (*{{GetAggregateName . }}Event, error) {
 	switch envelop.EventTypeName {
-	{{range _, $eventName := $events}}
+	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
 		event, err := UnWrap{{.eventName}}(&envelop)
 		if err != nil {
