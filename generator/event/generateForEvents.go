@@ -254,6 +254,18 @@ func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	}
 }
 
+// UnWrap{{$aggr}}Events extracts the events from multiple envelopes
+func UnWrap{{$aggr}}Events(envelopes []events.Envelope) ([]{{$aggr}}Event, error) {
+	events := make([]{{$aggr}}Event, 0, len(envelopes))
+	for _, envelop := range envelopes {
+		event, err = UnWrap{{$aggr}}Event(envelop)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return events, nil
+}
+
 {{end}}
 `
 
