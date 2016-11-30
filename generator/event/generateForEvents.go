@@ -237,7 +237,25 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggreg
 	return err
 }
 
-{{end}} 
+// UnWrap{{$aggr}}Event extracts the event from its envelope
+func UnWrap{{$aggr}}Event(envelop *events.Envelope) (*{{$aggr}}Event, error) {
+	switch envelop.EventTypeName {
+	{{range $aggregName, $eventName := $events}}
+	case {{$eventName}}EventName:
+		event, err := UnWrap{{$eventName}}(&envelop)
+		if err != nil {
+			return err
+		}
+		return event
+	{{end}}
+
+	default:
+		return fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelop.EventTypeName)
+	}
+	return nil
+}
+
+{{end}}
 `
 
 var wrappersTemplate string = `
@@ -335,25 +353,6 @@ func UnWrap{{.Name}}(envelop *events.Envelope) (*{{.Name}},error) {
 
     return &event, nil
 }
-
-// UnWrap{{GetAggregateName . }}Event extracts the event from its envelope
-func UnWrap{{GetAggregateName . }}Event(envelop *events.Envelope) (*{{GetAggregateName . }}Event, error) {
-	switch envelop.EventTypeName {
-	{{range $aggregName, $eventName := $events}}
-	case {{$eventName}}EventName:
-		event, err := UnWrap{{.eventName}}(&envelop)
-		if err != nil {
-			return err
-		}
-		return event
-	{{end}}
-
-	default:
-		return fmt.Errorf("UnWrap{{.Name}}Event: Unexpected event %s", envelop.EventTypeName)
-	}
-	return nil
-}
-
 {{end}}
 {{end}}
 `
