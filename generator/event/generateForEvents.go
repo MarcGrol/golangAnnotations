@@ -238,7 +238,7 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggreg
 }
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelop *events.Envelope) (*{{$aggr}}Event, error) {
+func UnWrap{{$aggr}}Event(envelop *events.Envelope) ({{$aggr}}Event, error) {
 	switch envelop.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
