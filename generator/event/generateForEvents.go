@@ -177,7 +177,6 @@ var aggregateTemplate string = `
 package {{.PackageName}}
 
 import (
-    "fmt"
     "golang.org/x/net/context"
 )
 
@@ -274,15 +273,6 @@ var wrappersTemplate string = `
 
 package {{.PackageName}}
 
-import (
-  "encoding/json"
-  "fmt"
-  "log"
-  "time"
-
-  "github.com/satori/go.uuid"
-)
-
 const (
 {{range .Structs}}
 {{if IsEvent . }}
@@ -291,16 +281,6 @@ const (
 {{end}}
 {{end}}
 )
-
-type getTimeFunc func() time.Time
-
-var getTime getTimeFunc = func() time.Time {
-	loc, err := time.LoadLocation("Europe/Amsterdam")
-	if err != nil {
-		log.Fatalf("***** Error determining timezone: %s", err)
-	}
-	return time.Now().In(loc)
-}
 
 var getUID = func() string {
 	return uuid.NewV1().String()
@@ -321,7 +301,7 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*events.Envelope,error) {
 		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
 		SequenceNumber: int64(0), // Set later by event-store
 		SessionUID: sessionUID,
-		Timestamp: getTime(),
+		Timestamp: mytime.Now(),
 		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
 		AggregateUID:  s.GetUID(),
 		EventTypeName: {{.Name}}EventName,
@@ -372,19 +352,6 @@ var wrappersTestTemplate string = `
 
 package {{.PackageName}}
 
-import (
-	"testing"
-	"time"
-	"reflect"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func testGetTime() time.Time {
-	t, _ := time.Parse(time.RFC3339Nano, "2003-02-11T11:50:51.123Z")
-	return t
-}
-
 func testGetUID() string {
 	return "1234321"
 }
@@ -393,8 +360,9 @@ func testGetUID() string {
 {{if IsEvent . }}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
 	getUID = testGetUID
-	getTime = testGetTime
 
 	event := {{.Name}}{
 	   {{range .Fields}}
@@ -408,7 +376,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	//	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
 	assert.Equal(t, "test_session", wrapped.SessionUID)
 	assert.Equal(t, "1234321", wrapped.UUID)
-    assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+    assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
 	assert.True(t, ok)
@@ -425,7 +393,6 @@ var storeEventsTemplate string = `
 package store
 
 import (
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"golang.org/x/net/context"
 )
 

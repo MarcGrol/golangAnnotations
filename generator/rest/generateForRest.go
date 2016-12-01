@@ -63,8 +63,6 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestService":           IsRestService,
 	"ExtractImports":          ExtractImports,
 	"HasAuthContextArg":       HasAuthContextArg,
-	"NeedsIntegerConversion":  NeedsIntegerConversion,
-	"NeedsContext":            NeedsContext,
 	"GetRestServicePath":      GetRestServicePath,
 	"IsRestOperation":         IsRestOperation,
 	"GetRestOperationPath":    GetRestOperationPath,
@@ -140,28 +138,6 @@ func ExtractImports(s model.Struct) []string {
 	}
 
 	return importsList
-}
-
-func NeedsIntegerConversion(s model.Struct) bool {
-	for _, oper := range s.Operations {
-		for _, arg := range oper.InputArgs {
-			if arg.TypeName == "int" {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func NeedsContext(s model.Struct) bool {
-	for _, oper := range s.Operations {
-		for _, arg := range oper.InputArgs {
-			if arg.TypeName == "context.Context" {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func HasAuthContextArg(s model.Struct) bool {
@@ -384,16 +360,7 @@ var handlersTemplate string = `
 package {{.PackageName}}
 
 import (
-	"encoding/json"
-	"log"
-	{{if NeedsIntegerConversion .}}
-		"strconv"
-	{{end}}
-	"github.com/gorilla/mux"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	{{if NeedsContext .}}
-		"github.com/Duxxie/platform/backend/lib/ctx"
-	{{end}}
+    "golang.org/x/net/context"
 )
 
 {{ $structName := .Name }}
@@ -571,20 +538,6 @@ var HelpersTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
-
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http/httptest"
-	"net/http/httputil"
-	"os"
-	"sort"
-	"strings"
-	"testing"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-)
 
 {{ $structName := .Name }}
 

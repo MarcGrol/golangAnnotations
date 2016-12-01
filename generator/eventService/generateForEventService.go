@@ -118,10 +118,7 @@ var handlersTemplate string = `
 package {{.PackageName}}
 
 import (
-	"golang.org/x/net/context"
-	"github.com/Duxxie/platform/backend/lib/bus"
-	"github.com/Duxxie/platform/backend/lib/events"
-	"github.com/Duxxie/platform/backend/lib/logging"
+    "golang.org/x/net/context"
 )
 
 {{ $structName := .Name }}

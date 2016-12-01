@@ -1,9 +1,10 @@
 package eventAnnotation
 
 import (
+	"testing"
+
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestCorrectEventAnnotation(t *testing.T) {
