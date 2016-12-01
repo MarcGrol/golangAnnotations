@@ -20,6 +20,19 @@ func NewInternalError(code int, err error) *Error {
 	return newError
 }
 
+func NewNotImplementedErrorf(code int, format string, args ...interface{}) *Error {
+	return NewNotImplementedError(code, fmt.Errorf(format, args...))
+}
+
+func NewNotImplementedError(code int, err error) *Error {
+	newError := new(Error)
+	newError.ErrorCode = code
+	newError.underlyingError = err
+	newError.ErrorMessage = err.Error()
+	newError.httpErrorType = http.StatusNotImplemented
+	return newError
+}
+
 func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
 	return NewConflictError(code, fmt.Errorf(format, args...))
 }
@@ -84,6 +97,10 @@ func (err Error) Error() string {
 
 func (err Error) IsInternalError() bool {
 	return err.httpErrorType == http.StatusInternalServerError
+}
+
+func (err Error) IsNotImplementedError() bool {
+	return err.httpErrorType == http.StatusNotImplemented
 }
 
 func (err Error) IsInvalidInputError() bool {

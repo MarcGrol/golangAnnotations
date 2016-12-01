@@ -26,6 +26,12 @@ type InternalError interface {
 	IsInternalError() bool
 }
 
+type NotImplementedError interface {
+	error
+	ErrorWithCodes
+	IsNotImplementedError() bool
+}
+
 type ConflictError interface {
 	error
 	ErrorWithCodes
@@ -82,6 +88,15 @@ func IsInternalError(err error) bool {
 	if err != nil {
 		if specificError, ok := err.(InternalError); ok {
 			return specificError.IsInternalError()
+		}
+	}
+	return false
+}
+
+func IsNotImplementedError(err error) bool {
+	if err != nil {
+		if specificError, ok := err.(NotImplementedError); ok {
+			return specificError.IsNotImplementedError()
 		}
 	}
 	return false
