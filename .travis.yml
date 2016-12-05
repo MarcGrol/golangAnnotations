@@ -12,3 +12,6 @@ script:
  - go test -v ./...
  - scripts/coverage.sh
  - $HOME/gopath/bin/goveralls -coverprofile=.cover/cover.out -service=travis-ci
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) 

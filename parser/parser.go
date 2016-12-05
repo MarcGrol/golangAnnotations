@@ -9,9 +9,10 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/MarcGrol/golangAnnotations/model"
 	"path/filepath"
 	"strings"
+
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 var (
