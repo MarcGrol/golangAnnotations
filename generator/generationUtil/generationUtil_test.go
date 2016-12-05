@@ -75,6 +75,7 @@ func TestGenerateFileFromTemplate(t *testing.T) {
 	assert.Nil(t, err)
 
 	data, err := ioutil.ReadFile("test/doit.txt")
+	assert.NoError(t, err)
 
 	assert.Equal(t, "testit\n// commented testit", string(data))
 
