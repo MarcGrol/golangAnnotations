@@ -117,7 +117,7 @@ func TestGetInputArgTypeString(t *testing.T) {
 	restAnnotation.Register()
 	o := model.Operation{
 		InputArgs: []model.Field{
-			model.Field{TypeName: "string"},
+			{TypeName: "string"},
 		},
 	}
 	assert.Equal(t, "", GetInputArgType(o))

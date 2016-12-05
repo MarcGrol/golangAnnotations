@@ -75,10 +75,10 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 
 func embedMethodsInStructs(visitor *astVisitor) {
 	allStructs := make(map[string]*model.Struct)
-	for idx, _ := range visitor.Structs {
+	for idx := range visitor.Structs {
 		allStructs[(&visitor.Structs[idx]).Name] = &visitor.Structs[idx]
 	}
-	for idx, _ := range visitor.Operations {
+	for idx := range visitor.Operations {
 		oper := visitor.Operations[idx]
 		if oper.RelatedStruct != nil {
 			found, exists := allStructs[(*oper.RelatedStruct).TypeName]
