@@ -73,7 +73,7 @@ func TestGetEventServiceSelf(t *testing.T) {
 		DocLines: []string{
 			`//@EventService( self = "me", subscriptions = "other1, other2")`},
 	}
-	assert.Equal(t, "me", GetEventServiceSelfAggregate(s))
+	assert.Equal(t, "me", GetEventServiceSelfName(s))
 	assert.Equal(t, []string{"other1", "other2"}, GetEventServiceSubscriptions(s))
 }
 

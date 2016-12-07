@@ -48,7 +48,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetInputArgType":              GetInputArgType,
 	"GetInputArgPackage":           GetInputArgPackage,
 	"GetEventServiceSubscriptions": GetEventServiceSubscriptions,
-	"GetEventServiceSelfAggregate": GetEventServiceSelfAggregate,
+	"GetEventServiceSelfName":      GetEventServiceSelfName,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -59,11 +59,10 @@ func IsEventService(s model.Struct) bool {
 	return ok
 }
 
-func GetEventServiceSelfAggregate(s model.Struct) string {
+func GetEventServiceSelfName(s model.Struct) string {
 	val, ok := annotation.ResolveAnnotations(s.DocLines)
 	if ok {
-		selfString := val.Attributes["self"]
-		return selfString
+		return val.Attributes["self"]
 	}
 	return ""
 }
@@ -124,11 +123,10 @@ import (
 {{ $structName := .Name }}
 
 const (
-	subscriber = "{{GetEventServiceSelfAggregate .}}"
+	subscriber = "{{GetEventServiceSelfName .}}"
 )
 
-func init() {
-
+func SubscribeToEvents() {
 	{{range GetEventServiceSubscriptions .}}
 	{
 		// Subscribe to topic "{{.}}"
@@ -146,16 +144,16 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	{
 	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-				logging.New().Debug(c, "As %s: Start handling %s event %s.%s on topic %s",
+				logging.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
 		    if err != nil {
-				logging.New().Error(c, "As %s: Error handling %s event %s.%s on topic %s: %s",
+				logging.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic, err)
 			} else {
-				logging.New().Debug(c, "As %s: Successfully handled %s event %s.%s on topic %s",
+				logging.New().Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 			}

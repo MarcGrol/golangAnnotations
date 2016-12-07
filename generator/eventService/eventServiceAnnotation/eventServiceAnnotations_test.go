@@ -1,10 +1,11 @@
 package eventServiceAnnotation
 
 import (
-	"github.com/MarcGrol/golangAnnotations/annotation"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIncompleteRestServiceAnnotation(t *testing.T) {
@@ -19,12 +20,12 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	ann, ok := annotation.ResolveAnnotations([]string{`// @EventService( Self = "caregiver", Subscriptions = "order,basket")`})
+	ann, ok := annotation.ResolveAnnotations([]string{`// @EventService( Self = "caregiverService", Subscriptions = "order,basket")`})
 	assert.True(t, ok)
 
 	self, ok := ann.Attributes["self"]
 	assert.True(t, ok)
-	assert.Equal(t, "caregiver", self)
+	assert.Equal(t, "caregiverService", self)
 
 	aggregates, ok := ann.Attributes["subscriptions"]
 	assert.True(t, ok)
