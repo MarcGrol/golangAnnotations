@@ -136,11 +136,15 @@ func HandleHttpError(err error, w http.ResponseWriter) {
 	w.WriteHeader(GetHttpCode(err))
 
 	errorBody := Error{
-		ErrorCode:    geErrorCode(err),
+		ErrorCode:    getErrorCode(err),
 		ErrorMessage: err.Error(),
 		FieldErrors:  getFieldErrors(err),
 	}
 	json.NewEncoder(w).Encode(errorBody)
+}
+
+func GetFieldErrors(err error) []FieldError {
+	return getFieldErrors(err)
 }
 
 func getFieldErrors(err error) []FieldError {
@@ -152,7 +156,7 @@ func getFieldErrors(err error) []FieldError {
 	}
 }
 
-func geErrorCode(err error) int {
+func getErrorCode(err error) int {
 	if IsErrorWithCodes(err) {
 		e, _ := err.(InvalidInput)
 		return e.GetErrorCode()
