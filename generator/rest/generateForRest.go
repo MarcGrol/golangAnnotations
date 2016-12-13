@@ -478,11 +478,11 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
         }
 
 		{{if HasInput . }}
-			// read abd parse request body
+			// read and parse request body
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-         		errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error psrsing request body: %s", err), w)
+         		errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 				return
 			}
 		{{end}}
