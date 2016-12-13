@@ -535,6 +535,8 @@ func getCredentials(authContext map[string]string, expectedRole string) (string,
 `
 
 var HelpersTemplate string = `
+// +build !appengine
+
 // Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}

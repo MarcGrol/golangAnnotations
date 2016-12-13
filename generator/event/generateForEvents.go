@@ -348,6 +348,8 @@ func UnWrap{{.Name}}(envelope *events.Envelope) (*{{.Name}},error) {
 {{end}}
 `
 var wrappersTestTemplate string = `
+// +build !appengine
+
 // Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
