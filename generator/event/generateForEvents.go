@@ -412,7 +412,7 @@ func StoreEvent{{.Name}}(c context.Context, event *{{.PackageName}}.{{.Name}}, s
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
 	}
-	event.Timestamp = envlp.Timestamp
+	event.Timestamp = envlp.Timestamp.In(mytime.DutchLocation())
 	return nil
 }
 
