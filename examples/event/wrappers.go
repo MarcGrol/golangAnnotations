@@ -1,4 +1,4 @@
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package event
 
@@ -6,381 +6,428 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/satori/go.uuid"
+	"github.com/Duxxie/platform/backend/lib/events"
+	"github.com/Duxxie/platform/backend/lib/mytime"
+	uuid "github.com/satori/go.uuid"
 )
 
-type Envelope struct {
-	Uuid           string
-	SequenceNumber int64
-	Timestamp      time.Time
-	AggregateName  string
-	AggregateUid   string
-	EventTypeName  string
-	EventData      string
-}
-
 const (
+
+	// TourCreatedEventName provides a constant symbol for TourCreated
 	TourCreatedEventName = "TourCreated"
 
+	// CyclistCreatedEventName provides a constant symbol for CyclistCreated
 	CyclistCreatedEventName = "CyclistCreated"
 
+	// EtappeCreatedEventName provides a constant symbol for EtappeCreated
 	EtappeCreatedEventName = "EtappeCreated"
 
+	// EtappeResultsCreatedEventName provides a constant symbol for EtappeResultsCreated
 	EtappeResultsCreatedEventName = "EtappeResultsCreated"
 
+	// GamblerCreatedEventName provides a constant symbol for GamblerCreated
 	GamblerCreatedEventName = "GamblerCreated"
 
+	// GamblerTeamCreatedEventName provides a constant symbol for GamblerTeamCreated
 	GamblerTeamCreatedEventName = "GamblerTeamCreated"
 
+	// NewsItemCreatedEventName provides a constant symbol for NewsItemCreated
 	NewsItemCreatedEventName = "NewsItemCreated"
 )
 
-type getTimeFunc func() time.Time
-
-var getTime getTimeFunc = func() time.Time {
-	return time.Now()
-}
-
-type getUidFunc func() string
-
-var getUid getUidFunc = func() string {
+var getUID = func() string {
 	return uuid.NewV1().String()
 }
 
-func (s *TourCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event TourCreated into an envelope
+func (s *TourCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling TourCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  TourAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  TourCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    TourAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    TourCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsTourCreated(envelope *Envelope) bool {
+// IsTourCreated detects of envelope carries event of type TourCreated
+func IsTourCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == TourCreatedEventName
 }
 
-func GetIfIsTourCreated(envelop *Envelope) (*TourCreated, bool) {
-	if IsTourCreated(envelop) == false {
+// GetIfIsTourCreated detects of envelope carries event of type TourCreated and returns the event if so
+func GetIfIsTourCreated(envelope *events.Envelope) (*TourCreated, bool) {
+	if IsTourCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapTourCreated(envelop)
+	event, err := UnWrapTourCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapTourCreated(envelop *Envelope) (*TourCreated, error) {
-	if IsTourCreated(envelop) == false {
+// UnWrapTourCreated extracts event TourCreated from its envelope
+func UnWrapTourCreated(envelope *events.Envelope) (*TourCreated, error) {
+	if IsTourCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a TourCreated")
 	}
 	var event TourCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling TourCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *CyclistCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event CyclistCreated into an envelope
+func (s *CyclistCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling CyclistCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  TourAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  CyclistCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    TourAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    CyclistCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsCyclistCreated(envelope *Envelope) bool {
+// IsCyclistCreated detects of envelope carries event of type CyclistCreated
+func IsCyclistCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == CyclistCreatedEventName
 }
 
-func GetIfIsCyclistCreated(envelop *Envelope) (*CyclistCreated, bool) {
-	if IsCyclistCreated(envelop) == false {
+// GetIfIsCyclistCreated detects of envelope carries event of type CyclistCreated and returns the event if so
+func GetIfIsCyclistCreated(envelope *events.Envelope) (*CyclistCreated, bool) {
+	if IsCyclistCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapCyclistCreated(envelop)
+	event, err := UnWrapCyclistCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapCyclistCreated(envelop *Envelope) (*CyclistCreated, error) {
-	if IsCyclistCreated(envelop) == false {
+// UnWrapCyclistCreated extracts event CyclistCreated from its envelope
+func UnWrapCyclistCreated(envelope *events.Envelope) (*CyclistCreated, error) {
+	if IsCyclistCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a CyclistCreated")
 	}
 	var event CyclistCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling CyclistCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *EtappeCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event EtappeCreated into an envelope
+func (s *EtappeCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling EtappeCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  TourAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  EtappeCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    TourAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    EtappeCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsEtappeCreated(envelope *Envelope) bool {
+// IsEtappeCreated detects of envelope carries event of type EtappeCreated
+func IsEtappeCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == EtappeCreatedEventName
 }
 
-func GetIfIsEtappeCreated(envelop *Envelope) (*EtappeCreated, bool) {
-	if IsEtappeCreated(envelop) == false {
+// GetIfIsEtappeCreated detects of envelope carries event of type EtappeCreated and returns the event if so
+func GetIfIsEtappeCreated(envelope *events.Envelope) (*EtappeCreated, bool) {
+	if IsEtappeCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapEtappeCreated(envelop)
+	event, err := UnWrapEtappeCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapEtappeCreated(envelop *Envelope) (*EtappeCreated, error) {
-	if IsEtappeCreated(envelop) == false {
+// UnWrapEtappeCreated extracts event EtappeCreated from its envelope
+func UnWrapEtappeCreated(envelope *events.Envelope) (*EtappeCreated, error) {
+	if IsEtappeCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a EtappeCreated")
 	}
 	var event EtappeCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling EtappeCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *EtappeResultsCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event EtappeResultsCreated into an envelope
+func (s *EtappeResultsCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling EtappeResultsCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  TourAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  EtappeResultsCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    TourAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    EtappeResultsCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsEtappeResultsCreated(envelope *Envelope) bool {
+// IsEtappeResultsCreated detects of envelope carries event of type EtappeResultsCreated
+func IsEtappeResultsCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == EtappeResultsCreatedEventName
 }
 
-func GetIfIsEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, bool) {
-	if IsEtappeResultsCreated(envelop) == false {
+// GetIfIsEtappeResultsCreated detects of envelope carries event of type EtappeResultsCreated and returns the event if so
+func GetIfIsEtappeResultsCreated(envelope *events.Envelope) (*EtappeResultsCreated, bool) {
+	if IsEtappeResultsCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapEtappeResultsCreated(envelop)
+	event, err := UnWrapEtappeResultsCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapEtappeResultsCreated(envelop *Envelope) (*EtappeResultsCreated, error) {
-	if IsEtappeResultsCreated(envelop) == false {
+// UnWrapEtappeResultsCreated extracts event EtappeResultsCreated from its envelope
+func UnWrapEtappeResultsCreated(envelope *events.Envelope) (*EtappeResultsCreated, error) {
+	if IsEtappeResultsCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a EtappeResultsCreated")
 	}
 	var event EtappeResultsCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling EtappeResultsCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *GamblerCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event GamblerCreated into an envelope
+func (s *GamblerCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling GamblerCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  GamblerAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  GamblerCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    GamblerAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    GamblerCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsGamblerCreated(envelope *Envelope) bool {
+// IsGamblerCreated detects of envelope carries event of type GamblerCreated
+func IsGamblerCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == GamblerCreatedEventName
 }
 
-func GetIfIsGamblerCreated(envelop *Envelope) (*GamblerCreated, bool) {
-	if IsGamblerCreated(envelop) == false {
+// GetIfIsGamblerCreated detects of envelope carries event of type GamblerCreated and returns the event if so
+func GetIfIsGamblerCreated(envelope *events.Envelope) (*GamblerCreated, bool) {
+	if IsGamblerCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapGamblerCreated(envelop)
+	event, err := UnWrapGamblerCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapGamblerCreated(envelop *Envelope) (*GamblerCreated, error) {
-	if IsGamblerCreated(envelop) == false {
+// UnWrapGamblerCreated extracts event GamblerCreated from its envelope
+func UnWrapGamblerCreated(envelope *events.Envelope) (*GamblerCreated, error) {
+	if IsGamblerCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a GamblerCreated")
 	}
 	var event GamblerCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling GamblerCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *GamblerTeamCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event GamblerTeamCreated into an envelope
+func (s *GamblerTeamCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling GamblerTeamCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  GamblerAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  GamblerTeamCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    GamblerAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    GamblerTeamCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsGamblerTeamCreated(envelope *Envelope) bool {
+// IsGamblerTeamCreated detects of envelope carries event of type GamblerTeamCreated
+func IsGamblerTeamCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == GamblerTeamCreatedEventName
 }
 
-func GetIfIsGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, bool) {
-	if IsGamblerTeamCreated(envelop) == false {
+// GetIfIsGamblerTeamCreated detects of envelope carries event of type GamblerTeamCreated and returns the event if so
+func GetIfIsGamblerTeamCreated(envelope *events.Envelope) (*GamblerTeamCreated, bool) {
+	if IsGamblerTeamCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapGamblerTeamCreated(envelop)
+	event, err := UnWrapGamblerTeamCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapGamblerTeamCreated(envelop *Envelope) (*GamblerTeamCreated, error) {
-	if IsGamblerTeamCreated(envelop) == false {
+// UnWrapGamblerTeamCreated extracts event GamblerTeamCreated from its envelope
+func UnWrapGamblerTeamCreated(envelope *events.Envelope) (*GamblerTeamCreated, error) {
+	if IsGamblerTeamCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a GamblerTeamCreated")
 	}
 	var event GamblerTeamCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling GamblerTeamCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }
 
-func (s *NewsItemCreated) Wrap(uid string) (*Envelope, error) {
+// Wrap wraps event NewsItemCreated into an envelope
+func (s *NewsItemCreated) Wrap(sessionUID string) (*events.Envelope, error) {
 	blob, err := json.Marshal(s)
 	if err != nil {
 		log.Printf("Error marshalling NewsItemCreated payload %+v", err)
 		return nil, err
 	}
-	envelope := Envelope{
-		Uuid:           getUid(),
-		SequenceNumber: int64(0), // Set later by event-store
-		Timestamp:      getTime(),
-		AggregateName:  NewsAggregateName, // from annotation!
-		AggregateUid:   uid,
-		EventTypeName:  NewsItemCreatedEventName,
-		EventData:      string(blob),
+	envelope := events.Envelope{
+		UUID:             getUID(),
+		IsRootEvent:      false,
+		SequenceNumber:   int64(0), // Set later by event-store
+		SessionUID:       sessionUID,
+		Timestamp:        mytime.Now(),
+		AggregateName:    NewsAggregateName, // from annotation!
+		AggregateUID:     s.GetUID(),
+		EventTypeName:    NewsItemCreatedEventName,
+		EventTypeVersion: 0,
+		EventData:        string(blob),
 	}
 
 	return &envelope, nil
 }
 
-func IsNewsItemCreated(envelope *Envelope) bool {
+// IsNewsItemCreated detects of envelope carries event of type NewsItemCreated
+func IsNewsItemCreated(envelope *events.Envelope) bool {
 	return envelope.EventTypeName == NewsItemCreatedEventName
 }
 
-func GetIfIsNewsItemCreated(envelop *Envelope) (*NewsItemCreated, bool) {
-	if IsNewsItemCreated(envelop) == false {
+// GetIfIsNewsItemCreated detects of envelope carries event of type NewsItemCreated and returns the event if so
+func GetIfIsNewsItemCreated(envelope *events.Envelope) (*NewsItemCreated, bool) {
+	if IsNewsItemCreated(envelope) == false {
 		return nil, false
 	}
-	event, err := UnWrapNewsItemCreated(envelop)
+	event, err := UnWrapNewsItemCreated(envelope)
 	if err != nil {
 		return nil, false
 	}
 	return event, true
 }
 
-func UnWrapNewsItemCreated(envelop *Envelope) (*NewsItemCreated, error) {
-	if IsNewsItemCreated(envelop) == false {
+// UnWrapNewsItemCreated extracts event NewsItemCreated from its envelope
+func UnWrapNewsItemCreated(envelope *events.Envelope) (*NewsItemCreated, error) {
+	if IsNewsItemCreated(envelope) == false {
 		return nil, fmt.Errorf("Not a NewsItemCreated")
 	}
 	var event NewsItemCreated
-	err := json.Unmarshal([]byte(envelop.EventData), &event)
+	err := json.Unmarshal([]byte(envelope.EventData), &event)
 	if err != nil {
 		log.Printf("Error unmarshalling NewsItemCreated payload %+v", err)
 		return nil, err
 	}
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 
 	return &event, nil
 }

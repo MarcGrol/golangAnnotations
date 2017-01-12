@@ -1,10 +1,9 @@
-// Generated automatically: do not edit manually
+// Generated automatically by golangAnnotations: do not edit manually
 
 package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,12 +12,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (ts *TourService) HttpHandler() http.Handler {
+// HTTPHandler registers endpoint in new router
+func (ts *TourService) HTTPHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
-	return ts.HttpHandlerWithRouter(router)
+	return ts.HTTPHandlerWithRouter(router)
 }
 
-func (ts *TourService) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
+// HTTPHandlerWithRouter registers endpoint in existing router
+func (ts *TourService) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 	subRouter := router.PathPrefix("/api/tour").Subrouter()
 
 	subRouter.HandleFunc("/{year}", getTourOnUid(ts)).Methods("GET")
@@ -34,6 +35,7 @@ func (ts *TourService) HttpHandlerWithRouter(router *mux.Router) *mux.Router {
 	return router
 }
 
+// getTourOnUid does the http handling for business logic method service.getTourOnUid
 func getTourOnUid(service *TourService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -42,15 +44,34 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 		log.Printf("pathParams:%+v", pathParams)
 
 		// extract url-params
+		validationErrors := []errorh.FieldError{}
+
+		year := 0
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
-			return
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "year",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"year"},
+			})
+
+		} else {
+			year, err = strconv.Atoi(yearString)
+			if err != nil {
+				validationErrors = append(validationErrors, errorh.FieldError{
+					SubCode: 1001,
+					Field:   "year",
+					Msg:     "Invalid value for mandatory parameter %s",
+					Args:    []string{"year"},
+				})
+			}
 		}
-		year, err := strconv.Atoi(yearString)
-		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
+
+		if len(validationErrors) > 0 {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
 			return
 		}
 
@@ -59,7 +80,7 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 		result, err := service.getTourOnUid(year)
 
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -74,6 +95,7 @@ func getTourOnUid(service *TourService) http.HandlerFunc {
 	}
 }
 
+// createEtappe does the http handling for business logic method service.createEtappe
 func createEtappe(service *TourService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -82,23 +104,42 @@ func createEtappe(service *TourService) http.HandlerFunc {
 		log.Printf("pathParams:%+v", pathParams)
 
 		// extract url-params
+		validationErrors := []errorh.FieldError{}
+
+		year := 0
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
-			return
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "year",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"year"},
+			})
+
+		} else {
+			year, err = strconv.Atoi(yearString)
+			if err != nil {
+				validationErrors = append(validationErrors, errorh.FieldError{
+					SubCode: 1001,
+					Field:   "year",
+					Msg:     "Invalid value for mandatory parameter %s",
+					Args:    []string{"year"},
+				})
+			}
 		}
-		year, err := strconv.Atoi(yearString)
-		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
+
+		if len(validationErrors) > 0 {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
 			return
 		}
 
-		// read abd parse request body
+		// read and parse request body
 		var etappe Etappe
 		err = json.NewDecoder(r.Body).Decode(&etappe)
 		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 			return
 		}
 
@@ -107,7 +148,7 @@ func createEtappe(service *TourService) http.HandlerFunc {
 		result, err := service.createEtappe(year, etappe)
 
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -122,6 +163,7 @@ func createEtappe(service *TourService) http.HandlerFunc {
 	}
 }
 
+// addEtappeResults does the http handling for business logic method service.addEtappeResults
 func addEtappeResults(service *TourService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -130,29 +172,54 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 		log.Printf("pathParams:%+v", pathParams)
 
 		// extract url-params
+		validationErrors := []errorh.FieldError{}
+
+		year := 0
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
-			return
-		}
-		year, err := strconv.Atoi(yearString)
-		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
-			return
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "year",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"year"},
+			})
+
+		} else {
+			year, err = strconv.Atoi(yearString)
+			if err != nil {
+				validationErrors = append(validationErrors, errorh.FieldError{
+					SubCode: 1001,
+					Field:   "year",
+					Msg:     "Invalid value for mandatory parameter %s",
+					Args:    []string{"year"},
+				})
+			}
 		}
 
 		etappeUid, exists := pathParams["etappeUid"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'etappeUid'")), w)
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "etappeUid",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"etappeUid"},
+			})
+
+		}
+
+		if len(validationErrors) > 0 {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
 			return
 		}
 
-		// read abd parse request body
+		// read and parse request body
 		var results EtappeResult
 		err = json.NewDecoder(r.Body).Decode(&results)
 		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 			return
 		}
 
@@ -161,7 +228,7 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 		err = service.addEtappeResults(year, etappeUid, results)
 
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -172,6 +239,7 @@ func addEtappeResults(service *TourService) http.HandlerFunc {
 	}
 }
 
+// createCyclist does the http handling for business logic method service.createCyclist
 func createCyclist(service *TourService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -180,23 +248,42 @@ func createCyclist(service *TourService) http.HandlerFunc {
 		log.Printf("pathParams:%+v", pathParams)
 
 		// extract url-params
+		validationErrors := []errorh.FieldError{}
+
+		year := 0
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
-			return
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "year",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"year"},
+			})
+
+		} else {
+			year, err = strconv.Atoi(yearString)
+			if err != nil {
+				validationErrors = append(validationErrors, errorh.FieldError{
+					SubCode: 1001,
+					Field:   "year",
+					Msg:     "Invalid value for mandatory parameter %s",
+					Args:    []string{"year"},
+				})
+			}
 		}
-		year, err := strconv.Atoi(yearString)
-		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
+
+		if len(validationErrors) > 0 {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
 			return
 		}
 
-		// read abd parse request body
+		// read and parse request body
 		var cyclist Cyclist
 		err = json.NewDecoder(r.Body).Decode(&cyclist)
 		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Error decoding request payload:%s", err)), w)
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 			return
 		}
 
@@ -205,7 +292,7 @@ func createCyclist(service *TourService) http.HandlerFunc {
 		result, err := service.createCyclist(year, cyclist)
 
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -220,6 +307,7 @@ func createCyclist(service *TourService) http.HandlerFunc {
 	}
 }
 
+// markCyclistAbondoned does the http handling for business logic method service.markCyclistAbondoned
 func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
@@ -228,21 +316,46 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 		log.Printf("pathParams:%+v", pathParams)
 
 		// extract url-params
+		validationErrors := []errorh.FieldError{}
+
+		year := 0
 
 		yearString, exists := pathParams["year"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'year'")), w)
-			return
-		}
-		year, err := strconv.Atoi(yearString)
-		if err != nil {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Invalid path param 'year'")), w)
-			return
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "year",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"year"},
+			})
+
+		} else {
+			year, err = strconv.Atoi(yearString)
+			if err != nil {
+				validationErrors = append(validationErrors, errorh.FieldError{
+					SubCode: 1001,
+					Field:   "year",
+					Msg:     "Invalid value for mandatory parameter %s",
+					Args:    []string{"year"},
+				})
+			}
 		}
 
 		cyclistUid, exists := pathParams["cyclistUid"]
 		if !exists {
-			handleError(errorh.NewInvalidInputErrorf(0, fmt.Sprintf("Missing path param 'cyclistUid'")), w)
+
+			validationErrors = append(validationErrors, errorh.FieldError{
+				SubCode: 1000,
+				Field:   "cyclistUid",
+				Msg:     "Missing value for mandatory parameter %s",
+				Args:    []string{"cyclistUid"},
+			})
+
+		}
+
+		if len(validationErrors) > 0 {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
 			return
 		}
 
@@ -251,7 +364,7 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 		err = service.markCyclistAbondoned(year, cyclistUid)
 
 		if err != nil {
-			handleError(err, w)
+			errorh.HandleHttpError(err, w)
 			return
 		}
 
@@ -259,35 +372,5 @@ func markCyclistAbondoned(service *TourService) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusNoContent)
 
-	}
-}
-
-func handleError(err error, w http.ResponseWriter) {
-	errorBody := struct {
-		ErrorMessage string
-	}{
-		err.Error(),
-	}
-	blob, err := json.Marshal(errorBody)
-	if err != nil {
-		log.Printf("Error marshalling error response payload %+v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.WriteHeader(determineHttpCode(err))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(blob)
-}
-
-func determineHttpCode(err error) int {
-	if errorh.IsNotFoundError(err) {
-		return http.StatusNotFound
-	} else if errorh.IsInternalError(err) {
-		return http.StatusInternalServerError
-	} else if errorh.IsInvalidInputError(err) {
-		return http.StatusBadRequest
-	} else if errorh.IsNotAuthorizedError(err) {
-		return http.StatusForbidden
-	} else {
-		return http.StatusInternalServerError
 	}
 }

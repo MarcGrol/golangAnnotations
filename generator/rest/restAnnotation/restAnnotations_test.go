@@ -1,10 +1,11 @@
 package restAnnotation
 
 import (
-	"github.com/MarcGrol/golangAnnotations/annotation"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCorrectRestOperationAnnotation(t *testing.T) {

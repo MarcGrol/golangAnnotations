@@ -37,8 +37,8 @@ type TourService struct {
 }
 
 // @RestOperation( method = "GET", path = "/{year}" )
-func (ts TourService) getTourOnUid(year int) (Tour, error) {
-	return Tour{
+func (ts TourService) getTourOnUid(year int) (*Tour, error) {
+	return &Tour{
 		Year:     2016,
 		Cyclists: []Cyclist{},
 		Etappes:  []Etappe{},
@@ -46,10 +46,10 @@ func (ts TourService) getTourOnUid(year int) (Tour, error) {
 }
 
 // @RestOperation( method = "POST", path = "/{year}/etappe" )
-func (ts *TourService) createEtappe(year int, etappe Etappe) (Etappe, error) {
+func (ts *TourService) createEtappe(year int, etappe Etappe) (*Etappe, error) {
 	dateString := "2016-07-14"
 	day, _ := time.Parse(dateString, dateString)
-	return Etappe{
+	return &Etappe{
 		UID:            "14",
 		Day:            day,
 		StartLocation:  "Paris",
@@ -63,8 +63,8 @@ func (ts *TourService) addEtappeResults(year int, etappeUid string, results Etap
 }
 
 // @RestOperation( method = "POST", path = "/{year}/cyclist" )
-func (ts *TourService) createCyclist(year int, cyclist Cyclist) (Cyclist, error) {
-	return Cyclist{
+func (ts *TourService) createCyclist(year int, cyclist Cyclist) (*Cyclist, error) {
+	return &Cyclist{
 		UID:    "42",
 		Name:   "Boogerd, Michael",
 		Points: 180,

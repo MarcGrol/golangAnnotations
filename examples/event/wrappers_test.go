@@ -1,4 +1,6 @@
-// Generated automatically: do not edit manually
+// +build !appengine
+
+// Generated automatically by golangAnnotations: do not edit manually
 
 package event
 
@@ -7,34 +9,32 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Duxxie/platform/backend/lib/mytime"
 	"github.com/stretchr/testify/assert"
 )
 
-func testGetTime() time.Time {
-	t, _ := time.Parse(time.RFC3339Nano, "2003-02-11T11:50:51.123Z")
-	return t
-}
-
-func testGetUid() string {
+func testGetUID() string {
 	return "1234321"
 }
 
 func TestTourCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := TourCreated{
 
 		Year: 42,
 	}
-	wrapped, err := event.Wrap("UID_TourCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsTourCreated(wrapped))
 	assert.Equal(t, "Tour", wrapped.AggregateName)
 	assert.Equal(t, "TourCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_TourCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_TourCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsTourCreated(wrapped)
 	assert.True(t, ok)
@@ -43,24 +43,26 @@ func TestTourCreatedWrapper(t *testing.T) {
 }
 
 func TestCyclistCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := CyclistCreated{
 
 		Year:        42,
-		CyclistUid:  "EaampleCyclistUid",
-		CyclistName: "EaampleCyclistName",
-		CyclistTeam: "EaampleCyclistTeam",
+		CyclistUid:  "Example3CyclistUid",
+		CyclistName: "Example3CyclistName",
+		CyclistTeam: "Example3CyclistTeam",
 	}
-	wrapped, err := event.Wrap("UID_CyclistCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsCyclistCreated(wrapped))
 	assert.Equal(t, "Tour", wrapped.AggregateName)
 	assert.Equal(t, "CyclistCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_CyclistCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_CyclistCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsCyclistCreated(wrapped)
 	assert.True(t, ok)
@@ -69,27 +71,29 @@ func TestCyclistCreatedWrapper(t *testing.T) {
 }
 
 func TestEtappeCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := EtappeCreated{
 
 		Year:      42,
-		EtappeUid: "EaampleEtappeUid",
+		EtappeUid: "Example3EtappeUid",
 
-		EtappeStartLocation:  "EaampleEtappeStartLocation",
-		EtappeFinishLocation: "EaampleEtappeFinishLocation",
+		EtappeStartLocation:  "Example3EtappeStartLocation",
+		EtappeFinishLocation: "Example3EtappeFinishLocation",
 		EtappeLength:         42,
 		EtappeKind:           42,
 	}
-	wrapped, err := event.Wrap("UID_EtappeCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsEtappeCreated(wrapped))
 	assert.Equal(t, "Tour", wrapped.AggregateName)
 	assert.Equal(t, "EtappeCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_EtappeCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_EtappeCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsEtappeCreated(wrapped)
 	assert.True(t, ok)
@@ -98,26 +102,28 @@ func TestEtappeCreatedWrapper(t *testing.T) {
 }
 
 func TestEtappeResultsCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := EtappeResultsCreated{
 
 		Year:                     42,
-		EtappeUid:                "EaampleEtappeUid",
-		BestDayCyclistIds:        []string{"Eaample1BestDayCyclistIds", "Eaample2BestDayCyclistIds"},
-		BestAllrounderCyclistIds: []string{"Eaample1BestAllrounderCyclistIds", "Eaample2BestAllrounderCyclistIds"},
-		BestSprinterCyclistIds:   []string{"Eaample1BestSprinterCyclistIds", "Eaample2BestSprinterCyclistIds"},
-		BestClimberCyclistIds:    []string{"Eaample1BestClimberCyclistIds", "Eaample2BestClimberCyclistIds"},
+		EtappeUid:                "Example3EtappeUid",
+		BestDayCyclistIds:        []string{"Example1BestDayCyclistIds", "Example1BestDayCyclistIds"},
+		BestAllrounderCyclistIds: []string{"Example1BestAllrounderCyclistIds", "Example1BestAllrounderCyclistIds"},
+		BestSprinterCyclistIds:   []string{"Example1BestSprinterCyclistIds", "Example1BestSprinterCyclistIds"},
+		BestClimberCyclistIds:    []string{"Example1BestClimberCyclistIds", "Example1BestClimberCyclistIds"},
 	}
-	wrapped, err := event.Wrap("UID_EtappeResultsCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsEtappeResultsCreated(wrapped))
 	assert.Equal(t, "Tour", wrapped.AggregateName)
 	assert.Equal(t, "EtappeResultsCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_EtappeResultsCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_EtappeResultsCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsEtappeResultsCreated(wrapped)
 	assert.True(t, ok)
@@ -126,24 +132,26 @@ func TestEtappeResultsCreatedWrapper(t *testing.T) {
 }
 
 func TestGamblerCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := GamblerCreated{
 
-		GamblerUid:       "EaampleGamblerUid",
-		GamblerName:      "EaampleGamblerName",
-		GamblerEmail:     "EaampleGamblerEmail",
-		GamblerImageIUrl: "EaampleGamblerImageIUrl",
+		GamblerUid:       "Example3GamblerUid",
+		GamblerName:      "Example3GamblerName",
+		GamblerEmail:     "Example3GamblerEmail",
+		GamblerImageIUrl: "Example3GamblerImageIUrl",
 	}
-	wrapped, err := event.Wrap("UID_GamblerCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsGamblerCreated(wrapped))
 	assert.Equal(t, "Gambler", wrapped.AggregateName)
 	assert.Equal(t, "GamblerCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_GamblerCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_GamblerCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsGamblerCreated(wrapped)
 	assert.True(t, ok)
@@ -152,23 +160,25 @@ func TestGamblerCreatedWrapper(t *testing.T) {
 }
 
 func TestGamblerTeamCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := GamblerTeamCreated{
 
-		GamblerUid:      "EaampleGamblerUid",
+		GamblerUid:      "Example3GamblerUid",
 		Year:            42,
-		GamblerCyclists: []string{"Eaample1GamblerCyclists", "Eaample2GamblerCyclists"},
+		GamblerCyclists: []string{"Example1GamblerCyclists", "Example1GamblerCyclists"},
 	}
-	wrapped, err := event.Wrap("UID_GamblerTeamCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsGamblerTeamCreated(wrapped))
 	assert.Equal(t, "Gambler", wrapped.AggregateName)
 	assert.Equal(t, "GamblerTeamCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_GamblerTeamCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_GamblerTeamCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsGamblerTeamCreated(wrapped)
 	assert.True(t, ok)
@@ -177,26 +187,27 @@ func TestGamblerTeamCreatedWrapper(t *testing.T) {
 }
 
 func TestNewsItemCreatedWrapper(t *testing.T) {
-	getUid = testGetUid
-	getTime = testGetTime
+	mytime.SetMockNow()
+	defer mytime.SetDefaultNow()
+	getUID = testGetUID
 
 	event := NewsItemCreated{
 
-		Year: 42,
-
-		Message:           "EaampleMessage",
-		Sender:            "EaampleSender",
-		RelatedCyclistUid: "EaampleRelatedCyclistUid",
-		RelatedEtappeUid:  "EaampleRelatedEtappeUid",
+		Year:              42,
+		Message:           "Example3Message",
+		Sender:            "Example3Sender",
+		RelatedCyclistUid: "Example3RelatedCyclistUid",
+		RelatedEtappeUid:  "Example3RelatedEtappeUid",
 	}
-	wrapped, err := event.Wrap("UID_NewsItemCreated")
+	wrapped, err := event.Wrap("test_session")
 	assert.NoError(t, err)
 	assert.True(t, IsNewsItemCreated(wrapped))
 	assert.Equal(t, "News", wrapped.AggregateName)
 	assert.Equal(t, "NewsItemCreated", wrapped.EventTypeName)
-	assert.Equal(t, "UID_NewsItemCreated", wrapped.AggregateUid)
-	assert.Equal(t, "1234321", wrapped.Uuid)
-	assert.Equal(t, "2003-02-11T11:50:51.123Z", wrapped.Timestamp.Format(time.RFC3339Nano))
+	//	assert.Equal(t, "UID_NewsItemCreated", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.Equal(t, "1234321", wrapped.UUID)
+	assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIsNewsItemCreated(wrapped)
 	assert.True(t, ok)

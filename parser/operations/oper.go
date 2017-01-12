@@ -1,8 +1,9 @@
 package operations
 
 import (
-	"github.com/MarcGrol/golangAnnotations/parser/structs"
 	"golang.org/x/net/context"
+
+	"github.com/MarcGrol/golangAnnotations/parser/structs"
 )
 
 type Person struct {
