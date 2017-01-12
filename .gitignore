@@ -1,12 +1,12 @@
 .cover
 .idea
 
-./examples/event/*
-!./examples/event/example.go
-
-./examples/rest/*
-!./examples/rest/tourService.go
-
-./examples/store/*
-!./examples/store/eventStore.go
+examples/event/aggregates.go
+examples/event/wrappers.go
+examples/event/wrappers_test.go
+examples/rest/httpTestTourService.go
+examples/rest/httpTourService.go
+examples/rest/httpTourServiceHelpers_test.go
+examples/rest/restTestLog/
+examples/store/eventEventStore.go
 
