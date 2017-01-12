@@ -1,11 +1,11 @@
 .cover
 .idea
 
-examples/event/*
-!examples/event/example.go
+./examples/event/*
+!./examples/event/example.go
 
-examples/rest/*
-!examples/rest/tourService.go
+./examples/rest/*
+!./examples/rest/tourService.go
 
-examples/store/*
+./examples/store/*
 
