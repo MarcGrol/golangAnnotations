@@ -14,7 +14,7 @@ type TourCreated struct {
 }
 
 func (t TourCreated) GetUID() string {
-	return fmt.Sprint("%s", t.Year)
+	return fmt.Sprintf("%d", t.Year)
 }
 
 // @Event(aggregate="Tour")
@@ -27,7 +27,7 @@ type CyclistCreated struct {
 }
 
 func (t CyclistCreated) GetUID() string {
-	return fmt.Sprint("%s", t.Year)
+	return fmt.Sprintf("%d", t.Year)
 }
 
 // @Event(aggregate="Tour")
@@ -43,7 +43,7 @@ type EtappeCreated struct {
 }
 
 func (t EtappeCreated) GetUID() string {
-	return fmt.Sprint("%s", t.Year)
+	return fmt.Sprintf("%d", t.Year)
 }
 
 // @Event(aggregate="Tour")
@@ -58,7 +58,7 @@ type EtappeResultsCreated struct {
 }
 
 func (t EtappeResultsCreated) GetUID() string {
-	return fmt.Sprint("%s", t.Year)
+	return fmt.Sprintf("%d", t.Year)
 }
 
 // @Event(aggregate="Gambler")
@@ -97,5 +97,5 @@ type NewsItemCreated struct {
 }
 
 func (t NewsItemCreated) GetUID() string {
-	return fmt.Sprint("%s", t.Year)
+	return fmt.Sprintf("%d", t.Year)
 }
