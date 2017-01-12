@@ -34,13 +34,13 @@ imports:
 	@echo "------------------"
 	@echo "Optimizing imports"
 	@echo "------------------"
-	for i in `find . -name "*.go"`; do goimports -w -local github.com/ $${i}; done
+	for i in `find . -path ./examples -prune -o  -name "*.go"`; do goimports -w -local github.com/ $${i}; done
 
 format:
 	@echo "----------------------"
 	@echo "Formatting source-code"
 	@echo "----------------------"
-	for i in `find . -name "*.go"`; do gofmt -s -w $${i}; done
+	for i in `find . -path ./examples -prune -o -name "*.go"`; do gofmt -s -w $${i}; done
 
 gen: generate imports format
 

@@ -8,4 +8,5 @@
 !./examples/rest/tourService.go
 
 ./examples/store/*
+!./examples/store/eventStore.go
 
