@@ -3,12 +3,6 @@ GO_VERSION := $(shell $(GO) version)
 
 GOLANG_ANNOT_ROOT := $(shell echo "${GOPATH}/src/github.com/MarcGrol/golangAnnotations")
 
-GIT_VERSION := $(shell git rev-parse HEAD)
-GIT_TAG := $(shell git describe --tags)
-DEPLOYER := $(shell git config user.name )
-DEPLOYMENT_TIMESTAMP := $(shell date +"%Y-%m-%d %H:%M:%S")
-LOCAL_MODIFICATIONS := $(shell git diff --name-only)
-
 all: gen test install
 
 help:
