@@ -9,7 +9,7 @@ import (
 
 //go:generate golangAnnotations -input-dir .
 
-// @Enum()
+// @JsonEnum()
 type Color int
 
 const (
@@ -18,9 +18,11 @@ const (
 	Blue
 )
 
+// @JsonStruct()
 // @Event( aggregate = "Tour")
 type TourCreated struct {
 	Year      int       `json:"year"`
+	Tags      []string  `json:"tags"`
 	Timestamp time.Time `json:"-"`
 }
 
@@ -28,6 +30,7 @@ func (t TourCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
+/*
 // @Event(aggregate="Tour")
 type CyclistCreated struct {
 	Year        int       `json:"year"`
@@ -110,3 +113,4 @@ type NewsItemCreated struct {
 func (t NewsItemCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
+*/

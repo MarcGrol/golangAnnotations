@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/MarcGrol/golangAnnotations/generator/enum"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
+	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
@@ -21,9 +21,9 @@ func init() {
 		log.Printf("Error registering event-annotation-generator")
 	}
 
-	err = register("enum", enum.Generate)
+	err = register("json", jsonHelpers.Generate)
 	if err != nil {
-		log.Printf("Error registering enum-annotation-generator")
+		log.Printf("Error registering jsonHelpers-annotation-generator")
 	}
 
 	err = register("rest", rest.Generate)

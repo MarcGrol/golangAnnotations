@@ -1,4 +1,4 @@
-package enum
+package jsonHelpers
 
 import (
 	"fmt"
@@ -6,22 +6,23 @@ import (
 	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
-	"github.com/MarcGrol/golangAnnotations/generator/enum/enumAnnotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 type Enums struct {
 	PackageName string
 	Enums       []model.Enum
+	Structs     []model.Struct
 }
 
 func Generate(inputDir string, parsedSource model.ParsedSources) error {
-	return generate(inputDir, parsedSource.Enums)
+	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
 }
 
-func generate(inputDir string, enums []model.Enum) error {
-	enumAnnotation.Register()
+func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {
+	jsonAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForEnums(enums)
 	if err != nil {
@@ -31,11 +32,12 @@ func generate(inputDir string, enums []model.Enum) error {
 	if err != nil {
 		return err
 	}
-	target := fmt.Sprintf("%s/enums.go", targetDir)
+	target := fmt.Sprintf("%s/jsonHelpers.go", targetDir)
 
 	data := Enums{
 		PackageName: packageName,
 		Enums:       enums,
+		Structs:     structs,
 	}
 	err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
 	if err != nil {
@@ -47,15 +49,34 @@ func generate(inputDir string, enums []model.Enum) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEnum": IsEnum,
+	"IsJsonEnum":   IsJsonEnum,
+	"IsJsonStruct": IsJsonStruct,
+	"HasSlices":    HasSlices,
 }
 
-func IsEnum(e model.Enum) bool {
+func IsJsonEnum(e model.Enum) bool {
 	annotation, ok := annotation.ResolveAnnotations(e.DocLines)
-	if !ok || annotation.Name != "Enum" {
+	if !ok || annotation.Name != "JsonEnum" {
 		return false
 	}
 	return ok
+}
+
+func IsJsonStruct(s model.Struct) bool {
+	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
+	if !ok || annotation.Name != "JsonStruct" {
+		return false
+	}
+	return ok
+}
+
+func HasSlices(s model.Struct) bool {
+	for _, f := range s.Fields {
+		if f.IsSlice {
+			return true
+		}
+	}
+	return false
 }
 
 var enumTemplate string = `
@@ -63,10 +84,11 @@ var enumTemplate string = `
 
 package {{.PackageName}}
 
-
 {{range .Enums}}
 
-{{if IsEnum . }}
+{{if IsJsonEnum . }}
+
+// Helpers for json-enum {{.Name}}
 
 var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
@@ -93,7 +115,7 @@ func init() {
 	}
 }
 
-// MarshalJSON is generated so color satisfies json.Marshaler.
+// MarshalJSON caters for readable enums with a proper default value
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	if s, ok := interface{}(r).(fmt.Stringer); ok {
 		return json.Marshal(s.String())
@@ -105,7 +127,7 @@ func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// UnmarshalJSON is generated so color satisfies json.Unmarshaler.
+// UnmarshalJSON caters for readable enums with a proper default value
 func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -119,6 +141,55 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+
+{{end}}
+{{end}}
+
+
+{{range .Structs}}
+
+{{if IsJsonStruct . }}
+
+// Helpers for json-struct {{.Name}}
+
+{{if HasSlices . }}
+
+// MarshalJSON prevents nil slices in json
+func (data *{{.Name}}) MarshalJSON() ([]byte, error) {
+	type alias {{.Name}}
+	var raw = alias(*data)
+
+	{{range .Fields}}
+		{{if .IsSlice}}
+		if raw.{{.Name}} == nil {
+			raw.{{.Name}} = []{{.TypeName}}{}
+		}
+		{{end}}
+	{{end}}
+
+	return json.Marshal(&raw)
+}
+
+// UnmarshalJSON prevents nil slices from json
+func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
+	type alias {{.Name}}
+	var raw alias
+	err := json.Unmarshal(b, &raw)
+
+	{{range .Fields}}
+		{{if .IsSlice}}
+		if raw.{{.Name}} == nil {
+			raw.{{.Name}} = []{{.TypeName}}{}
+		}
+		{{end}}
+	{{end}}
+
+	*data = {{.Name}}(raw)
+
+	return err
+}
+
+{{end}}
 
 {{end}}
 {{end}}

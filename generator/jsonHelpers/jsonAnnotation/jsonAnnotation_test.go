@@ -1,4 +1,4 @@
-package enumAnnotation
+package jsonAnnotation
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestCorrectEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{`// @Enum( )`})
+	_, ok := annotation.ResolveAnnotations([]string{`// @JsonEnum( )`})
 	assert.True(t, ok)
 }
 
