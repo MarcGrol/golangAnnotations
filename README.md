@@ -22,8 +22,13 @@ Example:
 
 ## Testing and installing
 
-    $ go test ./... 
-    $ go install ./...
+    $ make gen
+    $ make test
+    $ make install
+    
+    or
+    
+    $ make
 
 ## Currently supported annotations
 
