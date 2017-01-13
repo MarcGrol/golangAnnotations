@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/MarcGrol/golangAnnotations/generator/enum"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
@@ -18,6 +19,11 @@ func init() {
 	err := register("event", event.Generate)
 	if err != nil {
 		log.Printf("Error registering event-annotation-generator")
+	}
+
+	err = register("enum", enum.Generate)
+	if err != nil {
+		log.Printf("Error registering enum-annotation-generator")
 	}
 
 	err = register("rest", rest.Generate)

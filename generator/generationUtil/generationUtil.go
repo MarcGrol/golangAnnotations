@@ -24,6 +24,19 @@ func GetPackageName(structs []model.Struct) (string, error) {
 	return packageName, nil
 }
 
+func GetPackageNameForEnums(enums []model.Enum) (string, error) {
+	if len(enums) == 0 {
+		return "", fmt.Errorf("Need at least one enum to determine package-name")
+	}
+	packageName := enums[0].PackageName
+	for _, s := range enums {
+		if s.PackageName != packageName {
+			return "", fmt.Errorf("List of enums has multiple package-names")
+		}
+	}
+	return packageName, nil
+}
+
 func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	if inputDir == "" || packageName == "" {
 		return "", fmt.Errorf("Input params not set")

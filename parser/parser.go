@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	debugAstOfSources = true
+	debugAstOfSources = false
 )
 
 func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {

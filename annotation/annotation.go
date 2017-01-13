@@ -1,8 +1,6 @@
 package annotation
 
-import (
-	"strings"
-)
+import "strings"
 
 type Annotation struct {
 	Name       string

@@ -9,6 +9,15 @@ import (
 
 //go:generate golangAnnotations -input-dir .
 
+// @Enum()
+type Color int
+
+const (
+	Red Color = iota
+	Green
+	Blue
+)
+
 // @Event( aggregate = "Tour")
 type TourCreated struct {
 	Year      int       `json:"year"`
