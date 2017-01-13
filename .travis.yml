@@ -2,14 +2,19 @@ language: go
 go:
  - 1.6.2
 
+gobuild_args: -tags ci
+
 install:
  - go get -t ./...
  - go get golang.org/x/tools/cmd/cover
  - go get github.com/mattn/goveralls
 
+before_script:
+ - go vet ./...
+
 script:
  - PATH="$HOME/gopath/bin:$PATH"
- - make test
+ - go test ./...
  - scripts/coverage.sh
  - $HOME/gopath/bin/goveralls -coverprofile=.cover/cover.out -service=travis-ci
 

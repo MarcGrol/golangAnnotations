@@ -1,4 +1,4 @@
-// +build ignore
+// +build !ci
 
 package event
 
