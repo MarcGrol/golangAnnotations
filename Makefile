@@ -34,13 +34,13 @@ imports:
 	@echo "------------------"
 	@echo "Optimizing imports"
 	@echo "------------------"
-	for i in `find . -path ./examples -prune -o  -name "*.go"`; do goimports -w -local github.com/ $${i}; done
+	for i in `find . -name "*.go"`; do goimports -w -local github.com/ $${i}; done
 
 format:
 	@echo "----------------------"
 	@echo "Formatting source-code"
 	@echo "----------------------"
-	for i in `find . -path ./examples -prune -o -name "*.go"`; do gofmt -s -w $${i}; done
+	for i in `find . -name "*.go"`; do gofmt -s -w $${i}; done
 
 gen: generate imports format
 
@@ -49,6 +49,14 @@ test:
 	@echo "Running backend tests"
 	@echo "-------------"
 	$(GO) test ./...                        # run unit tests
+	make format
+
+citest:
+	@echo "-------------"
+	@echo "Running backend tests"
+	@echo "-------------"
+	$(GO) generate -tags ci  ./...
+	$(GO) test -tags ci ./...                        # run unit tests
 	make format
 
 coverage:
@@ -64,6 +72,9 @@ install:
 	$(GO) install ./...
 
 clean:
+	rm -rf ./examples/event/aggregates.go ./examples/event/wrappers.go ./examples/event/wrappers_test.go \
+		./examples/rest/httpTourServiceHelpers_test.go ./examples/rest/http*.go ./examples/rest/restTestLog/ \
+		./examples/store/eventEventStore.go	
 	$(GO) clean ./...
 
 .PHONY:
