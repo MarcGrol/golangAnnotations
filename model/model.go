@@ -4,6 +4,8 @@ type ParsedSources struct {
 	Structs    []Struct
 	Operations []Operation
 	Interfaces []Interface
+	Typedefs   []Typedef
+	Enums      []Enum
 }
 
 type Operation struct {
@@ -42,4 +44,24 @@ type Field struct {
 	IsPointer    bool
 	Tag          string
 	CommentLines []string
+}
+
+type Typedef struct {
+	PackageName string
+	DocLines    []string
+	Name        string
+	Type        string
+}
+
+type Enum struct {
+	PackageName  string
+	DocLines     []string
+	Name         string
+	EnumLiterals []EnumLiteral
+	CommentLines []string
+}
+
+type EnumLiteral struct {
+	Name  string
+	Value string
 }

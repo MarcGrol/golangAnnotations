@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	debugAstOfSources = false
+	debugAstOfSources = true
 )
 
 func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
@@ -36,10 +36,14 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 
 	embedMethodsInStructs(&v)
 
+	embedTypedefDoclinesInEnum(&v)
+
 	result := model.ParsedSources{
 		Structs:    v.Structs,
 		Operations: v.Operations,
 		Interfaces: v.Interfaces,
+		Typedefs:   v.Typedefs,
+		Enums:      v.Enums,
 	}
 	return result, nil
 }
@@ -65,10 +69,14 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 
 	embedMethodsInStructs(&v)
 
+	embedTypedefDoclinesInEnum(&v)
+
 	result := model.ParsedSources{
 		Structs:    v.Structs,
 		Operations: v.Operations,
 		Interfaces: v.Interfaces,
+		Typedefs:   v.Typedefs,
+		Enums:      v.Enums,
 	}
 
 	return result, nil
@@ -89,6 +97,17 @@ func embedMethodsInStructs(visitor *astVisitor) {
 		}
 	}
 
+}
+
+func embedTypedefDoclinesInEnum(visitor *astVisitor) {
+	for idx, e := range visitor.Enums {
+		for _, td := range visitor.Typedefs {
+			if td.Name == e.Name {
+				visitor.Enums[idx].DocLines = td.DocLines
+				break
+			}
+		}
+	}
 }
 
 func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
@@ -146,6 +165,8 @@ type astVisitor struct {
 	Structs     []model.Struct
 	Operations  []model.Operation
 	Interfaces  []model.Interface
+	Typedefs    []model.Typedef
+	Enums       []model.Enum
 }
 
 func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
@@ -169,6 +190,22 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			}
 		}
 
+		{
+			// if struct, get its fields
+			td, found := extractGenDeclForTypedef(node, v.Imports)
+			if found {
+				td.PackageName = v.PackageName
+				v.Typedefs = append(v.Typedefs, td)
+			}
+		}
+		{
+			// if struct, get its fields
+			e, found := extractGenDeclForEnum(node, v.Imports)
+			if found {
+				e.PackageName = v.PackageName
+				v.Enums = append(v.Enums, e)
+			}
+		}
 		{
 			// if interfaces, get its methods
 			iface, found := extractGenDecForInterface(node, v.Imports)
@@ -228,6 +265,36 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string) (model.St
 	return str, found
 }
 
+func extractGenDeclForTypedef(node ast.Node, imports map[string]string) (model.Typedef, bool) {
+	found := false
+	var td model.Typedef
+
+	gd, ok := node.(*ast.GenDecl)
+	if ok {
+		// Continue parsing to see if it a struct
+		td, found = extractSpecsForTypedef(gd.Specs, imports)
+		if found {
+			td.DocLines = extractDocLines(gd.Doc)
+		}
+	}
+
+	return td, found
+}
+
+func extractGenDeclForEnum(node ast.Node, imports map[string]string) (model.Enum, bool) {
+	found := false
+	var e model.Enum
+
+	gd, ok := node.(*ast.GenDecl)
+	if ok {
+		// Continue parsing to see if it a struct
+		e, found = extractSpecsForEnum(gd.Specs, imports)
+		// Docs live in the related typdef
+	}
+
+	return e, found
+}
+
 func extractGenDecForInterface(node ast.Node, imports map[string]string) (model.Interface, bool) {
 	found := false
 	var iface model.Interface
@@ -263,6 +330,62 @@ func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) (model.S
 	}
 
 	return str, found
+}
+
+func extractSpecsForEnum(specs []ast.Spec, imports map[string]string) (model.Enum, bool) {
+	found := false
+	enumeration := model.Enum{}
+
+	// parse type part
+
+	// parse const part
+	if len(specs) >= 1 {
+		isEnumConstant := false
+		typeName := ""
+		for _, vs := range specs {
+			s, ok := vs.(*ast.ValueSpec)
+			if ok {
+				for _, n := range s.Names {
+					i, ok := s.Type.(*ast.Ident)
+					if ok {
+						typeName = i.Name
+					}
+					if n.Obj.Kind == ast.Con {
+						isEnumConstant = true
+						break
+					}
+				}
+			}
+		}
+
+		if isEnumConstant {
+
+			enumeration.Name = typeName
+			enumeration.EnumLiterals = []model.EnumLiteral{}
+			for _, vs := range specs {
+				s, ok := vs.(*ast.ValueSpec)
+				if ok {
+
+					literal := model.EnumLiteral{
+						Name: s.Names[0].Name,
+					}
+
+					for _, v := range s.Values {
+
+						b, ok := v.(*ast.BasicLit)
+						if ok {
+							literal.Value = strings.Trim(b.Value, "\"")
+							break
+						}
+					}
+					enumeration.EnumLiterals = append(enumeration.EnumLiterals, literal)
+				}
+			}
+			found = true
+		}
+	}
+
+	return enumeration, found
 }
 
 func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) (model.Interface, bool) {
@@ -336,6 +459,25 @@ func extractDocLines(doc *ast.CommentGroup) []string {
 		}
 	}
 	return docLines
+}
+
+func extractSpecsForTypedef(specs []ast.Spec, imports map[string]string) (model.Typedef, bool) {
+	found := false
+	td := model.Typedef{}
+
+	if len(specs) >= 1 {
+		ts, ok := specs[0].(*ast.TypeSpec)
+		if ok {
+			td.Name = ts.Name.Name
+			rt, ok := ts.Type.(*ast.Ident)
+			if ok {
+				td.Type = rt.Name
+			}
+			found = true
+		}
+	}
+
+	return td, found
 }
 
 func extractComments(comment *ast.CommentGroup) []string {
