@@ -155,9 +155,9 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 {{if HasSlices . }}
 
 // MarshalJSON prevents nil slices in json
-func (data *{{.Name}}) MarshalJSON() ([]byte, error) {
+func (data {{.Name}}) MarshalJSON() ([]byte, error) {
 	type alias {{.Name}}
-	var raw = alias(*data)
+	var raw = alias(data)
 
 	{{range .Fields}}
 		{{if .IsSlice}}
@@ -167,7 +167,7 @@ func (data *{{.Name}}) MarshalJSON() ([]byte, error) {
 		{{end}}
 	{{end}}
 
-	return json.Marshal(&raw)
+	return json.Marshal(raw)
 }
 
 // UnmarshalJSON prevents nil slices from json

@@ -4,6 +4,7 @@
 examples/event/aggregates.go
 examples/event/wrappers.go
 examples/event/wrappers_test.go
+examples/event/jsonHelpers.go
 examples/rest/httpTestTourService.go
 examples/rest/httpTourService.go
 examples/rest/httpTourServiceHelpers_test.go
