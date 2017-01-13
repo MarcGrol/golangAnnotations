@@ -9,9 +9,6 @@ install:
  - go get golang.org/x/tools/cmd/cover
  - go get github.com/mattn/goveralls
 
-before_script:
- - go vet ./...
-
 script:
  - PATH="$HOME/gopath/bin:$PATH"
  - go test ./...
