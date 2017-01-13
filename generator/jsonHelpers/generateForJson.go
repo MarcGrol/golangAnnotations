@@ -162,7 +162,7 @@ func (data {{.Name}}) MarshalJSON() ([]byte, error) {
 	{{range .Fields}}
 		{{if .IsSlice}}
 		if raw.{{.Name}} == nil {
-			raw.{{.Name}} = []{{.TypeName}}{}
+			raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
 		}
 		{{end}}
 	{{end}}
@@ -179,7 +179,7 @@ func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
 	{{range .Fields}}
 		{{if .IsSlice}}
 		if raw.{{.Name}} == nil {
-			raw.{{.Name}} = []{{.TypeName}}{}
+			raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
 		}
 		{{end}}
 	{{end}}
