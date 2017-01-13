@@ -2,8 +2,6 @@ language: go
 go:
  - 1.6.2
 
-gobuild_args: -tags ci
-
 install:
  - go get -t ./...
  - go get golang.org/x/tools/cmd/cover
@@ -11,8 +9,8 @@ install:
 
 script:
  - PATH="$HOME/gopath/bin:$PATH"
- - go generate
- - go test ./...
+ - go generate -tags ci  ./...
+ - go test -tags ci  ./...
  - scripts/coverage.sh
  - $HOME/gopath/bin/goveralls -coverprofile=.cover/cover.out -service=travis-ci
 
