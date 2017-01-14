@@ -32,12 +32,29 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 	if err != nil {
 		return err
 	}
+
+	jsonEnums := make([]model.Enum, 0, len(enums))
+	for _, anEnum := range enums {
+		if IsJsonEnum(anEnum) {
+			jsonEnums = append(jsonEnums, anEnum)
+		}
+	}
+	jsonStructs := make([]model.Struct, 0, len(structs))
+	for _, aStruct := range structs {
+		if IsJsonStruct(aStruct) {
+			jsonStructs = append(jsonStructs, aStruct)
+		}
+	}
+	if len(jsonEnums) == 0 && len(jsonStructs) == 0 {
+		return nil
+	}
+
 	target := fmt.Sprintf("%s/jsonHelpers.go", targetDir)
 
 	data := Enums{
 		PackageName: packageName,
-		Enums:       enums,
-		Structs:     structs,
+		Enums:       jsonEnums,
+		Structs:     jsonStructs,
 	}
 	err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
 	if err != nil {
@@ -49,9 +66,7 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsJsonEnum":   IsJsonEnum,
-	"IsJsonStruct": IsJsonStruct,
-	"HasSlices":    HasSlices,
+	"HasSlices": HasSlices,
 }
 
 func IsJsonEnum(e model.Enum) bool {
@@ -79,8 +94,6 @@ var enumTemplate string = `
 package {{.PackageName}}
 
 {{range .Enums}}
-
-{{if IsJsonEnum . }}
 
 // Helpers for json-enum {{.Name}}
 
@@ -135,14 +148,9 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-
 {{end}}
-{{end}}
-
 
 {{range .Structs}}
-
-{{if IsJsonStruct . }}
 
 // Helpers for json-struct {{.Name}}
 
@@ -185,6 +193,5 @@ func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
 
 {{end}}
 
-{{end}}
 {{end}}
 `
