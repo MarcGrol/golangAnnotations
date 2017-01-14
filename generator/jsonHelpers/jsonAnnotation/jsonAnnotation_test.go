@@ -11,14 +11,12 @@ func TestCorrectEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{`// @JsonEnum( )`})
-	assert.True(t, ok)
+	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @JsonEnum( )`}))
 }
 
 func TestEmptyEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{``})
-	assert.False(t, ok)
+	assert.Empty(t, annotation.ResolveAnnotations([]string{``}))
 }

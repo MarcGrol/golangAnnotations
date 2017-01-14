@@ -96,10 +96,7 @@ func SurroundWithBackTicks(body string) string {
 }
 
 func IsRestService(s model.Struct) bool {
-	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
-	if !ok || annotation.Name != "RestService" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, "RestService")
 	return ok
 }
 
@@ -152,9 +149,9 @@ func HasAuthContextArg(s model.Struct) bool {
 }
 
 func GetRestServicePath(s model.Struct) string {
-	val, ok := annotation.ResolveAnnotations(s.DocLines)
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, "RestService")
 	if ok {
-		return val.Attributes["path"]
+		return ann.Attributes["path"]
 	}
 	return ""
 }
@@ -169,25 +166,22 @@ func HasOperationsWithInput(s model.Struct) bool {
 }
 
 func IsRestOperation(o model.Operation) bool {
-	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
-	if !ok || annotation.Name != "RestOperation" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
 	return ok
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	val, ok := annotation.ResolveAnnotations(o.DocLines)
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
 	if ok {
-		return val.Attributes["path"]
+		return ann.Attributes["path"]
 	}
 	return ""
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	val, ok := annotation.ResolveAnnotations(o.DocLines)
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
 	if ok {
-		return val.Attributes["method"]
+		return ann.Attributes["method"]
 	}
 	return ""
 }
@@ -330,11 +324,11 @@ func findArgInArray(array []string, toMatch string) bool {
 }
 
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
-	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
-	if !ok || annotation.Name != "RestOperation" {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
+	if !ok {
 		return false
 	}
-	optionalArgsString, ok := annotation.Attributes["optionalargs"]
+	optionalArgsString, ok := ann.Attributes["optionalargs"]
 	if !ok {
 		return true
 	}

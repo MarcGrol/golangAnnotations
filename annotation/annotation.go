@@ -25,11 +25,22 @@ func RegisterAnnotation(name string, paramNames []string, validator ValidationFu
 	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
 }
 
-func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
+func ResolveAnnotations(annotationDocline []string) []Annotation {
+	annotations := []Annotation{}
 	for _, line := range annotationDocline {
-		a, ok := ResolveAnnotation(strings.TrimSpace(line))
+		ann, ok := ResolveAnnotation(strings.TrimSpace(line))
 		if ok {
-			return a, ok
+			annotations = append(annotations, ann)
+		}
+	}
+	return annotations
+}
+
+func ResolveAnnotationByName(annotationDocline []string, name string) (Annotation, bool) {
+	for _, line := range annotationDocline {
+		ann, ok := ResolveAnnotation(strings.TrimSpace(line))
+		if ok && ann.Name == name {
+			return ann, true
 		}
 	}
 	return Annotation{}, false
@@ -37,21 +48,21 @@ func ResolveAnnotations(annotationDocline []string) (Annotation, bool) {
 
 func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
 	for _, descriptor := range annotationRegistry {
-		annotation, err := parseAnnotation(annotationDocline)
+		ann, err := parseAnnotation(annotationDocline)
 		if err != nil {
 			continue
 		}
 
-		if annotation.Name != descriptor.name {
+		if ann.Name != descriptor.name {
 			continue
 		}
 
-		ok := descriptor.validator(annotation)
+		ok := descriptor.validator(ann)
 		if !ok {
 			continue
 		}
 
-		return annotation, true
+		return ann, true
 	}
 	return Annotation{}, false
 }

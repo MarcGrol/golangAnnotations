@@ -11,24 +11,22 @@ func TestCorrectEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	annot, ok := annotation.ResolveAnnotations([]string{`// @Event( aggregate = "test", isRootEvent = "true" )`})
+	ann, ok := annotation.ResolveAnnotationByName([]string{`// @Event( aggregate = "test", isRootEvent = "true" )`}, "Event")
 	assert.True(t, ok)
-	assert.Equal(t, "test", annot.Attributes["aggregate"])
-	assert.Equal(t, "true", annot.Attributes["isrootevent"])
+	assert.Equal(t, "test", ann.Attributes["aggregate"])
+	assert.Equal(t, "true", ann.Attributes["isrootevent"])
 }
 
 func TestIncompleteEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{`// @Event()`})
-	assert.False(t, ok)
+	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @Event()`}))
 }
 
 func TestEmptyEventAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{`// @Event( aggregate = "")`})
-	assert.False(t, ok)
+	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @Event( aggregate = "")`}))
 }

@@ -52,25 +52,22 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsEventService(s model.Struct) bool {
-	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
-	if !ok || annotation.Name != "EventService" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, "EventService")
 	return ok
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	val, ok := annotation.ResolveAnnotations(s.DocLines)
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, "EventService")
 	if ok {
-		return val.Attributes["self"]
+		return ann.Attributes["self"]
 	}
 	return ""
 }
 
 func GetEventServiceSubscriptions(s model.Struct) []string {
-	val, ok := annotation.ResolveAnnotations(s.DocLines)
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, "EventService")
 	if ok {
-		aggregateString, found := val.Attributes["subscriptions"]
+		aggregateString, found := ann.Attributes["subscriptions"]
 		if found {
 			splitted := strings.Split(aggregateString, ",")
 			result := []string{}
@@ -84,10 +81,7 @@ func GetEventServiceSubscriptions(s model.Struct) []string {
 }
 
 func IsEventOperation(o model.Operation) bool {
-	annotation, ok := annotation.ResolveAnnotations(o.DocLines)
-	if !ok || annotation.Name != "EventOperation" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, "EventOperation")
 	return ok
 }
 

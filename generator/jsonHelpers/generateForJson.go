@@ -55,18 +55,12 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsJsonEnum(e model.Enum) bool {
-	annotation, ok := annotation.ResolveAnnotations(e.DocLines)
-	if !ok || annotation.Name != "JsonEnum" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(e.DocLines, "JsonEnum")
 	return ok
 }
 
 func IsJsonStruct(s model.Struct) bool {
-	annotation, ok := annotation.ResolveAnnotations(s.DocLines)
-	if !ok || annotation.Name != "JsonStruct" {
-		return false
-	}
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, "JsonStruct")
 	return ok
 }
 

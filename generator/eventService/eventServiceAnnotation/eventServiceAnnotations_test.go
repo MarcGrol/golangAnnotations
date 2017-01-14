@@ -12,15 +12,14 @@ func TestIncompleteRestServiceAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	_, ok := annotation.ResolveAnnotations([]string{`// @EventService()`})
-	assert.False(t, ok)
+	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @EventService()`}))
 }
 
 func TestCorrectEventServiceAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	ann, ok := annotation.ResolveAnnotations([]string{`// @EventService( Self = "caregiverService", Subscriptions = "order,basket")`})
+	ann, ok := annotation.ResolveAnnotationByName([]string{`// @EventService( Self = "caregiverService", Subscriptions = "order,basket")`}, "EventService")
 	assert.True(t, ok)
 
 	self, ok := ann.Attributes["self"]
