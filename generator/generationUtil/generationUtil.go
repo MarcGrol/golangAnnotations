@@ -11,7 +11,7 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func GetPackageName(structs []model.Struct) (string, error) {
+func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	if len(structs) == 0 {
 		return "", fmt.Errorf("Need at least one struct to determine package-name")
 	}
@@ -35,6 +35,33 @@ func GetPackageNameForEnums(enums []model.Enum) (string, error) {
 		}
 	}
 	return packageName, nil
+}
+
+func GetPackageNameForEnumsOrStructs(enums []model.Enum, structs []model.Struct) (string, error) {
+	if len(enums) == 0 && len(structs) == 0 {
+		return "", fmt.Errorf("Need at least one enum or struct to determine package-name")
+	}
+	var packageNameEnums, packageNameStructs string
+	var err error
+	if len(enums) > 0 {
+		packageNameEnums, err = GetPackageNameForEnums(enums)
+		if err != nil {
+			return "", err
+		}
+	}
+	if len(structs) > 0 {
+		packageNameStructs, err = GetPackageNameForStructs(structs)
+		if err != nil {
+			return "", err
+		}
+	}
+	if packageNameEnums == packageNameStructs || packageNameStructs == "" {
+		return packageNameEnums, nil
+	}
+	if packageNameEnums == "" {
+		return packageNameStructs, nil
+	}
+	return "", fmt.Errorf("List of enums and structs has multiple package-names")
 }
 
 func DetermineTargetPath(inputDir string, packageName string) (string, error) {

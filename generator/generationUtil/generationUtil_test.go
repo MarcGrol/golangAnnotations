@@ -15,7 +15,7 @@ func TestGetPackageName(t *testing.T) {
 	s := []model.Struct{
 		{PackageName: "mypack"},
 	}
-	packName, err := GetPackageName(s)
+	packName, err := GetPackageNameForStructs(s)
 	assert.Equal(t, "mypack", packName)
 	assert.Nil(t, err)
 }
@@ -25,13 +25,13 @@ func TestGetPackageNameMultiplePackages(t *testing.T) {
 		{PackageName: "mypack"},
 		{PackageName: "otheePack"},
 	}
-	_, err := GetPackageName(s)
+	_, err := GetPackageNameForStructs(s)
 	assert.Error(t, err)
 }
 
 func TestGetPackageNameNoStructs(t *testing.T) {
 	s := []model.Struct{}
-	_, err := GetPackageName(s)
+	_, err := GetPackageNameForStructs(s)
 	assert.Error(t, err)
 
 }

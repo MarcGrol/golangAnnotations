@@ -28,7 +28,7 @@ func Generate(inputDir string, parsedSource model.ParsedSources) error {
 func generate(inputDir string, structs []model.Struct) error {
 	eventAnnotation.Register()
 
-	packageName, err := generationUtil.GetPackageName(structs)
+	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
 		return err
 	}

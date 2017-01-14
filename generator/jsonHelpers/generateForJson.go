@@ -24,7 +24,7 @@ func Generate(inputDir string, parsedSource model.ParsedSources) error {
 func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {
 	jsonAnnotation.Register()
 
-	packageName, err := generationUtil.GetPackageNameForEnums(enums)
+	packageName, err := generationUtil.GetPackageNameForEnumsOrStructs(enums, structs)
 	if err != nil {
 		return err
 	}
