@@ -37,7 +37,7 @@ func TestGenerateForWeb(t *testing.T) {
 			RelatedStruct: &model.Field{TypeName: "MyService"},
 			InputArgs: []model.Field{
 				{Name: "c", TypeName: "context.Context"},
-				{Name: "event", TypeName: "events.OrderCreated"},
+				{Name: "structExample", TypeName: "events.OrderCreated"},
 			},
 			OutputArgs: []model.Field{
 				{TypeName: "error"},

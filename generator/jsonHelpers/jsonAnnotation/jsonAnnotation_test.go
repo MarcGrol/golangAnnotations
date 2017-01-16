@@ -7,14 +7,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCorrectEventAnnotation(t *testing.T) {
+func TestCorrectEnumAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
 	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @JsonEnum( )`}))
 }
 
-func TestEmptyEventAnnotation(t *testing.T) {
+func TestEmptyEnumAnnotation(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	assert.Empty(t, annotation.ResolveAnnotations([]string{``}))
+}
+
+func TestCorrectStructAnnotation(t *testing.T) {
+	annotation.ClearRegisteredAnnotations()
+	Register()
+
+	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @JsonStruct( )`}))
+}
+
+func TestEmptyStructAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 

@@ -3,25 +3,25 @@ package jsonAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	typeEnum   = "JsonEnum"
-	typeStruct = "JsonStruct"
+	TypeEnum   = "JsonEnum"
+	TypeStruct = "JsonStruct"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(typeEnum, []string{}, validateEnumAnnotation)
-	annotation.RegisterAnnotation(typeStruct, []string{}, validateStructAnnotation)
+	annotation.RegisterAnnotation(TypeEnum, []string{}, validateEnumAnnotation)
+	annotation.RegisterAnnotation(TypeStruct, []string{}, validateStructAnnotation)
 }
 
 func validateEnumAnnotation(annot annotation.Annotation) bool {
-	if annot.Name == typeEnum {
+	if annot.Name == TypeEnum {
 		return true
 	}
 	return false
 }
 
 func validateStructAnnotation(annot annotation.Annotation) bool {
-	if annot.Name == typeStruct {
+	if annot.Name == TypeStruct {
 		return true
 	}
 	return false

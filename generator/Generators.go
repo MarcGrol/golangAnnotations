@@ -16,9 +16,9 @@ type GenerateFunc func(inputDir string, parsedSources model.ParsedSources) error
 var registeredGenerators map[string]GenerateFunc = make(map[string]GenerateFunc)
 
 func init() {
-	err := register("event", event.Generate)
+	err := register("structExample", event.Generate)
 	if err != nil {
-		log.Printf("Error registering event-annotation-generator")
+		log.Printf("Error registering structExample-annotation-generator")
 	}
 
 	err = register("json", jsonHelpers.Generate)

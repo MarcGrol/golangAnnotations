@@ -72,10 +72,10 @@ install:
 	$(GO) install ./...
 
 clean:
-	rm -rf ./examples/event/aggregates.go ./examples/event/wrappers.go \
-		./examples/event/wrappers_test.go ./examples/event/enums.go \
+	rm -rf ./examples/structExample/aggregates.go ./examples/structExample/wrappers.go \
+		./examples/structExample/wrappers_test.go ./examples/structExample/jsonHelpers.go \
 		./examples/rest/httpTourServiceHelpers_test.go ./examples/rest/http*.go \
-		./examples/rest/restTestLog/ ./examples/store/eventEventStore.go	
+		./examples/rest/restTestLog/ ./examples/store/structExampleEventStore.go	
 	$(GO) clean ./...
 
 .PHONY:

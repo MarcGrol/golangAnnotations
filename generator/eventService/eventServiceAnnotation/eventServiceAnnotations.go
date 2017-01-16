@@ -3,29 +3,29 @@ package eventServiceAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	typeEventService   = "EventService"
-	paramSelf          = "self"
-	paramSubscriptions = "subscriptions"
+	TypeEventService   = "EventService"
+	ParamSelf          = "self"
+	ParamSubscriptions = "subscriptions"
 
-	typeEventOperation = "EventOperation"
+	TypeEventOperation = "EventOperation"
 )
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
-	annotation.RegisterAnnotation(typeEventService, []string{paramSelf, paramSubscriptions}, validateEventServiceAnnotation)
-	annotation.RegisterAnnotation(typeEventOperation, []string{}, validateEventOperationAnnotation)
+	annotation.RegisterAnnotation(TypeEventService, []string{ParamSelf, ParamSubscriptions}, validateEventServiceAnnotation)
+	annotation.RegisterAnnotation(TypeEventOperation, []string{}, validateEventOperationAnnotation)
 }
 
 func validateEventServiceAnnotation(annot annotation.Annotation) bool {
-	if annot.Name == typeEventService {
-		_, ok := annot.Attributes[paramSubscriptions]
+	if annot.Name == TypeEventService {
+		_, ok := annot.Attributes[ParamSubscriptions]
 		return ok
 	}
 	return false
 }
 
 func validateEventOperationAnnotation(annot annotation.Annotation) bool {
-	if annot.Name == typeEventOperation {
+	if annot.Name == TypeEventOperation {
 		return true
 	}
 	return false

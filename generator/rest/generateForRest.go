@@ -96,7 +96,7 @@ func SurroundWithBackTicks(body string) string {
 }
 
 func IsRestService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, "RestService")
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(restAnnotation.TypeRestService))
 	return ok
 }
 
@@ -149,9 +149,9 @@ func HasAuthContextArg(s model.Struct) bool {
 }
 
 func GetRestServicePath(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, "RestService")
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(restAnnotation.TypeRestService))
 	if ok {
-		return ann.Attributes["path"]
+		return ann.Attributes[string(restAnnotation.ParamPath)]
 	}
 	return ""
 }
@@ -166,22 +166,22 @@ func HasOperationsWithInput(s model.Struct) bool {
 }
 
 func IsRestOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	return ok
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if ok {
-		return ann.Attributes["path"]
+		return ann.Attributes[string(restAnnotation.ParamPath)]
 	}
 	return ""
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if ok {
-		return ann.Attributes["method"]
+		return ann.Attributes[string(restAnnotation.ParamMethod)]
 	}
 	return ""
 }
@@ -324,11 +324,11 @@ func findArgInArray(array []string, toMatch string) bool {
 }
 
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, "RestOperation")
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if !ok {
 		return false
 	}
-	optionalArgsString, ok := ann.Attributes["optionalargs"]
+	optionalArgsString, ok := ann.Attributes[string(restAnnotation.ParamOptional)]
 	if !ok {
 		return true
 	}

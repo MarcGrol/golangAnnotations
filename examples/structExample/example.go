@@ -1,6 +1,6 @@
 // +build !ci
 
-package event
+package structExample
 
 import (
 	"fmt"
@@ -30,7 +30,6 @@ func (t TourCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
-/*
 // @Event(aggregate="Tour")
 type CyclistCreated struct {
 	Year        int       `json:"year"`
@@ -113,4 +112,3 @@ type NewsItemCreated struct {
 func (t NewsItemCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
-*/
