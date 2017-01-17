@@ -32,7 +32,6 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	v := &astVisitor{
 		Imports: map[string]string{},
 	}
-	log.Printf("Parsing file %s", f.Name.Pos())
 	v.CurrentFilename = srcFilename
 	ast.Walk(v, f)
 
@@ -63,10 +62,8 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 	v := &astVisitor{
 		Imports: map[string]string{},
 	}
-	for pn, p := range packages {
-		log.Printf("package-name: %s", pn)
+	for _, p := range packages {
 		for fn, f := range p.Files {
-			log.Printf("parsing filename: %s", fn)
 			v.CurrentFilename = fn
 			ast.Walk(v, f)
 		}
