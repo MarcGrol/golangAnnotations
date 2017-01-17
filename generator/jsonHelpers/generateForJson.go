@@ -137,14 +137,12 @@ package {{.PackageName}}
 
 var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
-		{{range .EnumLiterals}}
-		"{{.Name}}":{{.Name}},
+		{{range .EnumLiterals}} "{{.Name}}":{{.Name}},
 		{{end}}
 	}
 
 	_{{.Name}}ValueToName = map[{{.Name}}]string{
-		{{range .EnumLiterals }}
-		{{.Name}}:"{{.Name}}",
+		{{range .EnumLiterals }}{{.Name}}:"{{.Name}}",
 		{{end}}
 	}
 )
@@ -153,8 +151,7 @@ func init() {
 	var v {{.Name}}
 	if _, ok := interface{}(v).(fmt.Stringer); ok {
 		_{{.Name}}NameToValue = map[string]{{.Name}}{
-			{{range .EnumLiterals }}
-			interface{}({{.Name}}).(fmt.Stringer).String():  {{.Name}},
+			{{range .EnumLiterals }}interface{}({{.Name}}).(fmt.Stringer).String():  {{.Name}},
 			{{end}}
 		}
 	}
