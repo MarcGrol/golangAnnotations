@@ -29,14 +29,16 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return model.ParsedSources{}, err
 	}
-	v := astVisitor{
+	v := &astVisitor{
 		Imports: map[string]string{},
 	}
-	ast.Walk(&v, f)
+	log.Printf("Parsing file %s", f.Name.Pos())
+	v.CurrentFilename = srcFilename
+	ast.Walk(v, f)
 
-	embedMethodsInStructs(&v)
+	embedMethodsInStructs(v)
 
-	embedTypedefDoclinesInEnum(&v)
+	embedTypedefDoclinesInEnum(v)
 
 	result := model.ParsedSources{
 		Structs:    v.Structs,
@@ -58,18 +60,22 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		return model.ParsedSources{}, err
 	}
 
-	v := astVisitor{
+	v := &astVisitor{
 		Imports: map[string]string{},
 	}
-	for _, p := range packages {
-		for _, f := range p.Files {
-			ast.Walk(&v, f)
+	for pn, p := range packages {
+		log.Printf("package-name: %s", pn)
+		for fn, f := range p.Files {
+			log.Printf("parsing filename: %s", fn)
+			v.CurrentFilename = fn
+			ast.Walk(v, f)
 		}
 	}
 
-	embedMethodsInStructs(&v)
+	embedMethodsInStructs(v)
 
-	embedTypedefDoclinesInEnum(&v)
+	embedTypedefDoclinesInEnum(v)
+	//log.Printf("%+v", *v)
 
 	result := model.ParsedSources{
 		Structs:    v.Structs,
@@ -160,13 +166,15 @@ func dumpFilesInDir(dirName string) {
 }
 
 type astVisitor struct {
-	PackageName string
-	Imports     map[string]string
-	Structs     []model.Struct
-	Operations  []model.Operation
-	Interfaces  []model.Interface
-	Typedefs    []model.Typedef
-	Enums       []model.Enum
+	CurrentFilename string
+	PackageName     string
+	Filename        string
+	Imports         map[string]string
+	Structs         []model.Struct
+	Operations      []model.Operation
+	Interfaces      []model.Interface
+	Typedefs        []model.Typedef
+	Enums           []model.Enum
 }
 
 func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
@@ -186,6 +194,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			str, found := extractGenDeclForStruct(node, v.Imports)
 			if found {
 				str.PackageName = v.PackageName
+				str.Filename = v.CurrentFilename
 				v.Structs = append(v.Structs, str)
 			}
 		}
@@ -195,6 +204,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			td, found := extractGenDeclForTypedef(node, v.Imports)
 			if found {
 				td.PackageName = v.PackageName
+				td.Filename = v.CurrentFilename
 				v.Typedefs = append(v.Typedefs, td)
 			}
 		}
@@ -203,6 +213,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			e, found := extractGenDeclForEnum(node, v.Imports)
 			if found {
 				e.PackageName = v.PackageName
+				e.Filename = v.CurrentFilename
 				v.Enums = append(v.Enums, e)
 			}
 		}
@@ -211,6 +222,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			iface, found := extractGenDecForInterface(node, v.Imports)
 			if found {
 				iface.PackageName = v.PackageName
+				iface.Filename = v.CurrentFilename
 				v.Interfaces = append(v.Interfaces, iface)
 			}
 		}
@@ -220,6 +232,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 			operation, ok := extractOperation(node, v.Imports)
 			if ok {
 				operation.PackageName = v.PackageName
+				operation.Filename = v.CurrentFilename
 				v.Operations = append(v.Operations, operation)
 			}
 		}

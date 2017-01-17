@@ -9,15 +9,6 @@ import (
 
 //go:generate golangAnnotations -input-dir .
 
-// @JsonEnum()
-type Color int
-
-const (
-	Red Color = iota
-	Green
-	Blue
-)
-
 // @JsonStruct()
 // @Event( aggregate = "Tour")
 type TourCreated struct {
@@ -30,6 +21,7 @@ func (t TourCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
+// @JsonStruct()
 // @Event(aggregate="Tour")
 type CyclistCreated struct {
 	Year        int       `json:"year"`

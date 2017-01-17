@@ -10,6 +10,7 @@ type ParsedSources struct {
 
 type Operation struct {
 	PackageName   string
+	Filename      string
 	DocLines      []string
 	RelatedStruct *Field // optional
 	Name          string
@@ -20,6 +21,7 @@ type Operation struct {
 
 type Struct struct {
 	PackageName  string
+	Filename     string
 	DocLines     []string
 	Name         string
 	Fields       []Field
@@ -29,6 +31,7 @@ type Struct struct {
 
 type Interface struct {
 	PackageName  string
+	Filename     string
 	DocLines     []string
 	Name         string
 	Methods      []Operation
@@ -48,6 +51,7 @@ type Field struct {
 
 type Typedef struct {
 	PackageName string
+	Filename    string
 	DocLines    []string
 	Name        string
 	Type        string
@@ -55,6 +59,7 @@ type Typedef struct {
 
 type Enum struct {
 	PackageName  string
+	Filename     string
 	DocLines     []string
 	Name         string
 	EnumLiterals []EnumLiteral

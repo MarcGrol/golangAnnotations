@@ -13,7 +13,7 @@ import (
 )
 
 func cleanup() {
-	os.Remove("./testData/jsonHelpers.go")
+	os.Remove("./testData/example_json.go")
 }
 
 func TestGenerateForJson(t *testing.T) {
@@ -22,8 +22,9 @@ func TestGenerateForJson(t *testing.T) {
 
 	e := []model.Enum{
 		{
-			DocLines:    []string{"// @JsonEnum()"},
 			PackageName: "testData",
+			Filename:    "example.go",
+			DocLines:    []string{"// @JsonEnum()"},
 			Name:        "ColorType",
 			EnumLiterals: []model.EnumLiteral{
 				{Name: "ColorTypeRed"},
@@ -35,8 +36,9 @@ func TestGenerateForJson(t *testing.T) {
 
 	s := []model.Struct{
 		{
-			DocLines:    []string{`// @JsonStruct()`},
 			PackageName: "testData",
+			Filename:    "example.go",
+			DocLines:    []string{`// @JsonStruct()`},
 			Name:        "ColoredThing",
 			Fields: []model.Field{
 				{
@@ -65,15 +67,15 @@ func TestGenerateForJson(t *testing.T) {
 		Enums:   e,
 		Structs: s,
 	}
-	err := Generate("testData", ps)
+	err := Generate("./testData/", ps)
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat("./testData/jsonHelpers.go")
+	_, err = os.Stat("./testData/example_json.go")
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile("./testData/jsonHelpers.go")
+	data, err := ioutil.ReadFile("./testData/example_json.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `func (r *ColorType) UnmarshalJSON(data []byte) error {`)
 	assert.Contains(t, string(data), `func (r ColorType) MarshalJSON() ([]byte, error) {`)

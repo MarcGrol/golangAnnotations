@@ -1,9 +1,11 @@
 package jsonHelpers
 
 import (
-	"fmt"
 	"log"
 	"text/template"
+
+	"fmt"
+	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -11,7 +13,7 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-type Enums struct {
+type JsonContext struct {
 	PackageName string
 	Enums       []model.Enum
 	Structs     []model.Struct
@@ -49,20 +51,56 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		return nil
 	}
 
-	target := fmt.Sprintf("%s/jsonHelpers.go", targetDir)
+	filenameMap := getFilenamesWithTypeNames(jsonEnums, jsonStructs)
 
-	data := Enums{
-		PackageName: packageName,
-		Enums:       jsonEnums,
-		Structs:     jsonStructs,
-	}
-	err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
-	if err != nil {
-		log.Fatalf("Error generating wrappers for enums (%s)", err)
-		return err
+	for fn := range filenameMap {
+		targetFilename := strings.Replace(fn, ".", "_json.", 1)
+		target := fmt.Sprintf("%s/%s", targetDir, targetFilename)
+
+		data := JsonContext{
+			PackageName: packageName,
+		}
+
+		// find al enums belonging to this file
+		for _, e := range jsonEnums {
+			if e.Filename == fn {
+				data.Enums = append(data.Enums, e)
+			}
+		}
+		for _, s := range jsonStructs {
+			if s.Filename == fn {
+				data.Structs = append(data.Structs, s)
+			}
+		}
+		err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
+		if err != nil {
+			log.Fatalf("Error generating wrappers for enums (%s)", err)
+			return err
+		}
 	}
 
 	return nil
+}
+
+func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struct) map[string][]string {
+	// group enum and structs by filename
+	filenameMap := map[string][]string{}
+
+	// get all  enum-names belonging to file
+	for _, e := range jsonEnums {
+		typeNames := filenameMap[e.Filename]
+		typeNames = append(typeNames, e.Name)
+		filenameMap[e.Filename] = typeNames
+	}
+
+	// get all  struct-names belonging to file
+	for _, s := range jsonStructs {
+		typeNames := filenameMap[s.Filename]
+		typeNames = append(typeNames, s.Name)
+		filenameMap[s.Filename] = typeNames
+	}
+
+	return filenameMap
 }
 
 var customTemplateFuncs = template.FuncMap{
