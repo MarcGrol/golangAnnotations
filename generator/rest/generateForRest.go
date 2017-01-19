@@ -766,7 +766,6 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 			return 0,  nil, err
 		{{end}}
 	}
-	req.RequestURI = url
 	if cookie != nil {
 		req.AddCookie(cookie)
 	}
@@ -776,6 +775,12 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 	{{if HasOutput . }}
 		req.Header.Set("Accept", "application/json")
 	{{end}}
+	req.Header.Set("X-CSRF-Token", "true")
+
+	dump, err := httputil.DumpRequest(req, true)
+	if err == nil {
+		log.Printf("HTTP request-payload:\n %s", dump)
+	}
 
 	cl := http.Client{}
 	cl.Timeout = 5 * time.Second
@@ -788,6 +793,11 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 	{{end}}
 	}
 	defer res.Body.Close()
+
+	respDump, err := httputil.DumpResponse(res, true)
+	if err == nil {
+		log.Printf("HTTP response-payload:\n%s", string(respDump))
+	}
 
 	{{if HasOutput . }}
 		if res.StatusCode >= http.StatusMultipleChoices {
