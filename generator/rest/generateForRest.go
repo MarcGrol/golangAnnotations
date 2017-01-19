@@ -39,9 +39,17 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 			{
 				target := fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", HelpersTemplate, customTemplateFuncs, target)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
+					return err
+				}
+			}
+			{
+				target := fmt.Sprintf("%s/httpClient%s.go", targetDir, service.Name)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
+				if err != nil {
+					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
 					return err
 				}
 			}
@@ -528,7 +536,7 @@ func getCredentials(authContext map[string]string, expectedRole string) (string,
 
 `
 
-var HelpersTemplate string = `
+var helpersTemplate string = `
 // +build !appengine
 
 // Generated automatically by golangAnnotations: do not edit manually
@@ -721,6 +729,86 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 
 	{{else}}
 		return recorder.Code, nil, nil
+	{{end}}
+}
+{{end}}
+{{end}}
+`
+
+var httpClientTemplate string = `
+// +build !appengine
+
+// Generated automatically by golangAnnotations: do not edit manually
+
+package {{.PackageName}}
+
+{{ $structName := .Name }}
+
+{{range .Operations}}
+
+{{if IsRestOperation . }}
+
+func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+
+	{{if HasInput . }}
+		requestBody, _ := json.Marshal(input)
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestBody)))
+	{{else}}
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+	{{end}}
+	if err != nil {
+		{{if HasOutput . }}
+			return 0, nil, nil, err
+		{{else}}
+			return 0,  nil, err
+		{{end}}
+	}
+	req.RequestURI = url
+	if cookie != nil {
+		req.AddCookie(cookie)
+	}
+	{{if HasInput . }}
+		req.Header.Set("Content-type", "application/json")
+	{{end}}
+	{{if HasOutput . }}
+		req.Header.Set("Accept", "application/json")
+	{{end}}
+
+	cl := http.Client{}
+	cl.Timeout = 5 * time.Second
+	res, err := cl.Do(req)
+	if err != nil {
+	{{if HasOutput . }}
+		return -1, nil, nil, err
+	{{else}}
+		return -1	, nil, nil
+	{{end}}
+	}
+	defer res.Body.Close()
+
+	{{if HasOutput . }}
+		if res.StatusCode >= http.StatusMultipleChoices {
+		    // return error response
+			var errorResp errorh.Error
+			dec := json.NewDecoder(res.Body)
+			err = dec.Decode(&errorResp)
+			if err != nil {
+				return res.StatusCode, nil, nil, err
+			}
+			return res.StatusCode, nil, &errorResp, nil
+		}
+
+		// return success response
+		resp := {{GetOutputArgDeclaration . }}
+		dec := json.NewDecoder(res.Body)
+		err = dec.Decode({{GetOutputArgName . }})
+		if err != nil {
+			return res.StatusCode, nil, nil, err
+		}
+		return res.StatusCode, resp, nil, nil
+
+	{{else}}
+		return res.StatusCode, nil, nil
 	{{end}}
 }
 {{end}}

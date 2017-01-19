@@ -7,6 +7,7 @@ examples/event/wrappers_test.go
 examples/rest/httpTestTourService.go
 examples/rest/httpTourService.go
 examples/rest/httpTourServiceHelpers_test.go
+examples/rest/httpClientTourService.go
 examples/rest/restTestLog/
 examples/store/structExampleEventStore.go
 examples/structExample/aggregates.go
