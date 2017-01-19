@@ -643,6 +643,9 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		{{end}}
 	}
 	req.RequestURI = url
+	{{if HasInput . }}
+		req.Header.Set("Content-type", "application/json")
+	{{end}}
 	{{if HasOutput . }}
 		req.Header.Set("Accept", "application/json")
 	{{end}}
