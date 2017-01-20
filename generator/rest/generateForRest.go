@@ -747,6 +747,8 @@ package {{.PackageName}}
 
 {{ $structName := .Name }}
 
+var debug = false
+
 {{range .Operations}}
 
 {{if IsRestOperation . }}
@@ -777,10 +779,12 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 	{{end}}
 	req.Header.Set("X-CSRF-Token", "true")
 
-	dump, err := httputil.DumpRequest(req, true)
-	if err == nil {
-		log.Printf("HTTP request-payload:\n %s", dump)
-	}
+    if debug {
+		dump, err := httputil.DumpRequest(req, true)
+		if err == nil {
+			log.Printf("HTTP request-payload:\n %s", dump)
+		}
+    }
 
 	cl := http.Client{}
 	cl.Timeout = 5 * time.Second
@@ -794,9 +798,11 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 	}
 	defer res.Body.Close()
 
-	respDump, err := httputil.DumpResponse(res, true)
-	if err == nil {
-		log.Printf("HTTP response-payload:\n%s", string(respDump))
+	if debug {
+		respDump, err := httputil.DumpResponse(res, true)
+		if err == nil {
+			log.Printf("HTTP response-payload:\n%s", string(respDump))
+		}
 	}
 
 	{{if HasOutput . }}
