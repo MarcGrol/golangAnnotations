@@ -6,6 +6,8 @@ import (
 	"strings"
 	"text/template"
 
+	"unicode"
+
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
@@ -93,6 +95,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetContextName":          GetContextName,
 	"WithBackTicks":           SurroundWithBackTicks,
 	"BackTick":                BackTick,
+	"ToFirstUpper":            toFirstUpper,
 }
 
 func BackTick() string {
@@ -354,6 +357,12 @@ func IsPrimitive(f model.Field) bool {
 
 func IsNumber(f model.Field) bool {
 	return f.TypeName == "int"
+}
+
+func toFirstUpper(in string) string {
+	a := []rune(in)
+	a[0] = unicode.ToUpper(a[0])
+	return string(a)
 }
 
 var handlersTemplate string = `
@@ -749,17 +758,28 @@ package {{.PackageName}}
 
 var debug = false
 
+
+type HTTPClient struct {
+	hostName string
+}
+
+func NewHTTPClient(host string) *HTTPClient {
+	return &HTTPClient{
+		hostName: host,
+	}
+}
+
 {{range .Operations}}
 
 {{if IsRestOperation . }}
 
-func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	{{if HasInput . }}
 		requestBody, _ := json.Marshal(input)
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestBody)))
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, strings.NewReader(string(requestBody)))
 	{{else}}
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, nil)
 	{{end}}
 	if err != nil {
 		{{if HasOutput . }}
@@ -782,7 +802,7 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
     if debug {
 		dump, err := httputil.DumpRequest(req, true)
 		if err == nil {
-			log.Printf("HTTP request-payload:\n %s", dump)
+			logging.New().Debug(ctx, "HTTP request-payload:\n %s", dump)
 		}
     }
 
@@ -801,7 +821,7 @@ func HttpClient_{{.Name}}(url string {{if HasInput . }}, input {{GetInputArgType
 	if debug {
 		respDump, err := httputil.DumpResponse(res, true)
 		if err == nil {
-			log.Printf("HTTP response-payload:\n%s", string(respDump))
+			logging.New().Debug(ctx,"HTTP response-payload:\n%s", string(respDump))
 		}
 	}
 

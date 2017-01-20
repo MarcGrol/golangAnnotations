@@ -79,7 +79,7 @@ func TestGenerateForWeb(t *testing.T) {
 		// check that generate code has 4 helper functions for MyStruct
 		data, err := ioutil.ReadFile("./testData/httpClientMyService.go")
 		assert.NoError(t, err)
-		assert.Contains(t, string(data), "func HttpClient_doit(url string , cookie *http.Cookie)  (int ,*errorh.Error,error) {")
+		assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie)  (int ,*errorh.Error,error) {")
 	}
 
 }
