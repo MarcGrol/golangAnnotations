@@ -91,6 +91,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsNumber":                IsNumber,
 	"IsInputArgMandatory":     IsInputArgMandatory,
 	"IsAuthContextArg":        IsAuthContextArg,
+	"HasAuthContext":          HasAuthContext,
 	"HasContext":              HasContext,
 	"GetContextName":          GetContextName,
 	"WithBackTicks":           SurroundWithBackTicks,
@@ -203,6 +204,15 @@ func HasInput(o model.Operation) bool {
 			if arg.TypeName != "context.Context" {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func HasAuthContext(o model.Operation) bool {
+	for _, arg := range o.InputArgs {
+		if arg.Name == "authContext" {
+			return true
 		}
 	}
 	return false
@@ -407,6 +417,18 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{GetContextName $oper }} := ctx.New.CreateContext(r)
 		{{end}}
 
+		{{if HasAuthContext $oper}}
+			language := "nl"
+			langCookie, err := r.Cookie("lang")
+			if err == nil {
+				language = langCookie.Value
+			}
+			authContext := map[string]string {
+				"requestUid": r.Header.Get("X-request-uid"),
+				"language": language,
+			}
+		{{end}}
+
 		{{if UsesQueryParams $oper }} {{else}}
 		pathParams := mux.Vars(r)
 		log.Printf("pathParams:%+v", pathParams)
@@ -467,22 +489,12 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						}
 					{{end}}
 				{{end}}
-				{{if IsAuthContextArg .}}
-					language := "nl"
-					langCookie, err := r.Cookie("lang")
-					if err == nil {
-						language = langCookie.Value
-					}
-					authContext := map[string]string {
-						"sessionUid": r.Header.Get("X-session-uid"),
-						"enduserRole": r.Header.Get("X-enduser-role"),
-						"enduserUid": r.Header.Get("X-enduser-uid"),
-						"language": language,
-					}
-				{{else}}
-			{{end}}
+                {{if IsAuthContextArg .}}
+					authContext["sessionUid"] =  r.Header.Get("X-session-uid")
+					authContext["enduserRole"] = r.Header.Get("X-enduser-role")
+					authContext["enduserUid"] = r.Header.Get("X-enduser-uid")
+				{{end}}
 		{{end}}
-
         if len(validationErrors) > 0 {
             errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
             return
@@ -793,7 +805,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
 		req.AddCookie(cookie)
 	}
 	if requestUID != "" {
-		req.Header.Set("X-Request-UID", requestUID)
+		req.Header.Set("X-request-uid", requestUID)
 	}
 	{{if HasInput . }}
 		req.Header.Set("Content-type", "application/json")
