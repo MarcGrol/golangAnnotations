@@ -48,7 +48,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/httpClient%s.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/httpClientFor%s.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
@@ -773,7 +773,8 @@ func NewHTTPClient(host string) *HTTPClient {
 
 {{if IsRestOperation . }}
 
-func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+// {{ToFirstUpper .Name}} can be used by external clients to interact with the system
+func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	{{if HasInput . }}
 		requestBody, _ := json.Marshal(input)
@@ -790,6 +791,9 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
 	}
 	if cookie != nil {
 		req.AddCookie(cookie)
+	}
+	if requestUID != "" {
+		req.Header.Set("X-Request-UID", requestUID)
 	}
 	{{if HasInput . }}
 		req.Header.Set("Content-type", "application/json")

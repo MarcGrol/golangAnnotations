@@ -15,7 +15,7 @@ import (
 func cleanup() {
 	os.Remove("./testData/httpMyService.go")
 	os.Remove("./testData/httpMyServiceHelpers_test.go")
-	os.Remove("./testData/httpClientMyService.go")
+	os.Remove("./testData/httpClientForMyService.go")
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -73,13 +73,13 @@ func TestGenerateForWeb(t *testing.T) {
 
 	{
 		// check that generated files exisst
-		_, err = os.Stat("./testData/httpClientMyService.go")
+		_, err = os.Stat("./testData/httpClientForMyService.go")
 		assert.NoError(t, err)
 
 		// check that generate code has 4 helper functions for MyStruct
-		data, err := ioutil.ReadFile("./testData/httpClientMyService.go")
+		data, err := ioutil.ReadFile("./testData/httpClientForMyService.go")
 		assert.NoError(t, err)
-		assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie)  (int ,*errorh.Error,error) {")
+		assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie, requestUID string)  (int ,*errorh.Error,error) {")
 	}
 
 }
