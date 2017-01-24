@@ -55,7 +55,7 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 
 	for fn := range filenameMap {
 		targetFilename := strings.Replace(fn, ".", "_json.", 1)
-		target := fmt.Sprintf("%s/%s", targetDir, targetFilename)
+		target := fmt.Sprintf("%s/$%s", targetDir, targetFilename)
 
 		data := JsonContext{
 			PackageName: packageName,

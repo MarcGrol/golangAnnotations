@@ -32,7 +32,7 @@ func generate(inputDir string, structs []model.Struct) error {
 	for _, service := range structs {
 		if IsRestService(service) {
 			{
-				target := fmt.Sprintf("%s/http%s.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/$http%s.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
@@ -40,7 +40,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
@@ -48,7 +48,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/httpClientFor%s.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
@@ -56,7 +56,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/httpTest%s.go", targetDir, service.Name)
+				target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
