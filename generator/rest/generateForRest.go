@@ -67,6 +67,8 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperation":         IsRestOperation,
 	"GetRestOperationPath":    GetRestOperationPath,
 	"GetRestOperationMethod":  GetRestOperationMethod,
+	"IsRestOperationJSON":     IsRestOperationJSON,
+	"IsRestOperationHTML":     IsRestOperationHTML,
 	"HasOperationsWithInput":  HasOperationsWithInput,
 	"HasInput":                HasInput,
 	"GetInputArgType":         GetInputArgType,
@@ -184,6 +186,22 @@ func GetRestOperationMethod(o model.Operation) string {
 		return ann.Attributes[string(restAnnotation.ParamMethod)]
 	}
 	return ""
+}
+
+func IsRestOperationJSON(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFormat)] == "JSON"
+	}
+	return false
+}
+
+func IsRestOperationHTML(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFormat)] == "HTML"
+	}
+	return false
 }
 
 func HasInput(o model.Operation) bool {
@@ -392,7 +410,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if UsesQueryParams $oper }} {{else}}
 		pathParams := mux.Vars(r)
-		log.Printf("pathParams:%+v", pathParams)
+			if len(pathParams) > 0 {
+				log.Printf("pathParams:%+v", pathParams)
+			}
 		{{end}}
 
 		// extract url-params
@@ -494,13 +514,18 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		// write OK response body
 		{{if HasOutput . }}
-			w.Header().Set("Content-Type", "application/json")
-			err = json.NewEncoder(w).Encode(result)
+			{{if IsRestOperationJSON .}}
+				w.Header().Set("Content-Type", "application/json")
+				err = json.NewEncoder(w).Encode(result)
+			{{else if IsRestOperationHTML .}}
+				w.Header().Set("Content-Type", "text/html")
+			{{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else}}
 			w.WriteHeader(http.StatusNoContent)
+			err = writeResultAsHtml(w, result)
 		{{end}}
       }
  }
