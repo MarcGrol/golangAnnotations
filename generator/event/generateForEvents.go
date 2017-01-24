@@ -52,7 +52,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			return err
 		}
 		{
-			target := fmt.Sprintf("%s/aggregates.go", targetDir)
+			target := fmt.Sprintf("%s/$aggregates.go", targetDir)
 
 			data := AggregateMap{
 				PackageName:  packageName,
@@ -66,7 +66,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/wrappers.go", targetDir)
+			target := fmt.Sprintf("%s/$wrappers.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,
@@ -79,7 +79,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/../store/%sEventStore.go", targetDir, packageName)
+			target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
 
 			data := Structs{
 				PackageName: packageName,
@@ -92,7 +92,7 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 		}
 		{
-			target := fmt.Sprintf("%s/wrappers_test.go", targetDir)
+			target := fmt.Sprintf("%s/$wrappers_test.go", targetDir)
 
 			data := Structs{
 				PackageName: packageName,

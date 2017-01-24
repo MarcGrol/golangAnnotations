@@ -13,8 +13,9 @@ import (
 )
 
 func cleanup() {
-	os.Remove("./testData/httpMyService.go")
-	os.Remove("./testData/httpMyServiceHelpers_test.go")
+	os.Remove("./testData/$httpMyService.go")
+	os.Remove("./testData/$httpTestMyService.go")
+	os.Remove("./testData/$httpMyServiceHelpers_test.go")
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -48,21 +49,21 @@ func TestGenerateForWeb(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat("./testData/httpMyService.go")
+	_, err = os.Stat("./testData/$httpMyService.go")
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile("./testData/httpMyService.go")
+	data, err := ioutil.ReadFile("./testData/$httpMyService.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
 	assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
 
-	// check that generated files exisst
-	_, err = os.Stat("./testData/httpMyService.go")
+	// check that generated files exist
+	_, err = os.Stat("./testData/$httpMyService.go")
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err = ioutil.ReadFile("./testData/httpMyServiceHelpers_test.go")
+	data, err = ioutil.ReadFile("./testData/$httpMyServiceHelpers_test.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func doitTestHelper")
 }

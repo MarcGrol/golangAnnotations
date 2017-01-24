@@ -13,8 +13,8 @@ import (
 )
 
 func cleanup() {
-	os.Remove("./testData/httpMyEventService.go")
-	os.Remove("./testData/eventHandler.go")
+	os.Remove("./testData/$httpMyEventService.go")
+	os.Remove("./testData/$eventHandler.go")
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -48,11 +48,11 @@ func TestGenerateForWeb(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat("./testData/eventHandler.go")
+	_, err = os.Stat("./testData/$eventHandler.go")
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile("./testData/eventHandler.go")
+	data, err := ioutil.ReadFile("./testData/$eventHandler.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, handleEvent)`)
 	assert.Contains(t, string(data), `func handleEvent(c context.Context, topic string, envelope events.Envelope) {`)
