@@ -69,6 +69,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetRestOperationMethod":  GetRestOperationMethod,
 	"IsRestOperationJSON":     IsRestOperationJSON,
 	"IsRestOperationHTML":     IsRestOperationHTML,
+	"IsRestOperationTXT":      IsRestOperationTXT,
 	"HasOperationsWithInput":  HasOperationsWithInput,
 	"HasInput":                HasInput,
 	"GetInputArgType":         GetInputArgType,
@@ -200,6 +201,14 @@ func IsRestOperationHTML(o model.Operation) bool {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if ok {
 		return ann.Attributes[string(restAnnotation.ParamFormat)] == "HTML"
+	}
+	return false
+}
+
+func IsRestOperationTXT(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFormat)] == "TXT"
 	}
 	return false
 }
@@ -517,15 +526,27 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{if IsRestOperationJSON .}}
 				w.Header().Set("Content-Type", "application/json")
 				err = json.NewEncoder(w).Encode(result)
+				if err != nil {
+					log.Printf("Error encoding response payload %+v", err)
+				}
 			{{else if IsRestOperationHTML .}}
 				w.Header().Set("Content-Type", "text/html")
+				err = writeResultAsHtml(w, result)
+				if err != nil {
+					log.Printf("Error encoding response payload %+v", err)
+				}
+			{{else if IsRestOperationTXT .}}
+				w.Header().Set("Content-Type", "text/plain")
+				_, err = fmt.Fprint(w, result)
+				if err != nil {
+					log.Printf("Error encoding response payload %+v", err)
+				}
+			{{else}}
+				errorh.NewInternalErrorf(0, "Not implemented")
+				return
 			{{end}}
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
 		{{else}}
 			w.WriteHeader(http.StatusNoContent)
-			err = writeResultAsHtml(w, result)
 		{{end}}
       }
  }
