@@ -60,35 +60,37 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":           IsRestService,
-	"ExtractImports":          ExtractImports,
-	"HasAuthContextArg":       HasAuthContextArg,
-	"GetRestServicePath":      GetRestServicePath,
-	"IsRestOperation":         IsRestOperation,
-	"GetRestOperationPath":    GetRestOperationPath,
-	"GetRestOperationMethod":  GetRestOperationMethod,
-	"IsRestOperationJSON":     IsRestOperationJSON,
-	"IsRestOperationHTML":     IsRestOperationHTML,
-	"IsRestOperationTXT":      IsRestOperationTXT,
-	"IsRestOperationForm":     IsRestOperationForm,
-	"HasOperationsWithInput":  HasOperationsWithInput,
-	"HasInput":                HasInput,
-	"GetInputArgType":         GetInputArgType,
-	"GetOutputArgDeclaration": GetOutputArgDeclaration,
-	"GetOutputArgName":        GetOutputArgName,
-	"UsesQueryParams":         UsesQueryParams,
-	"GetInputArgName":         GetInputArgName,
-	"GetInputParamString":     GetInputParamString,
-	"GetOutputArgType":        GetOutputArgType,
-	"HasOutput":               HasOutput,
-	"IsPrimitive":             IsPrimitive,
-	"IsNumber":                IsNumber,
-	"IsInputArgMandatory":     IsInputArgMandatory,
-	"IsAuthContextArg":        IsAuthContextArg,
-	"HasContext":              HasContext,
-	"GetContextName":          GetContextName,
-	"WithBackTicks":           SurroundWithBackTicks,
-	"BackTick":                BackTick,
+	"IsRestService":            IsRestService,
+	"ExtractImports":           ExtractImports,
+	"HasAuthContextArg":        HasAuthContextArg,
+	"GetRestServicePath":       GetRestServicePath,
+	"IsRestOperation":          IsRestOperation,
+	"GetRestOperationPath":     GetRestOperationPath,
+	"GetRestOperationMethod":   GetRestOperationMethod,
+	"IsRestOperationJSON":      IsRestOperationJSON,
+	"IsRestOperationHTML":      IsRestOperationHTML,
+	"IsRestOperationTXT":       IsRestOperationTXT,
+	"IsRestOperationCSV":       IsRestOperationCSV,
+	"IsRestOperationForm":      IsRestOperationForm,
+	"IsRestOperationGenerated": IsRestOperationGenerated,
+	"HasOperationsWithInput":   HasOperationsWithInput,
+	"HasInput":                 HasInput,
+	"GetInputArgType":          GetInputArgType,
+	"GetOutputArgDeclaration":  GetOutputArgDeclaration,
+	"GetOutputArgName":         GetOutputArgName,
+	"UsesQueryParams":          UsesQueryParams,
+	"GetInputArgName":          GetInputArgName,
+	"GetInputParamString":      GetInputParamString,
+	"GetOutputArgType":         GetOutputArgType,
+	"HasOutput":                HasOutput,
+	"IsPrimitive":              IsPrimitive,
+	"IsNumber":                 IsNumber,
+	"IsInputArgMandatory":      IsInputArgMandatory,
+	"IsAuthContextArg":         IsAuthContextArg,
+	"HasContext":               HasContext,
+	"GetContextName":           GetContextName,
+	"WithBackTicks":            SurroundWithBackTicks,
+	"BackTick":                 BackTick,
 }
 
 func BackTick() string {
@@ -210,8 +212,16 @@ func IsRestOperationTXT(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "TXT"
 }
 
+func IsRestOperationCSV(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "CSV"
+}
+
 func IsRestOperationForm(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "FORM"
+}
+
+func IsRestOperationGenerated(o model.Operation) bool {
+	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationTXT(o)
 }
 
 func HasInput(o model.Operation) bool {
@@ -409,7 +419,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 {{range $idxOper, $oper := .Operations}}
 
 {{if IsRestOperation $oper}}
-{{if IsRestOperationForm . }}{{else}}
+{{if IsRestOperationGenerated . }}
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -652,7 +662,7 @@ func testCaseDone() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-{{if IsRestOperationForm . }}{{else}}
+{{if IsRestOperationGenerated . }}
 func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
