@@ -72,7 +72,6 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationHTML":      IsRestOperationHTML,
 	"IsRestOperationCSV":       IsRestOperationCSV,
 	"IsRestOperationTXT":       IsRestOperationTXT,
-	"IsRestOperationForm":      IsRestOperationForm,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
 	"GetRestOperationFilename": GetRestOperationFilename,
 	"HasOperationsWithInput":   HasOperationsWithInput,
@@ -203,7 +202,7 @@ func GetRestOperationFormat(o model.Operation) string {
 }
 
 func IsRestOperationNoContent(o model.Operation) bool {
-	return GetRestOperationFormat(o) == ""
+	return GetRestOperationFormat(o) == "no_content"
 }
 
 func IsRestOperationJSON(o model.Operation) bool {
@@ -222,12 +221,8 @@ func IsRestOperationTXT(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "TXT"
 }
 
-func IsRestOperationForm(o model.Operation) bool {
-	return GetRestOperationFormat(o) == "FORM"
-}
-
 func IsRestOperationGenerated(o model.Operation) bool {
-	return !IsRestOperationForm(o)
+	return IsRestOperationNoContent(o) || IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o)
 }
 
 func GetRestOperationFilename(o model.Operation) string {
