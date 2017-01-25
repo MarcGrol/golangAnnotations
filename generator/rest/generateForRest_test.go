@@ -34,7 +34,7 @@ func TestGenerateForWeb(t *testing.T) {
 
 	s[0].Operations = append(s[0].Operations,
 		&model.Operation{
-			DocLines:      []string{"// @RestOperation(path = \"/person\", method = \"GET\")"},
+			DocLines:      []string{"// @RestOperation(path = \"/person\", method = \"GET\", format = \"JSON\" )"},
 			Name:          "doit",
 			RelatedStruct: &model.Field{TypeName: "MyService"},
 			InputArgs: []model.Field{

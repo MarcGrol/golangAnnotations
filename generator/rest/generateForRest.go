@@ -70,32 +70,40 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":           IsRestService,
-	"ExtractImports":          ExtractImports,
-	"HasAuthContextArg":       HasAuthContextArg,
-	"GetRestServicePath":      GetRestServicePath,
-	"IsRestOperation":         IsRestOperation,
-	"GetRestOperationPath":    GetRestOperationPath,
-	"GetRestOperationMethod":  GetRestOperationMethod,
-	"HasOperationsWithInput":  HasOperationsWithInput,
-	"HasInput":                HasInput,
-	"GetInputArgType":         GetInputArgType,
-	"GetOutputArgDeclaration": GetOutputArgDeclaration,
-	"GetOutputArgName":        GetOutputArgName,
-	"UsesQueryParams":         UsesQueryParams,
-	"GetInputArgName":         GetInputArgName,
-	"GetInputParamString":     GetInputParamString,
-	"GetOutputArgType":        GetOutputArgType,
-	"HasOutput":               HasOutput,
-	"IsPrimitive":             IsPrimitive,
-	"IsNumber":                IsNumber,
-	"IsInputArgMandatory":     IsInputArgMandatory,
-	"IsAuthContextArg":        IsAuthContextArg,
+	"IsRestService":            IsRestService,
+	"ExtractImports":           ExtractImports,
+	"HasAuthContextArg":        HasAuthContextArg,
+	"GetRestServicePath":       GetRestServicePath,
+	"IsRestOperation":          IsRestOperation,
+	"GetRestOperationPath":     GetRestOperationPath,
+	"GetRestOperationMethod":   GetRestOperationMethod,
+	"IsRestOperationJSON":      IsRestOperationJSON,
+	"IsRestOperationHTML":      IsRestOperationHTML,
+	"IsRestOperationCSV":       IsRestOperationCSV,
+	"IsRestOperationTXT":       IsRestOperationTXT,
+	"IsRestOperationNoContent": IsRestOperationNoContent,
+	"IsRestOperationCustom":    IsRestOperationCustom,
+	"IsRestOperationGenerated": IsRestOperationGenerated,
+	"GetRestOperationFilename": GetRestOperationFilename,
+	"HasOperationsWithInput":   HasOperationsWithInput,
+	"HasInput":                 HasInput,
+	"GetInputArgType":          GetInputArgType,
+	"GetOutputArgDeclaration":  GetOutputArgDeclaration,
+	"GetOutputArgName":         GetOutputArgName,
+	"UsesQueryParams":          UsesQueryParams,
+	"GetInputArgName":          GetInputArgName,
+	"GetInputParamString":      GetInputParamString,
+	"GetOutputArgType":         GetOutputArgType,
+	"HasOutput":                HasOutput,
+	"IsPrimitive":              IsPrimitive,
+	"IsNumber":                 IsNumber,
+	"IsInputArgMandatory":      IsInputArgMandatory,
+	"IsAuthContextArg":         IsAuthContextArg,
 	"HasAuthContext":          HasAuthContext,
-	"HasContext":              HasContext,
-	"GetContextName":          GetContextName,
-	"WithBackTicks":           SurroundWithBackTicks,
-	"BackTick":                BackTick,
+	"HasContext":               HasContext,
+	"GetContextName":           GetContextName,
+	"WithBackTicks":            SurroundWithBackTicks,
+	"BackTick":                 BackTick,
 	"ToFirstUpper":            toFirstUpper,
 }
 
@@ -198,10 +206,54 @@ func GetRestOperationMethod(o model.Operation) string {
 	return ""
 }
 
+func GetRestOperationFormat(o model.Operation) string {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFormat)]
+	}
+	return ""
+}
+
+func IsRestOperationJSON(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "JSON"
+}
+
+func IsRestOperationHTML(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "HTML"
+}
+
+func IsRestOperationCSV(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "CSV"
+}
+
+func IsRestOperationTXT(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "TXT"
+}
+
+func IsRestOperationNoContent(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "no_content"
+}
+
+func IsRestOperationCustom(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "custom"
+}
+
+func IsRestOperationGenerated(o model.Operation) bool {
+	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o) || IsRestOperationNoContent(o) || IsRestOperationCustom(o)
+}
+
+func GetRestOperationFilename(o model.Operation) string {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFilename)]
+	}
+	return ""
+}
+
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if arg.TypeName != "context.Context" {
+			if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
 				return true
 			}
 		}
@@ -408,6 +460,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 {{range $idxOper, $oper := .Operations}}
 
 {{if IsRestOperation $oper}}
+{{if IsRestOperationGenerated . }}
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -431,7 +484,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if UsesQueryParams $oper }} {{else}}
 		pathParams := mux.Vars(r)
-		log.Printf("pathParams:%+v", pathParams)
+			if len(pathParams) > 0 {
+				log.Printf("pathParams:%+v", pathParams)
+			}
 		{{end}}
 
 		// extract url-params
@@ -522,17 +577,41 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		}
 
 		// write OK response body
-		{{if HasOutput . }}
+		{{if IsRestOperationJSON .}}
 			w.Header().Set("Content-Type", "application/json")
 			err = json.NewEncoder(w).Encode(result)
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
-		{{else}}
+		{{else if IsRestOperationHTML .}}
+			w.Header().Set("Content-Type", "text/html")
+			{{if HasOutput . }}err = {{$oper.Name}}WriteHTML(w, result){{else}}err = {{$oper.Name}}WriteHTML(w){{end}}
+			if err != nil {
+				log.Printf("Error encoding response payload %+v", err)
+			}
+		{{else if IsRestOperationCSV .}}
+			w.Header().Set("Content-Type", "text/csv")
+			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
+			{{if HasOutput . }}err = {{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
+			if err != nil {
+				log.Printf("Error encoding response payload %+v", err)
+			}
+		{{else if IsRestOperationTXT .}}
+			w.Header().Set("Content-Type", "text/plain")
+			_, err = fmt.Fprint(w, result)
+			if err != nil {
+				log.Printf("Error encoding response payload %+v", err)
+			}
+		{{else if IsRestOperationNoContent .}}
 			w.WriteHeader(http.StatusNoContent)
+		{{else if IsRestOperationCustom .}}
+			{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
+		{{else}}
+			errorh.NewInternalErrorf(0, "Not implemented")
 		{{end}}
       }
  }
+{{end}}
 {{end}}
 {{end}}
 
@@ -632,12 +711,11 @@ func testCaseDone() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-
-func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
@@ -657,11 +735,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{end}}
 	if err != nil {
-		{{if HasOutput . }}
-			return 0, nil, nil, err
-		{{else}}
-			return 0,  nil, err
-		{{end}}
+		{{if IsRestOperationJSON . }}return 0, nil, nil, err{{else}}return nil, err{{end}}
 	}
 	req.RequestURI = url
 	{{if HasInput . }}
@@ -709,9 +783,11 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	webservice := {{$structName}}{}
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
 
-    // dump readable response
-	var responseBody bytes.Buffer
-	json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+	{{if IsRestOperationJSON . }}
+		// dump readable response
+		var responseBody bytes.Buffer
+		json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+	{{end}}
 
 	fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
 
@@ -728,11 +804,11 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		fmt.Fprintf(logFp, "\"%s\",\n", h)
 	}
 	fmt.Fprintf(logFp, "\t},\n")
-	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", responseBody.String())
+	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
 
-	{{if HasOutput . }}
+	{{if IsRestOperationJSON . }}
 		if recorder.Code != http.StatusOK {
-		    // return error response
+			// return error response
 			var errorResp errorh.Error
 			dec := json.NewDecoder(recorder.Body)
 			err = dec.Decode(&errorResp)
@@ -750,9 +826,8 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 			return recorder.Code, nil, nil, err
 		}
 		return recorder.Code, resp, nil, nil
-
 	{{else}}
-		return recorder.Code, nil, nil
+		return recorder, nil
 	{{end}}
 }
 {{end}}
