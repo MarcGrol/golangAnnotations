@@ -48,18 +48,18 @@ func generate(inputDir string, structs []model.Struct) error {
 				}
 			}
 			{
-				target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
-					return err
-				}
-			}
-			{
 				target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
 				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
+					return err
+				}
+			}
+			{
+				target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
+				if err != nil {
+					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
 					return err
 				}
 			}
@@ -738,10 +738,8 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	{{end}}
 	if err != nil {
 		{{if IsRestOperationJSON . }}
-			{{if HasOutput . }} return 0, nil, nil, err
-			{{else}}return 0, nil, err{{end}}
-		{{else}}return nil, err
-		{{end}}
+			{{if HasOutput . }} return 0, nil, nil, err{{else}}return 0, nil, err{{end}}
+		{{else}}return nil, err{{end}}
 	}
 	req.RequestURI = url
 	{{if HasInput . }}
@@ -881,10 +879,8 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, nil)
 	{{end}}
 	if err != nil {
-		{{if HasOutput . }}
-			return 0, nil, nil, err
-		{{else}}
-			return 0,  nil, err
+		{{if HasOutput . }} return 0, nil, nil, err
+		{{else}} return 0,  nil, err
 		{{end}}
 	}
 	if cookie != nil {
