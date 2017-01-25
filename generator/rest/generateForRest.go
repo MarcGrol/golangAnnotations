@@ -87,6 +87,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":                HasOutput,
 	"IsPrimitive":              IsPrimitive,
 	"IsNumber":                 IsNumber,
+	"RequiresParamValidation":  RequiresParamValidation,
 	"IsInputArgMandatory":      IsInputArgMandatory,
 	"IsAuthContextArg":         IsAuthContextArg,
 	"HasContext":               HasContext,
@@ -375,6 +376,15 @@ func findArgInArray(array []string, toMatch string) bool {
 	return false
 }
 
+func RequiresParamValidation(o model.Operation) bool {
+	for _, field := range o.InputArgs {
+		if field.TypeName == "int"  || field.TypeName == "string" && IsInputArgMandatory(o, field) {
+			return true
+		}
+	}
+	return false
+}
+
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if !ok {
@@ -450,8 +460,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			}
 		{{end}}
 
+		{{if RequiresParamValidation .}}
 		// extract url-params
 	    validationErrors := []errorh.FieldError{}
+	    {{end}}
 		{{range .InputArgs}}
 			{{if IsPrimitive . }}
 				{{if IsNumber . }}
@@ -496,10 +508,12 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{end}}
 		{{end}}
 
+		{{if RequiresParamValidation .}}
         if len(validationErrors) > 0 {
             errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
             return
         }
+        {{end}}
 
 		{{if HasInput . }}
 			// read and parse request body
