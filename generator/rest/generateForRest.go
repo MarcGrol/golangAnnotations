@@ -70,6 +70,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationJSON":     IsRestOperationJSON,
 	"IsRestOperationHTML":     IsRestOperationHTML,
 	"IsRestOperationTXT":      IsRestOperationTXT,
+	"IsRestOperationForm":     IsRestOperationForm,
 	"HasOperationsWithInput":  HasOperationsWithInput,
 	"HasInput":                HasInput,
 	"GetInputArgType":         GetInputArgType,
@@ -189,28 +190,28 @@ func GetRestOperationMethod(o model.Operation) string {
 	return ""
 }
 
-func IsRestOperationJSON(o model.Operation) bool {
+func GetRestOperationFormat(o model.Operation) string {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamFormat)] == "JSON"
+		return ann.Attributes[string(restAnnotation.ParamFormat)]
 	}
-	return false
+	return ""
+}
+
+func IsRestOperationJSON(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "JSON"
 }
 
 func IsRestOperationHTML(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
-	if ok {
-		return ann.Attributes[string(restAnnotation.ParamFormat)] == "HTML"
-	}
-	return false
+	return GetRestOperationFormat(o) == "HTML"
 }
 
 func IsRestOperationTXT(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
-	if ok {
-		return ann.Attributes[string(restAnnotation.ParamFormat)] == "TXT"
-	}
-	return false
+	return GetRestOperationFormat(o) == "TXT"
+}
+
+func IsRestOperationForm(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "FORM"
 }
 
 func HasInput(o model.Operation) bool {
@@ -408,6 +409,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 {{range $idxOper, $oper := .Operations}}
 
 {{if IsRestOperation $oper}}
+{{if IsRestOperationForm . }}{{else}}
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -531,7 +533,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				}
 			{{else if IsRestOperationHTML .}}
 				w.Header().Set("Content-Type", "text/html")
-				err = writeResultAsHtml(w, result)
+				err = {{$oper.Name}}AsHtml(w, result)
 				if err != nil {
 					log.Printf("Error encoding response payload %+v", err)
 				}
@@ -550,6 +552,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
       }
  }
+{{end}}
 {{end}}
 {{end}}
 
@@ -649,7 +652,7 @@ func testCaseDone() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-
+{{if IsRestOperationForm . }}{{else}}
 func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
@@ -769,6 +772,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		return recorder.Code, nil, nil
 	{{end}}
 }
+{{end}}
 {{end}}
 {{end}}
 `
