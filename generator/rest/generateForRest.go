@@ -576,7 +576,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{else if IsRestOperationNoContent .}}
 			w.WriteHeader(http.StatusNoContent)
 		{{else if IsRestOperationCustom .}}
-			{{$oper.Name}}HandleResult(w, r, result)
+			{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
 		{{else}}
 			errorh.NewInternalErrorf(0, "Not implemented")
 		{{end}}
