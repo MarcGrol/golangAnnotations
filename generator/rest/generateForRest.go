@@ -99,12 +99,12 @@ var customTemplateFuncs = template.FuncMap{
 	"IsNumber":                 IsNumber,
 	"IsInputArgMandatory":      IsInputArgMandatory,
 	"IsAuthContextArg":         IsAuthContextArg,
-	"HasAuthContext":          HasAuthContext,
+	"HasAuthContext":           HasAuthContext,
 	"HasContext":               HasContext,
 	"GetContextName":           GetContextName,
 	"WithBackTicks":            SurroundWithBackTicks,
 	"BackTick":                 BackTick,
-	"ToFirstUpper":            toFirstUpper,
+	"ToFirstUpper":             toFirstUpper,
 }
 
 func BackTick() string {
@@ -578,11 +578,13 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		// write OK response body
 		{{if IsRestOperationJSON .}}
+			{{if HasOutput . }}
 			w.Header().Set("Content-Type", "application/json")
 			err = json.NewEncoder(w).Encode(result)
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
+			{{end}}
 		{{else if IsRestOperationHTML .}}
 			w.Header().Set("Content-Type", "text/html")
 			{{if HasOutput . }}err = {{$oper.Name}}WriteHTML(w, result){{else}}err = {{$oper.Name}}WriteHTML(w){{end}}
@@ -735,7 +737,11 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{end}}
 	if err != nil {
-		{{if IsRestOperationJSON . }}return 0, nil, nil, err{{else}}return nil, err{{end}}
+		{{if IsRestOperationJSON . }}
+			{{if HasOutput . }} return 0, nil, nil, err
+			{{else}}return 0, nil, err{{end}}
+		{{else}}return nil, err
+		{{end}}
 	}
 	req.RequestURI = url
 	{{if HasInput . }}
@@ -807,25 +813,29 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
 
 	{{if IsRestOperationJSON . }}
+		{{if HasOutput . }}
 		if recorder.Code != http.StatusOK {
-			// return error response
-			var errorResp errorh.Error
+				// return error response
+				var errorResp errorh.Error
+				dec := json.NewDecoder(recorder.Body)
+				err = dec.Decode(&errorResp)
+				if err != nil {
+					return recorder.Code, nil, nil, err
+				}
+				return recorder.Code, nil, &errorResp, nil
+			}
+
+			// return success response
+			resp := {{GetOutputArgDeclaration . }}
 			dec := json.NewDecoder(recorder.Body)
-			err = dec.Decode(&errorResp)
+			err = dec.Decode({{GetOutputArgName . }})
 			if err != nil {
 				return recorder.Code, nil, nil, err
 			}
-			return recorder.Code, nil, &errorResp, nil
-		}
-
-		// return success response
-		resp := {{GetOutputArgDeclaration . }}
-		dec := json.NewDecoder(recorder.Body)
-		err = dec.Decode({{GetOutputArgName . }})
-		if err != nil {
-			return recorder.Code, nil, nil, err
-		}
-		return recorder.Code, resp, nil, nil
+			return recorder.Code, resp, nil, nil
+		{{else}}
+			return recorder.Code, nil, nil
+		{{end}}
 	{{else}}
 		return recorder, nil
 	{{end}}
@@ -859,6 +869,7 @@ func NewHTTPClient(host string) *HTTPClient {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
+{{if IsRestOperationJSON . }}
 
 // {{ToFirstUpper .Name}} can be used by external clients to interact with the system
 func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string, timeout time.Duration)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
@@ -941,6 +952,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
 		return res.StatusCode, nil, nil
 	{{end}}
 }
+{{end}}
 {{end}}
 {{end}}
 `
