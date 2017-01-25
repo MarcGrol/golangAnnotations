@@ -72,6 +72,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationCSV":       IsRestOperationCSV,
 	"IsRestOperationTXT":       IsRestOperationTXT,
 	"IsRestOperationNoContent": IsRestOperationNoContent,
+	"IsRestOperationCustom":    IsRestOperationCustom,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
 	"GetRestOperationFilename": GetRestOperationFilename,
 	"HasOperationsWithInput":   HasOperationsWithInput,
@@ -221,8 +222,12 @@ func IsRestOperationNoContent(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "no_content"
 }
 
+func IsRestOperationCustom(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "custom"
+}
+
 func IsRestOperationGenerated(o model.Operation) bool {
-	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o) || IsRestOperationNoContent(o)
+	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o) || IsRestOperationNoContent(o) || IsRestOperationCustom(o)
 }
 
 func GetRestOperationFilename(o model.Operation) string {
@@ -570,9 +575,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			}
 		{{else if IsRestOperationNoContent .}}
 			w.WriteHeader(http.StatusNoContent)
+		{{else if IsRestOperationCustom .}}
+			{{$oper.Name}}HandleResult(w, r, result)
 		{{else}}
 			errorh.NewInternalErrorf(0, "Not implemented")
-			return
 		{{end}}
       }
  }
