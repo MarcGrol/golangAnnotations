@@ -586,25 +586,6 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 {{end}}
 {{end}}
 
-{{if HasAuthContextArg .}}
-func getCredentials(authContext map[string]string, expectedRole string) (string, string, string, error) {
-	role, found := authContext["enduserRole"]
-	if role != expectedRole {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
-	}
-	enduserUID, found := authContext["enduserUid"]
-	if found == false || enduserUID == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid enduser-uid %s", enduserUID)
-	}
-	sessionUID, found := authContext["sessionUid"]
-	if found == false || sessionUID == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUID)
-	}
-
-	return role, enduserUID, sessionUID, nil
-}
-{{end}}
-
 `
 
 var HelpersTemplate string = `
