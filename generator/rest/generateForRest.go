@@ -67,6 +67,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperation":          IsRestOperation,
 	"GetRestOperationPath":     GetRestOperationPath,
 	"GetRestOperationMethod":   GetRestOperationMethod,
+	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationJSON":      IsRestOperationJSON,
 	"IsRestOperationHTML":      IsRestOperationHTML,
 	"IsRestOperationTXT":       IsRestOperationTXT,
@@ -200,6 +201,10 @@ func GetRestOperationFormat(o model.Operation) string {
 	return ""
 }
 
+func IsRestOperationNoContent(o model.Operation) bool {
+	return GetRestOperationFormat(o) == ""
+}
+
 func IsRestOperationJSON(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "JSON"
 }
@@ -221,7 +226,7 @@ func IsRestOperationForm(o model.Operation) bool {
 }
 
 func IsRestOperationGenerated(o model.Operation) bool {
-	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationTXT(o)
+	return IsRestOperationNoContent(o) || IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationTXT(o)
 }
 
 func HasInput(o model.Operation) bool {
