@@ -464,25 +464,15 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						if !exists {
 					{{end}}
 					{{if IsInputArgMandatory $oper .}}
-						validationErrors = append(validationErrors, errorh.FieldError{
-						SubCode: 1000,
-						Field:   "{{.Name}}",
-						Msg:     "Missing value for mandatory parameter %s",
-						Args:    []string{"{{.Name}}"},
-					 })
-					 {{else}}
-					 // optional parameter
-					 {{end}}
+						validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
+					{{else}}
+						// optional parameter
+					{{end}}
 					} else {
 						{{.Name}}, err = strconv.Atoi({{.Name}}String)
 						if err != nil {
-							validationErrors = append(validationErrors, errorh.FieldError{
-							SubCode: 1001,
-							Field:   "{{.Name}}",
-							Msg:     "Invalid value for mandatory parameter %s",
-							Args:    []string{"{{.Name}}"},
-						 })
-						 }
+							validationErrors = append(validationErrors, errorh.FieldErrorForInvalidParameter("{{.Name}}"))
+						}
 					 }
 				{{else}}
 					{{if UsesQueryParams $oper }}
@@ -491,14 +481,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{else}}
 						{{.Name}}, exists := pathParams["{{.Name}}"]
 						if !exists {
-						{{end}}
+					{{end}}
 						{{if IsInputArgMandatory $oper .}}
-								validationErrors = append(validationErrors, errorh.FieldError{
-								SubCode: 1000,
-								Field:   "{{.Name}}",
-								Msg:     "Missing value for mandatory parameter %s",
-								Args:    []string{"{{.Name}}"},
-							 })
+							validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
 					  	{{else}}
 					  		// optional parameter
 						 {{end}}
