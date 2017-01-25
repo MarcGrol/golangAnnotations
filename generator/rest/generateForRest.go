@@ -70,10 +70,11 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationJSON":      IsRestOperationJSON,
 	"IsRestOperationHTML":      IsRestOperationHTML,
-	"IsRestOperationTXT":       IsRestOperationTXT,
 	"IsRestOperationCSV":       IsRestOperationCSV,
+	"IsRestOperationTXT":       IsRestOperationTXT,
 	"IsRestOperationForm":      IsRestOperationForm,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
+	"GetRestOperationFilename": GetRestOperationFilename,
 	"HasOperationsWithInput":   HasOperationsWithInput,
 	"HasInput":                 HasInput,
 	"GetInputArgType":          GetInputArgType,
@@ -213,12 +214,12 @@ func IsRestOperationHTML(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "HTML"
 }
 
-func IsRestOperationTXT(o model.Operation) bool {
-	return GetRestOperationFormat(o) == "TXT"
-}
-
 func IsRestOperationCSV(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "CSV"
+}
+
+func IsRestOperationTXT(o model.Operation) bool {
+	return GetRestOperationFormat(o) == "TXT"
 }
 
 func IsRestOperationForm(o model.Operation) bool {
@@ -226,7 +227,15 @@ func IsRestOperationForm(o model.Operation) bool {
 }
 
 func IsRestOperationGenerated(o model.Operation) bool {
-	return IsRestOperationNoContent(o) || IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationTXT(o)
+	return !IsRestOperationForm(o)
+}
+
+func GetRestOperationFilename(o model.Operation) string {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamFilename)]
+	}
+	return ""
 }
 
 func HasInput(o model.Operation) bool {
@@ -552,6 +561,13 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				if err != nil {
 					log.Printf("Error encoding response payload %+v", err)
 				}
+			{{else if IsRestOperationCSV .}}
+				w.Header().Set("Content-Type", "text/csv")
+				w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
+				err = {{$oper.Name}}AsCsv(w, result)
+				if err != nil {
+					log.Printf("Error encoding response payload %+v", err)
+				}
 			{{else if IsRestOperationTXT .}}
 				w.Header().Set("Content-Type", "text/plain")
 				_, err = fmt.Fprint(w, result)
@@ -667,7 +683,7 @@ func testCaseDone() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-{{if IsRestOperationGenerated . }}
+{{if IsRestOperationJSON . }}
 func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }

@@ -8,6 +8,7 @@ const (
 	ParamPath         = "path"
 	ParamMethod       = "method"
 	ParamFormat       = "format"
+	ParamFilename     = "filename"
 	ParamOptional     = "optionalargs"
 )
 
