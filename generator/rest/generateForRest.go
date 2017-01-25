@@ -97,6 +97,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":                HasOutput,
 	"IsPrimitive":              IsPrimitive,
 	"IsNumber":                 IsNumber,
+	"RequiresParamValidation":  RequiresParamValidation,
 	"IsInputArgMandatory":      IsInputArgMandatory,
 	"IsAuthContextArg":         IsAuthContextArg,
 	"HasAuthContext":           HasAuthContext,
@@ -396,6 +397,15 @@ func findArgInArray(array []string, toMatch string) bool {
 	return false
 }
 
+func RequiresParamValidation(o model.Operation) bool {
+	for _, field := range o.InputArgs {
+		if field.TypeName == "int" || field.TypeName == "string" && IsInputArgMandatory(o, field) {
+			return true
+		}
+	}
+	return false
+}
+
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
 	if !ok {
@@ -489,8 +499,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			}
 		{{end}}
 
+		{{if RequiresParamValidation .}}
 		// extract url-params
 	    validationErrors := []errorh.FieldError{}
+	    {{end}}
 		{{range .InputArgs}}
 			{{if IsPrimitive . }}
 				{{if IsNumber . }}
@@ -503,25 +515,15 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						if !exists {
 					{{end}}
 					{{if IsInputArgMandatory $oper .}}
-						validationErrors = append(validationErrors, errorh.FieldError{
-						SubCode: 1000,
-						Field:   "{{.Name}}",
-						Msg:     "Missing value for mandatory parameter %s",
-						Args:    []string{"{{.Name}}"},
-					 })
-					 {{else}}
-					 // optional parameter
-					 {{end}}
+						validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
+					{{else}}
+						// optional parameter
+					{{end}}
 					} else {
 						{{.Name}}, err = strconv.Atoi({{.Name}}String)
 						if err != nil {
-							validationErrors = append(validationErrors, errorh.FieldError{
-							SubCode: 1001,
-							Field:   "{{.Name}}",
-							Msg:     "Invalid value for mandatory parameter %s",
-							Args:    []string{"{{.Name}}"},
-						 })
-						 }
+							validationErrors = append(validationErrors, errorh.FieldErrorForInvalidParameter("{{.Name}}"))
+						}
 					 }
 				{{else}}
 					{{if UsesQueryParams $oper }}
@@ -530,14 +532,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{else}}
 						{{.Name}}, exists := pathParams["{{.Name}}"]
 						if !exists {
-						{{end}}
+					{{end}}
 						{{if IsInputArgMandatory $oper .}}
-								validationErrors = append(validationErrors, errorh.FieldError{
-								SubCode: 1000,
-								Field:   "{{.Name}}",
-								Msg:     "Missing value for mandatory parameter %s",
-								Args:    []string{"{{.Name}}"},
-							 })
+							validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
 					  	{{else}}
 					  		// optional parameter
 						 {{end}}
@@ -550,10 +547,13 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					authContext["enduserUid"] = r.Header.Get("X-enduser-uid")
 				{{end}}
 		{{end}}
+
+		{{if RequiresParamValidation .}}
         if len(validationErrors) > 0 {
             errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
             return
         }
+        {{end}}
 
 		{{if HasInput . }}
 			// read and parse request body
@@ -615,25 +615,6 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
  }
 {{end}}
 {{end}}
-{{end}}
-
-{{if HasAuthContextArg .}}
-func getCredentials(authContext map[string]string, expectedRole string) (string, string, string, error) {
-	role, found := authContext["enduserRole"]
-	if role != expectedRole {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid role %s", role)
-	}
-	enduserUID, found := authContext["enduserUid"]
-	if found == false || enduserUID == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid enduser-uid %s", enduserUID)
-	}
-	sessionUID, found := authContext["sessionUid"]
-	if found == false || sessionUID == "" {
-		return "", "", "", errorh.NewNotAuthorizedErrorf(0, "Missing/invalid session-uid %s", sessionUID)
-	}
-
-	return role, enduserUID, sessionUID, nil
-}
 {{end}}
 
 `
