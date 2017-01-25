@@ -584,7 +584,7 @@ func TestMain(m *testing.M) {
 	if _, err := os.Stat(dirname); os.IsNotExist(err) {
     	os.Mkdir(dirname, os.ModePerm)
 	}
-	logFp = openfile(dirname + "/testResults.go")
+	logFp = openfile(dirname + "/$testResults.go")
 	defer func() {
 		logFp.Close()
 	}()
@@ -786,7 +786,7 @@ func NewHTTPClient(host string) *HTTPClient {
 {{if IsRestOperation . }}
 
 // {{ToFirstUpper .Name}} can be used by external clients to interact with the system
-func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string, timeout time.Duration)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
 	{{if HasInput . }}
 		requestBody, _ := json.Marshal(input)
@@ -823,7 +823,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     }
 
 	cl := http.Client{}
-	cl.Timeout = 5 * time.Second
+	cl.Timeout = timeout
 	res, err := cl.Do(req)
 	if err != nil {
 	{{if HasOutput . }}
