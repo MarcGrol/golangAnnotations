@@ -556,14 +556,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			}
 		{{else if IsRestOperationHTML .}}
 			w.Header().Set("Content-Type", "text/html")
-			{{if HasOutput . }}err = {{$oper.Name}}AsHtml(w, result){{else}}err = {{$oper.Name}}AsHtml(w){{end}}
+			{{if HasOutput . }}err = {{$oper.Name}}WriteHTML(w, result){{else}}err = {{$oper.Name}}WriteHTML(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else if IsRestOperationCSV .}}
 			w.Header().Set("Content-Type", "text/csv")
 			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
-			err = {{$oper.Name}}AsCsv(w, result)
+			{{if HasOutput . }}err = {{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
