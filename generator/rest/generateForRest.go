@@ -241,7 +241,7 @@ func GetRestOperationFilename(o model.Operation) string {
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if arg.TypeName != "context.Context" {
+			if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
 				return true
 			}
 		}
@@ -682,12 +682,11 @@ func testCaseDone() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-{{if IsRestOperationJSON . }}
-func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
+func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
@@ -707,11 +706,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{end}}
 	if err != nil {
-		{{if HasOutput . }}
-			return 0, nil, nil, err
-		{{else}}
-			return 0,  nil, err
-		{{end}}
+		{{if IsRestOperationJSON . }}return 0, nil, nil, err{{else}}return nil, err{{end}}
 	}
 	req.RequestURI = url
 	{{if HasOutput . }}
@@ -756,9 +751,11 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	webservice := {{$structName}}{}
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
 
-    // dump readable response
-	var responseBody bytes.Buffer
-	json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+	{{if IsRestOperationJSON . }}
+		// dump readable response
+		var responseBody bytes.Buffer
+		json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+	{{end}}
 
 	fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
 
@@ -775,11 +772,11 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		fmt.Fprintf(logFp, "\"%s\",\n", h)
 	}
 	fmt.Fprintf(logFp, "\t},\n")
-	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", responseBody.String())
+	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
 
-	{{if HasOutput . }}
+	{{if IsRestOperationJSON . }}
 		if recorder.Code != http.StatusOK {
-		    // return error response
+			// return error response
 			var errorResp errorh.Error
 			dec := json.NewDecoder(recorder.Body)
 			err = dec.Decode(&errorResp)
@@ -797,12 +794,10 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 			return recorder.Code, nil, nil, err
 		}
 		return recorder.Code, resp, nil, nil
-
 	{{else}}
-		return recorder.Code, nil, nil
+		return recorder, nil
 	{{end}}
 }
-{{end}}
 {{end}}
 {{end}}
 `
