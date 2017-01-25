@@ -3,9 +3,10 @@ go:
  - 1.6.2
 
 install:
- - go get -t ./...
- - go get golang.org/x/tools/cmd/cover
- - go get github.com/mattn/goveralls
+ - go get -t -u ./...
+ - go get -u github.com/gorilla/mux
+ - go get -u golang.org/x/tools/cmd/cover
+ - go get -u github.com/mattn/goveralls
 
 script:
  - PATH="$HOME/gopath/bin:$PATH"

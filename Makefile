@@ -80,4 +80,4 @@ clean:
 	$(GO) clean ./...
 
 .PHONY:
-	help deps gen test coverage install clean all
+	help deps gen test citest coverage install clean all
