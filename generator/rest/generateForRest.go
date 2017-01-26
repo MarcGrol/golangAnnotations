@@ -625,6 +625,10 @@ var helpersTemplate string = `
 
 package {{.PackageName}}
 
+import (
+    "golang.org/x/net/context"
+)
+
 {{ $structName := .Name }}
 
 
@@ -828,6 +832,10 @@ var httpClientTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
+
+import (
+    "golang.org/x/net/context"
+)
 
 {{ $structName := .Name }}
 
