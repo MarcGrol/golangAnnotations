@@ -56,7 +56,7 @@ citest:
 	@echo "Running backend tests"
 	@echo "-------------"
 	$(GO) generate -tags ci  ./...
-	make imports
+	make deps imports
 	$(GO) test -tags ci ./...                        # run unit tests
 	make format
 
