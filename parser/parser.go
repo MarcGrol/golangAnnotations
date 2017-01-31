@@ -330,7 +330,7 @@ func extractGenDeclForEnum(node ast.Node, imports map[string]string) (model.Enum
 
 	gd, ok := node.(*ast.GenDecl)
 	if ok {
-		// Continue parsing to see if it a struct
+		// Continue parsing to see if it an enum
 		e, found = extractSpecsForEnum(gd.Specs, imports)
 		// Docs live in the related typdef
 	}
@@ -388,14 +388,16 @@ func extractSpecsForEnum(specs []ast.Spec, imports map[string]string) (model.Enu
 		for _, vs := range specs {
 			s, ok := vs.(*ast.ValueSpec)
 			if ok {
-				for _, n := range s.Names {
-					i, ok := s.Type.(*ast.Ident)
-					if ok {
-						typeName = i.Name
-					}
-					if n.Obj.Kind == ast.Con {
-						isEnumConstant = true
-						break
+				if s.Type != nil {
+					for _, n := range s.Names {
+						i, ok := s.Type.(*ast.Ident)
+						if ok {
+							typeName = i.Name
+						}
+						if n.Obj.Kind == ast.Con {
+							isEnumConstant = true
+							break
+						}
 					}
 				}
 			}
