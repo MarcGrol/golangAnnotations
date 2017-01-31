@@ -494,11 +494,11 @@ func extractComments(commentGroup *ast.CommentGroup) []string {
 	return lines
 }
 
-func extractTag(basicLit *ast.BasicLit) (string, bool) {
+func extractTag(basicLit *ast.BasicLit) string {
 	if basicLit != nil {
-		return basicLit.Value, true
+		return basicLit.Value
 	}
-	return "", false
+	return ""
 }
 
 func extractFieldList(fieldList *ast.FieldList, imports map[string]string) []model.Field {
@@ -550,11 +550,7 @@ func _extractField(field *ast.Field, imports map[string]string) model.Field {
 	mField := model.Field{
 		DocLines:     extractComments(field.Doc),
 		CommentLines: extractComments(field.Comment),
-	}
-
-	tag, ok := extractTag(field.Tag)
-	if ok {
-		mField.Tag = tag
+		Tag:          extractTag(field.Tag),
 	}
 	{
 		arrayType, ok := field.Type.(*ast.ArrayType)
