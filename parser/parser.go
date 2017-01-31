@@ -556,18 +556,18 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 	return mFields
 }
 
-func _extractField(input *ast.Field, imports map[string]string) model.Field {
+func _extractField(field *ast.Field, imports map[string]string) model.Field {
 	mField := model.Field{
-		DocLines:     extractComments(input.Doc),
-		CommentLines: extractComments(input.Comment),
+		DocLines:     extractComments(field.Doc),
+		CommentLines: extractComments(field.Comment),
 	}
 
-	tag, ok := extractTag(input.Tag)
+	tag, ok := extractTag(field.Tag)
 	if ok {
 		mField.Tag = tag
 	}
 	{
-		arrayType, ok := input.Type.(*ast.ArrayType)
+		arrayType, ok := field.Type.(*ast.ArrayType)
 		if ok {
 			mField.IsSlice = true
 			{
@@ -614,7 +614,7 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 		var mapKey string = ""
 		var mapValue string = ""
 
-		mapType, ok := input.Type.(*ast.MapType)
+		mapType, ok := field.Type.(*ast.MapType)
 		if ok {
 			{
 				key, ok := mapType.Key.(*ast.Ident)
@@ -636,7 +636,7 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 	}
 
 	{
-		starExpr, ok := input.Type.(*ast.StarExpr)
+		starExpr, ok := field.Type.(*ast.StarExpr)
 		if ok {
 			ident, ok := starExpr.X.(*ast.Ident)
 			if ok {
@@ -655,13 +655,13 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 		}
 	}
 	{
-		ident, ok := input.Type.(*ast.Ident)
+		ident, ok := field.Type.(*ast.Ident)
 		if ok {
 			mField.TypeName = ident.Name
 		}
 	}
 	{
-		selectorExpr, ok := input.Type.(*ast.SelectorExpr)
+		selectorExpr, ok := field.Type.(*ast.SelectorExpr)
 		if ok {
 			ident, ok := selectorExpr.X.(*ast.Ident)
 			if ok {
