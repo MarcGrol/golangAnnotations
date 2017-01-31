@@ -242,11 +242,11 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if struct, get its fields
-			mTypedef, ok := extractGenDeclForTypedef(node)
-			if ok {
+			mTypedef := extractGenDeclForTypedef(node)
+			if mTypedef != nil {
 				mTypedef.PackageName = v.PackageName
 				mTypedef.Filename = v.CurrentFilename
-				v.Typedefs = append(v.Typedefs, mTypedef)
+				v.Typedefs = append(v.Typedefs, *mTypedef)
 			}
 		}
 		{
@@ -313,20 +313,17 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.St
 	return nil
 }
 
-func extractGenDeclForTypedef(node ast.Node) (model.Typedef, bool) {
-	found := false
-	var mTypedef model.Typedef
-
+func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it a struct
-		mTypedef, found = extractSpecsForTypedef(genDecl.Specs)
-		if found {
+		mTypedef := extractSpecsForTypedef(genDecl.Specs)
+		if mTypedef != nil {
 			mTypedef.DocLines = extractComments(genDecl.Doc)
+			return mTypedef
 		}
 	}
-
-	return mTypedef, found
+	return nil
 }
 
 func extractGenDeclForEnum(node ast.Node) (model.Enum, bool) {
@@ -496,23 +493,21 @@ func extractOperation(node ast.Node, imports map[string]string) (model.Operation
 	return mOperation, found
 }
 
-func extractSpecsForTypedef(specs []ast.Spec) (model.Typedef, bool) {
-	found := false
-	mTypedef := model.Typedef{}
-
+func extractSpecsForTypedef(specs []ast.Spec) *model.Typedef {
 	if len(specs) >= 1 {
 		typeSpec, ok := specs[0].(*ast.TypeSpec)
 		if ok {
-			mTypedef.Name = typeSpec.Name.Name
+			mTypedef := model.Typedef{
+				Name: typeSpec.Name.Name,
+			}
 			ident, ok := typeSpec.Type.(*ast.Ident)
 			if ok {
 				mTypedef.Type = ident.Name
 			}
-			found = true
+			return &mTypedef
 		}
 	}
-
-	return mTypedef, found
+	return nil
 }
 
 func extractComments(commentGroup *ast.CommentGroup) []string {
