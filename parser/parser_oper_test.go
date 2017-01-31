@@ -9,12 +9,12 @@ import (
 
 func TestStructOperationsInDir(t *testing.T) {
 	dumpFilesInDir("./operations")
-	harvest, err := ParseSourceDir("./operations", ".*")
+	parsedSources, err := ParseSourceDir("./operations", ".*")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, 4, len(harvest.Operations))
+	assert.Equal(t, 4, len(parsedSources.Operations))
 
 	{
-		o := harvest.Operations[0]
+		o := parsedSources.Operations[0]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{"// docline for getPersons"}, o.DocLines)
 		assert.Equal(t, "getPersons", o.Name)
@@ -29,7 +29,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[1])
 	}
 	{
-		o := harvest.Operations[1]
+		o := parsedSources.Operations[1]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{`// docline for getPerson`}, o.DocLines)
 		assert.Equal(t, "getPerson", o.Name)
@@ -44,7 +44,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[2])
 	}
 	{
-		o := harvest.Operations[2]
+		o := parsedSources.Operations[2]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{`// docline for getForeignStruct`}, o.DocLines)
 		assert.Equal(t, "getForeignStruct", o.Name)
@@ -60,7 +60,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[1])
 	}
 	{
-		o := harvest.Operations[3]
+		o := parsedSources.Operations[3]
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{`// docline for getForeignStructs`}, o.DocLines)
 		assert.Equal(t, "getForeignStructs", o.Name)

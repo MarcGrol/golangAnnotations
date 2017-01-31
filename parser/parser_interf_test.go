@@ -8,12 +8,12 @@ import (
 )
 
 func TestInterfacesInDir(t *testing.T) {
-	harvest, err := ParseSourceDir("./interfaces", ".*")
+	parsedSources, err := ParseSourceDir("./interfaces", ".*")
 	assert.Equal(t, nil, err)
-	assert.Len(t, harvest.Interfaces, 1)
+	assert.Len(t, parsedSources.Interfaces, 1)
 
 	{
-		i := harvest.Interfaces[0]
+		i := parsedSources.Interfaces[0]
 		assert.Equal(t, "interfaces", i.PackageName)
 		assert.Equal(t, []string{"// docline for interface Doer"}, i.DocLines)
 		assert.Equal(t, "Doer", i.Name)

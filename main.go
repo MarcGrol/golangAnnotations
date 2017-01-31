@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -21,13 +23,23 @@ var (
 func main() {
 	processArgs()
 
-	harvest, err := parser.ParseSourceDir(*inputDir, ".*.go")
+	parsedSources, err := parser.ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
 	}
 
-	generator.RunAllGenerators(*inputDir, harvest)
+	marshalled, err := json.MarshalIndent(parsedSources, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	targetFilename := *inputDir + "/$" + "ast.json"
+	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	generator.RunAllGenerators(*inputDir, parsedSources)
 
 	os.Exit(0)
 }
