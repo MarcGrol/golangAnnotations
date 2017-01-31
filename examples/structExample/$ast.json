@@ -560,16 +560,13 @@
 			"name": "Color",
 			"enumLiterals": [
 				{
-					"name": "Red",
-					"data": 0
+					"name": "Red"
 				},
 				{
-					"name": "Green",
-					"data": 1
+					"name": "Green"
 				},
 				{
-					"name": "Blue",
-					"data": 2
+					"name": "Blue"
 				}
 			]
 		}

@@ -339,12 +339,6 @@
 					"name": "Value",
 					"typeName": "string",
 					"tag": "`json:\"value,omitempty\"`"
-				},
-				{
-					"name": "Data",
-					"typeName": "int",
-					"isPointer": true,
-					"tag": "`json:\"data,omitempty\"`"
 				}
 			]
 		}

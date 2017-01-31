@@ -79,5 +79,4 @@ type Enum struct {
 type EnumLiteral struct {
 	Name  string `json:"name"`
 	Value string `json:"value,omitempty"`
-	Data  *int   `json:"data,omitempty"`
 }

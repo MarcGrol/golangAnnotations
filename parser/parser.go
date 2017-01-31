@@ -422,17 +422,8 @@ func extractSpecsForEnum(specs []ast.Spec, imports map[string]string) (model.Enu
 			for _, vs := range specs {
 				s, ok := vs.(*ast.ValueSpec)
 				if ok {
-					var data *int = nil
-					if s.Names[0].Obj != nil {
-						i, ok := s.Names[0].Obj.Data.(int)
-						if ok {
-							data = &i
-						}
-					}
-
 					literal := model.EnumLiteral{
 						Name: s.Names[0].Name,
-						Data: data,
 					}
 
 					for _, v := range s.Values {
