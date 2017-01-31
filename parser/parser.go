@@ -131,16 +131,16 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 }
 
 func embedOperationsInStructs(visitor *astVisitor) {
-	structMap := make(map[string]*model.Struct)
+	mStructMap := make(map[string]*model.Struct)
 	for idx := range visitor.Structs {
-		structMap[(&visitor.Structs[idx]).Name] = &visitor.Structs[idx]
+		mStructMap[(&visitor.Structs[idx]).Name] = &visitor.Structs[idx]
 	}
 	for idx := range visitor.Operations {
-		operation := visitor.Operations[idx]
-		if operation.RelatedStruct != nil {
-			mStruct, ok := structMap[(*operation.RelatedStruct).TypeName]
+		mOperation := visitor.Operations[idx]
+		if mOperation.RelatedStruct != nil {
+			mStruct, ok := mStructMap[(*mOperation.RelatedStruct).TypeName]
 			if ok {
-				mStruct.Operations = append(mStruct.Operations, &operation)
+				mStruct.Operations = append(mStruct.Operations, &mOperation)
 			}
 		}
 	}
@@ -161,11 +161,10 @@ func embedTypedefDocLinesInEnum(v *astVisitor) {
 func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
 	var pattern = regexp.MustCompile(filenameRegex)
 
-	packageMap := make(map[string]*ast.Package)
 	var err error
 
 	fileSet := token.NewFileSet()
-	packageMap, err = parser.ParseDir(
+	packageMap, err := parser.ParseDir(
 		fileSet,
 		dirName,
 		func(fi os.FileInfo) bool {
@@ -182,12 +181,12 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 
 func dumpFile(srcFilename string) {
 	fileSet := token.NewFileSet()
-	aFile, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
+	file, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return
 	}
-	ast.Print(fileSet, aFile)
+	ast.Print(fileSet, file)
 }
 
 func dumpFilesInDir(dirName string) {
@@ -201,8 +200,8 @@ func dumpFilesInDir(dirName string) {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 	}
 	for _, aPackage := range packageMap {
-		for _, aFile := range aPackage.Files {
-			ast.Print(fileSet, aFile)
+		for _, file := range aPackage.Files {
+			ast.Print(fileSet, file)
 		}
 	}
 }
@@ -288,12 +287,11 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 			if ok {
 				quotedImport := importSpec.Path.Value
 				unquotedImport := strings.Trim(quotedImport, "\"")
-				first, last := filepath.Split(unquotedImport)
-				if first == "" {
-					last = first
+				init, last := filepath.Split(unquotedImport)
+				if init == "" {
+					last = init
 				}
 				v.Imports[last] = unquotedImport
-				//log.Printf( "Found import %s -> %s",  last, unquotedImport)
 			}
 		}
 	}
@@ -376,18 +374,18 @@ func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
 		for _, spec := range specs {
 			valueSpec, ok := spec.(*ast.ValueSpec)
 			if ok {
-				literal := model.EnumLiteral{
+				enumLiteral := model.EnumLiteral{
 					Name: valueSpec.Names[0].Name,
 				}
 
 				for _, value := range valueSpec.Values {
 					basicLit, ok := value.(*ast.BasicLit)
 					if ok {
-						literal.Value = strings.Trim(basicLit.Value, "\"")
+						enumLiteral.Value = strings.Trim(basicLit.Value, "\"")
 						break
 					}
 				}
-				mEnum.EnumLiterals = append(mEnum.EnumLiterals, literal)
+				mEnum.EnumLiterals = append(mEnum.EnumLiterals, enumLiteral)
 			}
 		}
 		return &mEnum
@@ -509,13 +507,13 @@ func extractTag(basicLit *ast.BasicLit) (string, bool) {
 }
 
 func extractFieldList(fieldList *ast.FieldList, imports map[string]string) []model.Field {
-	fields := []model.Field{}
+	mFields := []model.Field{}
 	if fieldList != nil {
 		for _, field := range fieldList.List {
-			fields = append(fields, extractFields(field, imports)...)
+			mFields = append(mFields, extractFields(field, imports)...)
 		}
 	}
-	return fields
+	return mFields
 }
 
 func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
@@ -544,47 +542,47 @@ func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string
 }
 
 func extractFields(field *ast.Field, imports map[string]string) []model.Field {
-	fields := []model.Field{}
+	mFields := []model.Field{}
 	if field != nil {
 		if len(field.Names) == 0 {
-			fields = append(fields, _extractField(field, imports))
+			mFields = append(mFields, _extractField(field, imports))
 		} else {
 			// A single field can refer to multiple: example: x,y int -> x int, y int
 			for _, name := range field.Names {
 				field := _extractField(field, imports)
 				field.Name = name.Name
-				fields = append(fields, field)
+				mFields = append(mFields, field)
 			}
 		}
 	}
-	return fields
+	return mFields
 }
 
 func _extractField(input *ast.Field, imports map[string]string) model.Field {
-	field := model.Field{
+	mField := model.Field{
 		DocLines:     extractComments(input.Doc),
 		CommentLines: extractComments(input.Comment),
 	}
 
 	tag, ok := extractTag(input.Tag)
 	if ok {
-		field.Tag = tag
+		mField.Tag = tag
 	}
 	{
 		arrayType, ok := input.Type.(*ast.ArrayType)
 		if ok {
-			field.IsSlice = true
+			mField.IsSlice = true
 			{
 				ident, ok := arrayType.Elt.(*ast.Ident)
 				if ok {
-					field.TypeName = ident.Name
+					mField.TypeName = ident.Name
 				}
 				selectorExpr, ok := arrayType.Elt.(*ast.SelectorExpr)
 				if ok {
 					ident, ok = selectorExpr.X.(*ast.Ident)
 					if ok {
-						field.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-						field.PackageName = imports[ident.Name]
+						mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+						mField.PackageName = imports[ident.Name]
 					}
 				}
 			}
@@ -595,8 +593,8 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 					if ok {
 						ident, ok := starExpr.X.(*ast.Ident)
 						if ok {
-							field.TypeName = ident.Name
-							field.IsPointer = true
+							mField.TypeName = ident.Name
+							mField.IsPointer = true
 						}
 					}
 
@@ -604,9 +602,9 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 					if ok {
 						ident, ok := selectorExpr.X.(*ast.Ident)
 						if ok {
-							field.PackageName = imports[ident.Name]
-							field.IsPointer = true
-							field.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+							mField.PackageName = imports[ident.Name]
+							mField.IsPointer = true
+							mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 						}
 					}
 				}
@@ -634,7 +632,7 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 			}
 		}
 		if mapKey != "" && mapValue != "" {
-			field.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+			mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
 		}
 
 	}
@@ -644,17 +642,16 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 		if ok {
 			ident, ok := starExpr.X.(*ast.Ident)
 			if ok {
-				//log.Printf("starExpr ident: %+v", ident.Name)
-				field.TypeName = ident.Name
-				field.IsPointer = true
+				mField.TypeName = ident.Name
+				mField.IsPointer = true
 			}
 			selectorExpr, ok := starExpr.X.(*ast.SelectorExpr)
 			if ok {
 				ident, ok = selectorExpr.X.(*ast.Ident)
 				if ok {
-					field.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-					field.IsPointer = true
-					field.PackageName = imports[ident.Name]
+					mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+					mField.IsPointer = true
+					mField.PackageName = imports[ident.Name]
 				}
 			}
 		}
@@ -662,7 +659,7 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 	{
 		ident, ok := input.Type.(*ast.Ident)
 		if ok {
-			field.TypeName = ident.Name
+			mField.TypeName = ident.Name
 		}
 	}
 	{
@@ -670,12 +667,12 @@ func _extractField(input *ast.Field, imports map[string]string) model.Field {
 		if ok {
 			ident, ok := selectorExpr.X.(*ast.Ident)
 			if ok {
-				field.Name = ident.Name
-				field.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-				field.PackageName = imports[ident.Name]
+				mField.Name = ident.Name
+				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+				mField.PackageName = imports[ident.Name]
 			}
 		}
 	}
 
-	return field
+	return mField
 }
