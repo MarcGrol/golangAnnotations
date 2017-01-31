@@ -377,7 +377,6 @@ func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
 				enumLiteral := model.EnumLiteral{
 					Name: valueSpec.Names[0].Name,
 				}
-
 				for _, value := range valueSpec.Values {
 					basicLit, ok := value.(*ast.BasicLit)
 					if ok {
@@ -394,17 +393,15 @@ func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
 }
 
 func extractEnumTypeName(specs []ast.Spec) (string, bool) {
-	if len(specs) >= 1 {
-		for _, spec := range specs {
-			valueSpec, ok := spec.(*ast.ValueSpec)
-			if ok {
-				if valueSpec.Type != nil {
-					for _, name := range valueSpec.Names {
-						ident, ok := valueSpec.Type.(*ast.Ident)
-						if ok {
-							if name.Obj.Kind == ast.Con {
-								return ident.Name, true
-							}
+	for _, spec := range specs {
+		valueSpec, ok := spec.(*ast.ValueSpec)
+		if ok {
+			if valueSpec.Type != nil {
+				for _, name := range valueSpec.Names {
+					ident, ok := valueSpec.Type.(*ast.Ident)
+					if ok {
+						if name.Obj.Kind == ast.Con {
+							return ident.Name, true
 						}
 					}
 				}
