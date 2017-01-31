@@ -561,11 +561,10 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 }
 
 func _extractField(input *ast.Field, imports map[string]string) model.Field {
-	field := model.Field{}
-
-	field.DocLines = extractComments(input.Doc)
-
-	field.CommentLines = extractComments(input.Comment)
+	field := model.Field{
+		DocLines:     extractComments(input.Doc),
+		CommentLines: extractComments(input.Comment),
+	}
 
 	tag, ok := extractTag(input.Tag)
 	if ok {
