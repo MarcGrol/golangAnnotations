@@ -513,23 +513,16 @@ func extractFieldList(fieldList *ast.FieldList, imports map[string]string) []mod
 
 func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
 	methods := []model.Operation{}
-
 	for _, field := range fieldList.List {
 		if len(field.Names) > 0 {
-			mOperation := model.Operation{DocLines: extractComments(field.Doc)}
-
-			mOperation.Name = field.Names[0].Name
-
 			funcType, ok := field.Type.(*ast.FuncType)
 			if ok {
-				if funcType.Params != nil {
-					mOperation.InputArgs = extractFieldList(funcType.Params, imports)
-				}
-
-				if funcType.Results != nil {
-					mOperation.OutputArgs = extractFieldList(funcType.Results, imports)
-				}
-				methods = append(methods, mOperation)
+				methods = append(methods, model.Operation{
+					DocLines:   extractComments(field.Doc),
+					Name:       field.Names[0].Name,
+					InputArgs:  extractFieldList(funcType.Params, imports),
+					OutputArgs: extractFieldList(funcType.Results, imports),
+				})
 			}
 		}
 	}
