@@ -435,16 +435,13 @@ func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *mode
 }
 
 func extractPackageName(node ast.Node) (string, bool) {
-	found := false
-	packageName := ""
-
-	file, found := node.(*ast.File)
-	if found {
+	file, ok := node.(*ast.File)
+	if ok {
 		if file.Name != nil {
-			packageName = file.Name.Name
+			return file.Name.Name, true
 		}
 	}
-	return packageName, found
+	return "", ok
 }
 
 func extractOperation(node ast.Node, imports map[string]string) *model.Operation {
