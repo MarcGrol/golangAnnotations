@@ -242,7 +242,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if struct, get its fields
-			mTypedef, ok := extractGenDeclForTypedef(node, v.Imports)
+			mTypedef, ok := extractGenDeclForTypedef(node)
 			if ok {
 				mTypedef.PackageName = v.PackageName
 				mTypedef.Filename = v.CurrentFilename
@@ -251,7 +251,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if struct, get its fields
-			mEnum, ok := extractGenDeclForEnum(node, v.Imports)
+			mEnum, ok := extractGenDeclForEnum(node)
 			if ok {
 				mEnum.PackageName = v.PackageName
 				mEnum.Filename = v.CurrentFilename
@@ -316,14 +316,14 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string) (model.St
 	return mStruct, found
 }
 
-func extractGenDeclForTypedef(node ast.Node, imports map[string]string) (model.Typedef, bool) {
+func extractGenDeclForTypedef(node ast.Node) (model.Typedef, bool) {
 	found := false
 	var mTypedef model.Typedef
 
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it a struct
-		mTypedef, found = extractSpecsForTypedef(genDecl.Specs, imports)
+		mTypedef, found = extractSpecsForTypedef(genDecl.Specs)
 		if found {
 			mTypedef.DocLines = extractComments(genDecl.Doc)
 		}
@@ -332,14 +332,14 @@ func extractGenDeclForTypedef(node ast.Node, imports map[string]string) (model.T
 	return mTypedef, found
 }
 
-func extractGenDeclForEnum(node ast.Node, imports map[string]string) (model.Enum, bool) {
+func extractGenDeclForEnum(node ast.Node) (model.Enum, bool) {
 	found := false
 	var mEnum model.Enum
 
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it an enum
-		mEnum, found = extractSpecsForEnum(genDecl.Specs, imports)
+		mEnum, found = extractSpecsForEnum(genDecl.Specs)
 		// Docs live in the related typdef
 	}
 
@@ -383,7 +383,7 @@ func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) (model.S
 	return mStruct, found
 }
 
-func extractSpecsForEnum(specs []ast.Spec, imports map[string]string) (model.Enum, bool) {
+func extractSpecsForEnum(specs []ast.Spec) (model.Enum, bool) {
 	found := false
 	mEnum := model.Enum{}
 
@@ -503,7 +503,7 @@ func extractOperation(node ast.Node, imports map[string]string) (model.Operation
 	return mOperation, found
 }
 
-func extractSpecsForTypedef(specs []ast.Spec, imports map[string]string) (model.Typedef, bool) {
+func extractSpecsForTypedef(specs []ast.Spec) (model.Typedef, bool) {
 	found := false
 	mTypedef := model.Typedef{}
 
