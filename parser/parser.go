@@ -35,9 +35,9 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	v.CurrentFilename = srcFilename
 	ast.Walk(v, f)
 
-	embedMethodsInStructs(v)
+	embedOperationsInStructs(v)
 
-	embedTypedefDoclinesInEnum(v)
+	embedTypedefDocLinesInEnum(v)
 
 	result := model.ParsedSources{
 		Structs:    v.Structs,
@@ -102,10 +102,9 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		}
 	}
 
-	embedMethodsInStructs(v)
+	embedOperationsInStructs(v)
 
-	embedTypedefDoclinesInEnum(v)
-	//log.Printf("%+v", *v)
+	embedTypedefDocLinesInEnum(v)
 
 	result := model.ParsedSources{
 		Structs:    v.Structs,
@@ -118,7 +117,7 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 	return result, nil
 }
 
-func embedMethodsInStructs(visitor *astVisitor) {
+func embedOperationsInStructs(visitor *astVisitor) {
 	allStructs := make(map[string]*model.Struct)
 	for idx := range visitor.Structs {
 		allStructs[(&visitor.Structs[idx]).Name] = &visitor.Structs[idx]
@@ -135,7 +134,7 @@ func embedMethodsInStructs(visitor *astVisitor) {
 
 }
 
-func embedTypedefDoclinesInEnum(visitor *astVisitor) {
+func embedTypedefDocLinesInEnum(visitor *astVisitor) {
 	for idx, e := range visitor.Enums {
 		for _, td := range visitor.Typedefs {
 			if td.Name == e.Name {
