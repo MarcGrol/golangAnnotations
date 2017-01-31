@@ -147,11 +147,11 @@ func embedOperationsInStructs(visitor *astVisitor) {
 
 }
 
-func embedTypedefDocLinesInEnum(v *astVisitor) {
-	for idx, mEnum := range v.Enums {
-		for _, typedef := range v.Typedefs {
+func embedTypedefDocLinesInEnum(visitor *astVisitor) {
+	for idx, mEnum := range visitor.Enums {
+		for _, typedef := range visitor.Typedefs {
 			if typedef.Name == mEnum.Name {
-				v.Enums[idx].DocLines = typedef.DocLines
+				visitor.Enums[idx].DocLines = typedef.DocLines
 				break
 			}
 		}
