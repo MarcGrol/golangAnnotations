@@ -395,7 +395,6 @@ func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
 
 func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 	if len(specs) >= 1 {
-		typeName := ""
 		for _, spec := range specs {
 			valueSpec, ok := spec.(*ast.ValueSpec)
 			if ok {
@@ -403,10 +402,9 @@ func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 					for _, name := range valueSpec.Names {
 						ident, ok := valueSpec.Type.(*ast.Ident)
 						if ok {
-							typeName = ident.Name
-						}
-						if name.Obj.Kind == ast.Con {
-							return typeName, true
+							if name.Obj.Kind == ast.Con {
+								return ident.Name, true
+							}
 						}
 					}
 				}
