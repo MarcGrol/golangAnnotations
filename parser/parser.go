@@ -260,11 +260,11 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if interfaces, get its methods
-			mInterface, ok := extractGenDecForInterface(node, v.Imports)
-			if ok {
+			mInterface := extractGenDecForInterface(node, v.Imports)
+			if mInterface != nil {
 				mInterface.PackageName = v.PackageName
 				mInterface.Filename = v.CurrentFilename
-				v.Interfaces = append(v.Interfaces, mInterface)
+				v.Interfaces = append(v.Interfaces, *mInterface)
 			}
 		}
 		{
@@ -336,21 +336,18 @@ func extractGenDeclForEnum(node ast.Node) *model.Enum {
 	return nil
 }
 
-func extractGenDecForInterface(node ast.Node, imports map[string]string) (model.Interface, bool) {
-	found := false
-	var mInterface model.Interface
-
+func extractGenDecForInterface(node ast.Node, imports map[string]string) *model.Interface {
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it an interface
-		mInterface, found = extractSpecsForInterface(genDecl.Specs, imports)
-		if found {
+		mInterface := extractSpecsForInterface(genDecl.Specs, imports)
+		if mInterface != nil {
 			// Docline of interface (that could contain annotations) appear far before the details of the struct
 			mInterface.DocLines = extractComments(genDecl.Doc)
+			return mInterface
 		}
 	}
-
-	return mInterface, found
+	return nil
 }
 
 func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.Struct {
@@ -421,24 +418,20 @@ func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 	return "", false
 }
 
-func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) (model.Interface, bool) {
-	found := false
-	mInterface := model.Interface{}
-
+func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *model.Interface {
 	if len(specs) >= 1 {
 		typeSpec, ok := specs[0].(*ast.TypeSpec)
 		if ok {
-			mInterface.Name = typeSpec.Name.Name
-
 			interfaceType, ok := typeSpec.Type.(*ast.InterfaceType)
 			if ok {
-				mInterface.Methods = extractInterfaceMethods(interfaceType.Methods, imports)
-				found = true
+				return &model.Interface{
+					Name:    typeSpec.Name.Name,
+					Methods: extractInterfaceMethods(interfaceType.Methods, imports),
+				}
 			}
 		}
 	}
-
-	return mInterface, found
+	return nil
 }
 
 func extractPackageName(node ast.Node) (string, bool) {
