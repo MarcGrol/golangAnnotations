@@ -98,7 +98,20 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 	for _, p := range packages {
 		for _, entry := range SortedFileEntries(p.Files) {
 			v.CurrentFilename = entry.key
-			ast.Walk(v, &entry.file)
+
+			appEngineOnly := true
+			for _, commentGroup := range entry.file.Comments {
+				if commentGroup != nil {
+					for _, comment := range commentGroup.List {
+						if comment != nil && comment.Text == "// +build !appengine" {
+							appEngineOnly = false
+						}
+					}
+				}
+			}
+			if appEngineOnly {
+				ast.Walk(v, &entry.file)
+			}
 		}
 	}
 
