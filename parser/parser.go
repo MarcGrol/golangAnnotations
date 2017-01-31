@@ -233,11 +233,11 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 
 		{
 			// if struct, get its fields
-			mStruct, ok := extractGenDeclForStruct(node, v.Imports)
-			if ok {
+			mStruct := extractGenDeclForStruct(node, v.Imports)
+			if mStruct != nil {
 				mStruct.PackageName = v.PackageName
 				mStruct.Filename = v.CurrentFilename
-				v.Structs = append(v.Structs, mStruct)
+				v.Structs = append(v.Structs, *mStruct)
 			}
 		}
 		{
@@ -299,21 +299,18 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 	}
 }
 
-func extractGenDeclForStruct(node ast.Node, imports map[string]string) (model.Struct, bool) {
-	found := false
-	var mStruct model.Struct
-
+func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.Struct {
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
 		// Continue parsing to see if it a struct
-		mStruct, found = extractSpecsForStruct(genDecl.Specs, imports)
-		if ok {
+		mStruct := extractSpecsForStruct(genDecl.Specs, imports)
+		if mStruct != nil {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			mStruct.DocLines = extractComments(genDecl.Doc)
+			return mStruct
 		}
 	}
-
-	return mStruct, found
+	return nil
 }
 
 func extractGenDeclForTypedef(node ast.Node) (model.Typedef, bool) {
@@ -363,24 +360,20 @@ func extractGenDecForInterface(node ast.Node, imports map[string]string) (model.
 	return mInterface, found
 }
 
-func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) (model.Struct, bool) {
-	found := false
-	mStruct := model.Struct{}
-
+func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.Struct {
 	if len(specs) >= 1 {
 		typeSpec, ok := specs[0].(*ast.TypeSpec)
 		if ok {
-			mStruct.Name = typeSpec.Name.Name
-
 			structType, ok := typeSpec.Type.(*ast.StructType)
 			if ok {
-				mStruct.Fields = extractFieldList(structType.Fields, imports)
-				found = true
+				return &model.Struct{
+					Name:   typeSpec.Name.Name,
+					Fields: extractFieldList(structType.Fields, imports),
+				}
 			}
 		}
 	}
-
-	return mStruct, found
+	return nil
 }
 
 func extractSpecsForEnum(specs []ast.Spec) (model.Enum, bool) {
