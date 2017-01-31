@@ -251,11 +251,11 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if struct, get its fields
-			mEnum, ok := extractGenDeclForEnum(node)
-			if ok {
+			mEnum := extractGenDeclForEnum(node)
+			if mEnum != nil {
 				mEnum.PackageName = v.PackageName
 				mEnum.Filename = v.CurrentFilename
-				v.Enums = append(v.Enums, mEnum)
+				v.Enums = append(v.Enums, *mEnum)
 			}
 		}
 		{
@@ -326,18 +326,14 @@ func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
 	return nil
 }
 
-func extractGenDeclForEnum(node ast.Node) (model.Enum, bool) {
-	found := false
-	var mEnum model.Enum
-
+func extractGenDeclForEnum(node ast.Node) *model.Enum {
 	genDecl, ok := node.(*ast.GenDecl)
 	if ok {
-		// Continue parsing to see if it an enum
-		mEnum, found = extractSpecsForEnum(genDecl.Specs)
-		// Docs live in the related typdef
+		// Continue parsing to see if it is an enum
+		// Docs live in the related typedef
+		return extractSpecsForEnum(genDecl.Specs)
 	}
-
-	return mEnum, found
+	return nil
 }
 
 func extractGenDecForInterface(node ast.Node, imports map[string]string) (model.Interface, bool) {
@@ -373,15 +369,37 @@ func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.S
 	return nil
 }
 
-func extractSpecsForEnum(specs []ast.Spec) (model.Enum, bool) {
-	found := false
-	mEnum := model.Enum{}
+func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
+	typeName, ok := extractEnumTypeName(specs)
+	if ok {
+		mEnum := model.Enum{
+			Name:         typeName,
+			EnumLiterals: []model.EnumLiteral{},
+		}
+		for _, spec := range specs {
+			valueSpec, ok := spec.(*ast.ValueSpec)
+			if ok {
+				literal := model.EnumLiteral{
+					Name: valueSpec.Names[0].Name,
+				}
 
-	// parse type part
+				for _, value := range valueSpec.Values {
+					basicLit, ok := value.(*ast.BasicLit)
+					if ok {
+						literal.Value = strings.Trim(basicLit.Value, "\"")
+						break
+					}
+				}
+				mEnum.EnumLiterals = append(mEnum.EnumLiterals, literal)
+			}
+		}
+		return &mEnum
+	}
+	return nil
+}
 
-	// parse const part
+func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 	if len(specs) >= 1 {
-		isEnumConstant := false
 		typeName := ""
 		for _, spec := range specs {
 			valueSpec, ok := spec.(*ast.ValueSpec)
@@ -393,41 +411,14 @@ func extractSpecsForEnum(specs []ast.Spec) (model.Enum, bool) {
 							typeName = ident.Name
 						}
 						if name.Obj.Kind == ast.Con {
-							isEnumConstant = true
-							break
+							return typeName, true
 						}
 					}
 				}
 			}
-		}
-
-		if isEnumConstant {
-
-			mEnum.Name = typeName
-			mEnum.EnumLiterals = []model.EnumLiteral{}
-			for _, spec := range specs {
-				valueSpec, ok := spec.(*ast.ValueSpec)
-				if ok {
-					literal := model.EnumLiteral{
-						Name: valueSpec.Names[0].Name,
-					}
-
-					for _, value := range valueSpec.Values {
-
-						basicLit, ok := value.(*ast.BasicLit)
-						if ok {
-							literal.Value = strings.Trim(basicLit.Value, "\"")
-							break
-						}
-					}
-					mEnum.EnumLiterals = append(mEnum.EnumLiterals, literal)
-				}
-			}
-			found = true
 		}
 	}
-
-	return mEnum, found
+	return "", false
 }
 
 func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) (model.Interface, bool) {
