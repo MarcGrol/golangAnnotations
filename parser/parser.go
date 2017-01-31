@@ -269,11 +269,11 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		}
 		{
 			// if mOperation, get its signature
-			mOperation, ok := extractOperation(node, v.Imports)
-			if ok {
+			mOperation := extractOperation(node, v.Imports)
+			if mOperation != nil {
 				mOperation.PackageName = v.PackageName
 				mOperation.Filename = v.CurrentFilename
-				v.Operations = append(v.Operations, mOperation)
+				v.Operations = append(v.Operations, *mOperation)
 			}
 		}
 	}
@@ -447,13 +447,12 @@ func extractPackageName(node ast.Node) (string, bool) {
 	return packageName, found
 }
 
-func extractOperation(node ast.Node, imports map[string]string) (model.Operation, bool) {
-	found := false
-	mOperation := model.Operation{}
-
-	funcDecl, found := node.(*ast.FuncDecl)
-	if found {
-		mOperation.DocLines = extractComments(funcDecl.Doc)
+func extractOperation(node ast.Node, imports map[string]string) *model.Operation {
+	funcDecl, ok := node.(*ast.FuncDecl)
+	if ok {
+		mOperation := model.Operation{
+			DocLines: extractComments(funcDecl.Doc),
+		}
 
 		if funcDecl.Recv != nil {
 			fields := extractFieldList(funcDecl.Recv, imports)
@@ -473,8 +472,9 @@ func extractOperation(node ast.Node, imports map[string]string) (model.Operation
 		if funcDecl.Type.Results != nil {
 			mOperation.OutputArgs = extractFieldList(funcDecl.Type.Results, imports)
 		}
+		return &mOperation
 	}
-	return mOperation, found
+	return nil
 }
 
 func extractSpecsForTypedef(specs []ast.Spec) *model.Typedef {
