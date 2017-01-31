@@ -55,8 +55,9 @@ citest:
 	@echo "-------------"
 	@echo "Running backend tests"
 	@echo "-------------"
+	$(GO) get -u golang.org/x/tools/cmd/goimports
 	$(GO) generate -tags ci  ./...
-	make deps imports
+	make imports
 	$(GO) test -tags ci ./...                        # run unit tests
 	make format
 
