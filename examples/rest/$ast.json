@@ -1,0 +1,463 @@
+{
+	"structs": [
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Tour",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "Etappes",
+					"typeName": "Etappe",
+					"isSlice": true,
+					"tag": "`json:\"etappes\"`"
+				},
+				{
+					"name": "Cyclists",
+					"typeName": "Cyclist",
+					"isSlice": true,
+					"tag": "`json:\"cyclists\"`"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Cyclist",
+			"fields": [
+				{
+					"name": "UID",
+					"typeName": "string",
+					"tag": "`json:\"uid\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Points",
+					"typeName": "int",
+					"tag": "`json:\"points\"`"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Etappe",
+			"fields": [
+				{
+					"name": "UID",
+					"typeName": "string",
+					"tag": "`json:\"uid\"`"
+				},
+				{
+					"name": "Day",
+					"typeName": "time.Time",
+					"tag": "`json:\"day\"`"
+				},
+				{
+					"name": "StartLocation",
+					"typeName": "string",
+					"tag": "`json:\"startLocation\"`"
+				},
+				{
+					"name": "FinishLocation",
+					"typeName": "string",
+					"tag": "`json:\"finishLocation\"`"
+				},
+				{
+					"name": "EtappeResult",
+					"typeName": "EtappeResult",
+					"isPointer": true,
+					"tag": "`json:\"etappeResult\"`"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "EtappeResult",
+			"fields": [
+				{
+					"name": "EtappeUID",
+					"typeName": "string",
+					"tag": "`json:\"etappeUid\"`"
+				},
+				{
+					"name": "DayRankings",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"dayRankings\"`"
+				},
+				{
+					"name": "YellowRankings",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"yellowRankings\"`"
+				},
+				{
+					"name": "ClimbRankings",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"climbRankings\"`"
+				},
+				{
+					"name": "SprintRankings",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"sprintRankings\"`"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestService( path = \"/api/tour\" )"
+			],
+			"name": "TourService",
+			"operations": [
+				{
+					"packageName": "rest",
+					"filename": "tourService.go",
+					"docLines": [
+						"// @RestOperation( method = \"GET\", path = \"/{year}\", format = \"JSON\" )"
+					],
+					"relatedStruct": {
+						"name": "ts",
+						"typeName": "TourService"
+					},
+					"name": "getTourOnUid",
+					"inputArgs": [
+						{
+							"name": "year",
+							"typeName": "int"
+						}
+					],
+					"outputArgs": [
+						{
+							"typeName": "Tour",
+							"isPointer": true
+						},
+						{
+							"typeName": "error"
+						}
+					]
+				},
+				{
+					"packageName": "rest",
+					"filename": "tourService.go",
+					"docLines": [
+						"// @RestOperation( method = \"POST\", path = \"/{year}/etappe\", format = \"JSON\" )"
+					],
+					"relatedStruct": {
+						"name": "ts",
+						"typeName": "TourService",
+						"isPointer": true
+					},
+					"name": "createEtappe",
+					"inputArgs": [
+						{
+							"name": "year",
+							"typeName": "int"
+						},
+						{
+							"name": "etappe",
+							"typeName": "Etappe"
+						}
+					],
+					"outputArgs": [
+						{
+							"typeName": "Etappe",
+							"isPointer": true
+						},
+						{
+							"typeName": "error"
+						}
+					]
+				},
+				{
+					"packageName": "rest",
+					"filename": "tourService.go",
+					"docLines": [
+						"// @RestOperation( method = \"PUT\", path = \"/{year}/etappe/{etappeUid}\", format = \"JSON\" )"
+					],
+					"relatedStruct": {
+						"name": "ts",
+						"typeName": "TourService",
+						"isPointer": true
+					},
+					"name": "addEtappeResults",
+					"inputArgs": [
+						{
+							"name": "year",
+							"typeName": "int"
+						},
+						{
+							"name": "etappeUid",
+							"typeName": "string"
+						},
+						{
+							"name": "results",
+							"typeName": "EtappeResult"
+						}
+					],
+					"outputArgs": [
+						{
+							"typeName": "error"
+						}
+					]
+				},
+				{
+					"packageName": "rest",
+					"filename": "tourService.go",
+					"docLines": [
+						"// @RestOperation( method = \"POST\", path = \"/{year}/cyclist\", format = \"JSON\" )"
+					],
+					"relatedStruct": {
+						"name": "ts",
+						"typeName": "TourService",
+						"isPointer": true
+					},
+					"name": "createCyclist",
+					"inputArgs": [
+						{
+							"name": "year",
+							"typeName": "int"
+						},
+						{
+							"name": "cyclist",
+							"typeName": "Cyclist"
+						}
+					],
+					"outputArgs": [
+						{
+							"typeName": "Cyclist",
+							"isPointer": true
+						},
+						{
+							"typeName": "error"
+						}
+					]
+				},
+				{
+					"packageName": "rest",
+					"filename": "tourService.go",
+					"docLines": [
+						"// @RestOperation( method = \"DELETE\", path = \"/{year}/cyclist/{cyclistUid}\", format = \"JSON\" )"
+					],
+					"relatedStruct": {
+						"name": "ts",
+						"typeName": "TourService",
+						"isPointer": true
+					},
+					"name": "markCyclistAbondoned",
+					"inputArgs": [
+						{
+							"name": "year",
+							"typeName": "int"
+						},
+						{
+							"name": "cyclistUid",
+							"typeName": "string"
+						}
+					],
+					"outputArgs": [
+						{
+							"typeName": "error"
+						}
+					]
+				}
+			]
+		}
+	],
+	"operations": [
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestOperation( method = \"GET\", path = \"/{year}\", format = \"JSON\" )"
+			],
+			"relatedStruct": {
+				"name": "ts",
+				"typeName": "TourService"
+			},
+			"name": "getTourOnUid",
+			"inputArgs": [
+				{
+					"name": "year",
+					"typeName": "int"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Tour",
+					"isPointer": true
+				},
+				{
+					"typeName": "error"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestOperation( method = \"POST\", path = \"/{year}/etappe\", format = \"JSON\" )"
+			],
+			"relatedStruct": {
+				"name": "ts",
+				"typeName": "TourService",
+				"isPointer": true
+			},
+			"name": "createEtappe",
+			"inputArgs": [
+				{
+					"name": "year",
+					"typeName": "int"
+				},
+				{
+					"name": "etappe",
+					"typeName": "Etappe"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Etappe",
+					"isPointer": true
+				},
+				{
+					"typeName": "error"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestOperation( method = \"PUT\", path = \"/{year}/etappe/{etappeUid}\", format = \"JSON\" )"
+			],
+			"relatedStruct": {
+				"name": "ts",
+				"typeName": "TourService",
+				"isPointer": true
+			},
+			"name": "addEtappeResults",
+			"inputArgs": [
+				{
+					"name": "year",
+					"typeName": "int"
+				},
+				{
+					"name": "etappeUid",
+					"typeName": "string"
+				},
+				{
+					"name": "results",
+					"typeName": "EtappeResult"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "error"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestOperation( method = \"POST\", path = \"/{year}/cyclist\", format = \"JSON\" )"
+			],
+			"relatedStruct": {
+				"name": "ts",
+				"typeName": "TourService",
+				"isPointer": true
+			},
+			"name": "createCyclist",
+			"inputArgs": [
+				{
+					"name": "year",
+					"typeName": "int"
+				},
+				{
+					"name": "cyclist",
+					"typeName": "Cyclist"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Cyclist",
+					"isPointer": true
+				},
+				{
+					"typeName": "error"
+				}
+			]
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestOperation( method = \"DELETE\", path = \"/{year}/cyclist/{cyclistUid}\", format = \"JSON\" )"
+			],
+			"relatedStruct": {
+				"name": "ts",
+				"typeName": "TourService",
+				"isPointer": true
+			},
+			"name": "markCyclistAbondoned",
+			"inputArgs": [
+				{
+					"name": "year",
+					"typeName": "int"
+				},
+				{
+					"name": "cyclistUid",
+					"typeName": "string"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "error"
+				}
+			]
+		}
+	],
+	"typedefs": [
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Tour"
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Cyclist"
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "Etappe"
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"name": "EtappeResult"
+		},
+		{
+			"packageName": "rest",
+			"filename": "tourService.go",
+			"docLines": [
+				"// @RestService( path = \"/api/tour\" )"
+			],
+			"name": "TourService"
+		}
+	]
+}

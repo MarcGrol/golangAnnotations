@@ -7,9 +7,9 @@ import (
 	"go/token"
 	"log"
 	"os"
-	"regexp"
-
 	"path/filepath"
+	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
@@ -49,6 +49,39 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	return result, nil
 }
 
+type FileEntry struct {
+	key  string
+	file ast.File
+}
+
+type FileEntries []FileEntry
+
+func (list FileEntries) Len() int {
+	return len(list)
+}
+
+func (list FileEntries) Less(i, j int) bool {
+	return list[i].key < list[j].key
+}
+
+func (list FileEntries) Swap(i, j int) {
+	list[i], list[j] = list[j], list[i]
+}
+
+func SortedFileEntries(fileMap map[string]*ast.File) FileEntries {
+	var fileEntries FileEntries = make([]FileEntry, 0, len(fileMap))
+	for key, file := range fileMap {
+		if file != nil {
+			fileEntries = append(fileEntries, FileEntry{
+				key:  key,
+				file: *file,
+			})
+		}
+	}
+	sort.Sort(fileEntries)
+	return fileEntries
+}
+
 func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
@@ -63,9 +96,9 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		Imports: map[string]string{},
 	}
 	for _, p := range packages {
-		for fn, f := range p.Files {
-			v.CurrentFilename = fn
-			ast.Walk(v, f)
+		for _, entry := range SortedFileEntries(p.Files) {
+			v.CurrentFilename = entry.key
+			ast.Walk(v, &entry.file)
 		}
 	}
 
@@ -119,9 +152,9 @@ func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, er
 	packages := make(map[string]*ast.Package)
 	var err error
 
-	fset := token.NewFileSet()
+	fileSet := token.NewFileSet()
 	packages, err = parser.ParseDir(
-		fset,
+		fileSet,
 		dirName,
 		func(fi os.FileInfo) bool {
 			return pattern.MatchString(fi.Name())
@@ -375,9 +408,17 @@ func extractSpecsForEnum(specs []ast.Spec, imports map[string]string) (model.Enu
 			for _, vs := range specs {
 				s, ok := vs.(*ast.ValueSpec)
 				if ok {
+					var data *int = nil
+					if s.Names[0].Obj != nil {
+						i, ok := s.Names[0].Obj.Data.(int)
+						if ok {
+							data = &i
+						}
+					}
 
 					literal := model.EnumLiteral{
 						Name: s.Names[0].Name,
+						Data: data,
 					}
 
 					for _, v := range s.Values {

@@ -1,0 +1,418 @@
+{
+	"structs": [
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "ParsedSources",
+			"fields": [
+				{
+					"name": "Structs",
+					"typeName": "Struct",
+					"isSlice": true,
+					"tag": "`json:\"structs,omitempty\"`"
+				},
+				{
+					"name": "Operations",
+					"typeName": "Operation",
+					"isSlice": true,
+					"tag": "`json:\"operations,omitempty\"`"
+				},
+				{
+					"name": "Interfaces",
+					"typeName": "Interface",
+					"isSlice": true,
+					"tag": "`json:\"interfaces,omitempty\"`"
+				},
+				{
+					"name": "Typedefs",
+					"typeName": "Typedef",
+					"isSlice": true,
+					"tag": "`json:\"typedefs,omitempty\"`"
+				},
+				{
+					"name": "Enums",
+					"typeName": "Enum",
+					"isSlice": true,
+					"tag": "`json:\"enums,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Operation",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName,omitempty\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename,omitempty\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "RelatedStruct",
+					"typeName": "Field",
+					"isPointer": true,
+					"tag": "`json:\"relatedStruct,omitempty\"`",
+					"commentLines": [
+						"// optional"
+					]
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "InputArgs",
+					"typeName": "Field",
+					"isSlice": true,
+					"tag": "`json:\"inputArgs,omitempty\"`"
+				},
+				{
+					"name": "OutputArgs",
+					"typeName": "Field",
+					"isSlice": true,
+					"tag": "`json:\"outputArgs,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Struct",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Fields",
+					"typeName": "Field",
+					"isSlice": true,
+					"tag": "`json:\"fields,omitempty\"`"
+				},
+				{
+					"name": "Operations",
+					"typeName": "Operation",
+					"isSlice": true,
+					"isPointer": true,
+					"tag": "`json:\"operations,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Interface",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Methods",
+					"typeName": "Operation",
+					"isSlice": true,
+					"tag": "`json:\"methods,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Field",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName,omitempty\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name,omitempty\"`"
+				},
+				{
+					"name": "TypeName",
+					"typeName": "string",
+					"tag": "`json:\"typeName,omitempty\"`"
+				},
+				{
+					"name": "IsSlice",
+					"typeName": "bool",
+					"tag": "`json:\"isSlice,omitempty\"`"
+				},
+				{
+					"name": "IsPointer",
+					"typeName": "bool",
+					"tag": "`json:\"isPointer,omitempty\"`"
+				},
+				{
+					"name": "Tag",
+					"typeName": "string",
+					"tag": "`json:\"tag,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Typedef",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Type",
+					"typeName": "string",
+					"tag": "`json:\"type,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Enum",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name,omitempty\"`"
+				},
+				{
+					"name": "EnumLiterals",
+					"typeName": "EnumLiteral",
+					"isSlice": true,
+					"tag": "`json:\"enumLiterals,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "EnumLiteral",
+			"fields": [
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Value",
+					"typeName": "string",
+					"tag": "`json:\"value,omitempty\"`"
+				},
+				{
+					"name": "Data",
+					"typeName": "int",
+					"isPointer": true,
+					"tag": "`json:\"data,omitempty\"`"
+				}
+			]
+		}
+	],
+	"typedefs": [
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "ParsedSources"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Operation"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Struct"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Interface"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Field"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Typedef"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Enum"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "EnumLiteral"
+		}
+	]
+}

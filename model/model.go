@@ -1,72 +1,83 @@
 package model
 
+//go:generate golangAnnotations -input-dir .
+
+// @JsonStruct()
 type ParsedSources struct {
-	Structs    []Struct
-	Operations []Operation
-	Interfaces []Interface
-	Typedefs   []Typedef
-	Enums      []Enum
+	Structs    []Struct    `json:"structs,omitempty"`
+	Operations []Operation `json:"operations,omitempty"`
+	Interfaces []Interface `json:"interfaces,omitempty"`
+	Typedefs   []Typedef   `json:"typedefs,omitempty"`
+	Enums      []Enum      `json:"enums,omitempty"`
 }
 
+// @JsonStruct()
 type Operation struct {
-	PackageName   string
-	Filename      string
-	DocLines      []string
-	RelatedStruct *Field // optional
-	Name          string
-	InputArgs     []Field
-	OutputArgs    []Field
-	CommentLines  []string
+	PackageName   string   `json:"packageName,omitempty"`
+	Filename      string   `json:"filename,omitempty"`
+	DocLines      []string `json:"docLines,omitempty"`
+	RelatedStruct *Field   `json:"relatedStruct,omitempty"` // optional
+	Name          string   `json:"name"`
+	InputArgs     []Field  `json:"inputArgs,omitempty"`
+	OutputArgs    []Field  `json:"outputArgs,omitempty"`
+	CommentLines  []string `json:"commentLines,omitempty"`
 }
 
+// @JsonStruct()
 type Struct struct {
-	PackageName  string
-	Filename     string
-	DocLines     []string
-	Name         string
-	Fields       []Field
-	Operations   []*Operation
-	CommentLines []string
+	PackageName  string       `json:"packageName"`
+	Filename     string       `json:"filename"`
+	DocLines     []string     `json:"docLines,omitempty"`
+	Name         string       `json:"name"`
+	Fields       []Field      `json:"fields,omitempty"`
+	Operations   []*Operation `json:"operations,omitempty"`
+	CommentLines []string     `json:"commentLines,omitempty"`
 }
 
+// @JsonStruct()
 type Interface struct {
-	PackageName  string
-	Filename     string
-	DocLines     []string
-	Name         string
-	Methods      []Operation
-	CommentLines []string
+	PackageName  string      `json:"packageName"`
+	Filename     string      `json:"filename"`
+	DocLines     []string    `json:"docLines,omitempty"`
+	Name         string      `json:"name"`
+	Methods      []Operation `json:"methods,omitempty"`
+	CommentLines []string    `json:"commentLines,omitempty"`
 }
 
+// @JsonStruct()
 type Field struct {
-	PackageName  string
-	DocLines     []string
-	Name         string
-	TypeName     string
-	IsSlice      bool
-	IsPointer    bool
-	Tag          string
-	CommentLines []string
+	PackageName  string   `json:"packageName,omitempty"`
+	DocLines     []string `json:"docLines,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	TypeName     string   `json:"typeName,omitempty"`
+	IsSlice      bool     `json:"isSlice,omitempty"`
+	IsPointer    bool     `json:"isPointer,omitempty"`
+	Tag          string   `json:"tag,omitempty"`
+	CommentLines []string `json:"commentLines,omitempty"`
 }
 
+// @JsonStruct()
 type Typedef struct {
-	PackageName string
-	Filename    string
-	DocLines    []string
-	Name        string
-	Type        string
+	PackageName string   `json:"packageName"`
+	Filename    string   `json:"filename"`
+	DocLines    []string `json:"docLines,omitempty"`
+	Name        string   `json:"name"`
+	Type        string   `json:"type,omitempty"`
 }
 
+// @JsonStruct()
 type Enum struct {
-	PackageName  string
-	Filename     string
-	DocLines     []string
-	Name         string
-	EnumLiterals []EnumLiteral
-	CommentLines []string
+	PackageName  string        `json:"packageName"`
+	Filename     string        `json:"filename"`
+	DocLines     []string      `json:"docLines,omitempty"`
+	Name         string        `json:"name,omitempty"`
+	EnumLiterals []EnumLiteral `json:"enumLiterals,omitempty"`
+	CommentLines []string      `json:"commentLines,omitempty"`
 }
 
+// @JsonStruct()
 type EnumLiteral struct {
-	Name  string
-	Value string
+	Name  string `json:"name"`
+	Value string `json:"value,omitempty"`
+	Data  *int   `json:"data,omitempty"`
 }
