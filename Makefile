@@ -55,7 +55,8 @@ citest:
 	@echo "-------------"
 	@echo "Running backend tests"
 	@echo "-------------"
-	$(GO) gen -tags ci  ./...
+	$(GO) generate -tags ci  ./...
+	for i in `find . -name "*.go"`; do goimports -w -local github.com/ $${i}; done
 	$(GO) test -tags ci ./...                        # run unit tests
 	make format
 
