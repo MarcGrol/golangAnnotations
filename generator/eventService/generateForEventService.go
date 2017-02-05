@@ -44,6 +44,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsEventService":               IsEventService,
+	"IsAsync":                      IsAsync,
 	"IsEventOperation":             IsEventOperation,
 	"GetInputArgType":              GetInputArgType,
 	"GetInputArgPackage":           GetInputArgPackage,
@@ -54,6 +55,17 @@ var customTemplateFuncs = template.FuncMap{
 func IsEventService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
 	return ok
+}
+
+func IsAsync(s model.Struct) bool {
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
+	if ok {
+		syncString, found := ann.Attributes[string(eventServiceAnnotation.ParamAsync)]
+		if found && syncString == "true" {
+			return true
+		}
+	}
+	return false
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
@@ -120,16 +132,61 @@ const (
 	subscriber = "{{GetEventServiceSelfName .}}"
 )
 
-func SubscribeToEvents() {
+func SubscribeToEvents(router *mux.Router) {
 	{{range GetEventServiceSubscriptions .}}
 	{
 		// Subscribe to topic "{{.}}"
 	    bus.Subscribe("{{.}}", subscriber, handleEvent)
 	}
 	{{end}}
+
+	{{if IsAsync .}}
+		router.HandleFunc("/tasks/"+subscriber+"/{aggregateName}/{eventTypeName}", httpHandleEventAsync()).Methods("POST")
+	{{end}}
 }
 
+{{if IsAsync .}}
+
 func handleEvent(c context.Context, topic string, envelope events.Envelope) {
+	taskUrl := fmt.Sprintf("/tasks/%s/%s/%s", subscriber, envelope.AggregateName, envelope.EventTypeName )
+
+	asJson, err := json.Marshal(envelope)
+	if err != nil {
+		logging.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
+		return
+	}
+
+	err = queue.New().Add(c, queue.Task{
+		Method:  "POST",
+		URL:     taskUrl,
+		Payload: asJson,
+	})
+	if err != nil {
+		logging.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
+		return
+	}
+	logging.New().Info(c, "Enqueued task to url %s", taskUrl)
+}
+
+func httpHandleEventAsync() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		c := ctx.New.CreateContext(r)
+
+		// read and parse request body
+		var envelope events.Envelope
+		err := json.NewDecoder(r.Body).Decode(&envelope)
+		if err != nil {
+			errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+			return
+		}
+		handleEventAsync(c, envelope.AggregateName, envelope)
+	}
+}
+
+func handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
+{{else}}
+func handleEvent(c context.Context, topic string, envelope events.Envelope) {
+{{end}}
     es := &{{$structName}}{}
 
     {{range $idxOper, $oper := .Operations}}
