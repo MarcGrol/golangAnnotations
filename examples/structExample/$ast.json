@@ -1,0 +1,574 @@
+{
+	"structs": [
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @JsonStruct()",
+				"// @Event( aggregate = \"Tour\")"
+			],
+			"name": "TourCreated",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "Tags",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"tags\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "TourCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @JsonStruct()",
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "CyclistCreated",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "CyclistUid",
+					"typeName": "string",
+					"tag": "`json:\"cyclistUid\"`"
+				},
+				{
+					"name": "CyclistName",
+					"typeName": "string",
+					"tag": "`json:\"cyclistName\"`"
+				},
+				{
+					"name": "CyclistTeam",
+					"typeName": "string",
+					"tag": "`json:\"cyclistTeam\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "CyclistCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "EtappeCreated",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "EtappeUid",
+					"typeName": "string",
+					"tag": "`json:\"etappeUid\"`"
+				},
+				{
+					"name": "EtappeDate",
+					"typeName": "time.Time",
+					"tag": "`json:\"etappeDate\"`"
+				},
+				{
+					"name": "EtappeStartLocation",
+					"typeName": "string",
+					"tag": "`json:\"etappeStartLocation\"`"
+				},
+				{
+					"name": "EtappeFinishLocation",
+					"typeName": "string",
+					"tag": "`json:\"etappeFinishLocation\"`"
+				},
+				{
+					"name": "EtappeLength",
+					"typeName": "int",
+					"tag": "`json:\"etappeLength\"`"
+				},
+				{
+					"name": "EtappeKind",
+					"typeName": "int",
+					"tag": "`json:\"etappeKind\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "EtappeCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "EtappeResultsCreated",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "EtappeUid",
+					"typeName": "string",
+					"tag": "`json:\"EtappeUid\"`"
+				},
+				{
+					"name": "BestDayCyclistIds",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"bestDayCyclistIds\"`"
+				},
+				{
+					"name": "BestAllrounderCyclistIds",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"bestAllrounderCyclistIds\"`"
+				},
+				{
+					"name": "BestSprinterCyclistIds",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"bestSprinterCyclistIds\"`"
+				},
+				{
+					"name": "BestClimberCyclistIds",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"bestClimberCyclistIds\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "EtappeResultsCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Gambler\")"
+			],
+			"name": "GamblerCreated",
+			"fields": [
+				{
+					"name": "GamblerUid",
+					"typeName": "string",
+					"tag": "`json:\"gamblerUid\"`"
+				},
+				{
+					"name": "GamblerName",
+					"typeName": "string",
+					"tag": "`json:\"gamblerName\"`"
+				},
+				{
+					"name": "GamblerEmail",
+					"typeName": "string",
+					"tag": "`json:\"gamblerEmail\"`"
+				},
+				{
+					"name": "GamblerImageIUrl",
+					"typeName": "string",
+					"tag": "`json:\"gamblerImageIUrl\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "GamblerCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Gambler\")"
+			],
+			"name": "GamblerTeamCreated",
+			"fields": [
+				{
+					"name": "GamblerUid",
+					"typeName": "string",
+					"tag": "`json:\"gamblerUid\"`"
+				},
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "GamblerCyclists",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"gamblerCyclists\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "GamblerTeamCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"News\")"
+			],
+			"name": "NewsItemCreated",
+			"fields": [
+				{
+					"name": "Year",
+					"typeName": "int",
+					"tag": "`json:\"year\"`"
+				},
+				{
+					"name": "Message",
+					"typeName": "string",
+					"tag": "`json:\"message\"`"
+				},
+				{
+					"name": "Sender",
+					"typeName": "string",
+					"tag": "`json:\"sender\"`"
+				},
+				{
+					"name": "RelatedCyclistUid",
+					"typeName": "string",
+					"tag": "`json:\"relatedCyclistUid\"`"
+				},
+				{
+					"name": "RelatedEtappeUid",
+					"typeName": "string",
+					"tag": "`json:\"relatedEtappeUid\"`"
+				},
+				{
+					"name": "Timestamp",
+					"typeName": "time.Time",
+					"tag": "`json:\"-\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "structExample",
+					"filename": "structExample.go",
+					"relatedStruct": {
+						"name": "t",
+						"typeName": "NewsItemCreated"
+					},
+					"name": "GetUID",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				}
+			]
+		}
+	],
+	"operations": [
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "TourCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "CyclistCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "EtappeCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "EtappeResultsCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "GamblerCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "GamblerTeamCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"relatedStruct": {
+				"name": "t",
+				"typeName": "NewsItemCreated"
+			},
+			"name": "GetUID",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		}
+	],
+	"typedefs": [
+		{
+			"packageName": "structExample",
+			"filename": "enumExample.go",
+			"docLines": [
+				"// @JsonEnum()"
+			],
+			"name": "Color",
+			"type": "int"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @JsonStruct()",
+				"// @Event( aggregate = \"Tour\")"
+			],
+			"name": "TourCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @JsonStruct()",
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "CyclistCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "EtappeCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Tour\")"
+			],
+			"name": "EtappeResultsCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Gambler\")"
+			],
+			"name": "GamblerCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"Gambler\")"
+			],
+			"name": "GamblerTeamCreated"
+		},
+		{
+			"packageName": "structExample",
+			"filename": "structExample.go",
+			"docLines": [
+				"// @Event(aggregate=\"News\")"
+			],
+			"name": "NewsItemCreated"
+		}
+	],
+	"enums": [
+		{
+			"packageName": "structExample",
+			"filename": "enumExample.go",
+			"docLines": [
+				"// @JsonEnum()"
+			],
+			"name": "Color",
+			"enumLiterals": [
+				{
+					"name": "Red"
+				},
+				{
+					"name": "Green"
+				},
+				{
+					"name": "Blue"
+				}
+			]
+		}
+	]
+}
