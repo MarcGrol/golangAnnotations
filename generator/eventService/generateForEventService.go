@@ -148,24 +148,28 @@ func SubscribeToEvents(router *mux.Router) {
 {{if IsAsync .}}
 
 func handleEvent(c context.Context, topic string, envelope events.Envelope) {
-	taskUrl := fmt.Sprintf("/tasks/%s/%s/%s", subscriber, envelope.AggregateName, envelope.EventTypeName )
+	switch envelope.EventTypeName {
+	case{{range $idxOper, $oper := .Operations}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}:
 
-	asJson, err := json.Marshal(envelope)
-	if err != nil {
-		logging.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
-		return
-	}
+		taskUrl := fmt.Sprintf("/tasks/%s/%s/%s", subscriber, envelope.AggregateName, envelope.EventTypeName )
 
-	err = queue.New().Add(c, queue.Task{
-		Method:  "POST",
-		URL:     taskUrl,
-		Payload: asJson,
-	})
-	if err != nil {
-		logging.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
-		return
+		asJson, err := json.Marshal(envelope)
+		if err != nil {
+			logging.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
+			return
+		}
+
+		err = queue.New().Add(c, queue.Task{
+			Method:  "POST",
+			URL:     taskUrl,
+			Payload: asJson,
+		})
+		if err != nil {
+			logging.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
+			return
+		}
+		logging.New().Info(c, "Enqueued task to url %s", taskUrl)
 	}
-	logging.New().Info(c, "Enqueued task to url %s", taskUrl)
 }
 
 func httpHandleEventAsync() http.HandlerFunc {
