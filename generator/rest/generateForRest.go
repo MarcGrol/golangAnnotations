@@ -85,8 +85,8 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationCustom":    IsRestOperationCustom,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
-	"HasContentType": HasContentType,
-	"GetContentType": GetContentType,
+	"HasContentType":           HasContentType,
+	"GetContentType":           GetContentType,
 	"GetRestOperationFilename": GetRestOperationFilename,
 	"HasOperationsWithInput":   HasOperationsWithInput,
 	"HasInput":                 HasInput,
@@ -105,6 +105,8 @@ var customTemplateFuncs = template.FuncMap{
 	"IsAuthContextArg":         IsAuthContextArg,
 	"HasAuthContext":           HasAuthContext,
 	"HasContext":               HasContext,
+	"ReturnsError":             ReturnsError,
+	"NeedsContext":             NeedsContext,
 	"GetContextName":           GetContextName,
 	"WithBackTicks":            SurroundWithBackTicks,
 	"BackTick":                 BackTick,
@@ -308,11 +310,27 @@ func HasContext(o model.Operation) bool {
 	return false
 }
 
+func ReturnsError(o model.Operation) bool {
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName == "error" {
+			return true
+		}
+	}
+	return false
+}
+
+func NeedsContext(o model.Operation) bool {
+	return HasContext(o) || ReturnsError(o)
+}
+
 func GetContextName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if arg.TypeName == "context.Context" {
 			return arg.Name
 		}
+	}
+	if ReturnsError(o) {
+		return "c"
 	}
 	return ""
 }
@@ -504,7 +522,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 
-		{{if HasContext $oper }}
+		{{if NeedsContext $oper }}
 			{{GetContextName $oper }} := ctx.New.CreateContext(r)
 		{{end}}
 
@@ -571,7 +589,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if RequiresParamValidation .}}
         if len(validationErrors) > 0 {
-            errorh.HandleHttpError(errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
+            errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
             return
         }
         {{end}}
@@ -581,7 +599,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-         		errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+         		errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 				return
 			}
 		{{end}}
@@ -593,7 +611,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
 		{{end}}
 		if err != nil {
-			errorh.HandleHttpError(err, w)
+			errorhandling.HandleHttpError(c, err, w)
 			return
 		}
 

@@ -180,7 +180,7 @@ func httpHandleEventAsync() http.HandlerFunc {
 		var envelope events.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			errorh.HandleHttpError(errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+			errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 			return
 		}
 		handleEventAsync(c, envelope.AggregateName, envelope)

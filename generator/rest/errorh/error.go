@@ -1,7 +1,6 @@
 package errorh
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -131,18 +130,6 @@ func (err Error) GetErrorCode() int {
 	return err.ErrorCode
 }
 
-func HandleHttpError(err error, w http.ResponseWriter) {
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(GetHttpCode(err))
-
-	errorBody := Error{
-		ErrorCode:    getErrorCode(err),
-		ErrorMessage: err.Error(),
-		FieldErrors:  getFieldErrors(err),
-	}
-	json.NewEncoder(w).Encode(errorBody)
-}
-
 func GetFieldErrors(err error) []FieldError {
 	return getFieldErrors(err)
 }
@@ -153,14 +140,5 @@ func getFieldErrors(err error) []FieldError {
 		return e.GetFieldErrors()
 	} else {
 		return []FieldError{}
-	}
-}
-
-func getErrorCode(err error) int {
-	if IsErrorWithCodes(err) {
-		e, _ := err.(InvalidInput)
-		return e.GetErrorCode()
-	} else {
-		return 0
 	}
 }
