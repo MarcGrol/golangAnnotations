@@ -85,6 +85,8 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationCustom":    IsRestOperationCustom,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
+	"HasContentType": HasContentType,
+	"GetContentType": GetContentType,
 	"GetRestOperationFilename": GetRestOperationFilename,
 	"HasOperationsWithInput":   HasOperationsWithInput,
 	"HasInput":                 HasInput,
@@ -246,6 +248,27 @@ func IsRestOperationCustom(o model.Operation) bool {
 
 func IsRestOperationGenerated(o model.Operation) bool {
 	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o) || IsRestOperationMD(o) || IsRestOperationNoContent(o) || IsRestOperationCustom(o)
+}
+
+func HasContentType(operation model.Operation) bool {
+	return GetContentType(operation) != ""
+}
+
+func GetContentType(operation model.Operation) string {
+	switch GetRestOperationFormat(operation) {
+	case "JSON":
+		return "application/json"
+	case "HTML":
+		return "text/html; charset=UTF-8"
+	case "CSV":
+		return "text/csv; charset=UTF-8"
+	case "TXT":
+		return "text/plain; charset=UTF-8"
+	case "MD":
+		return "text/markdown; charset=UTF-8"
+	default:
+		return ""
+	}
 }
 
 func GetRestOperationFilename(o model.Operation) string {
@@ -575,35 +598,33 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		}
 
 		// write OK response body
+		{{if HasContentType .}}
+			w.Header().Set("Content-Type", "{{GetContentType .}}")
+		{{end}}
 		{{if IsRestOperationJSON .}}
 			{{if HasOutput . }}
-			w.Header().Set("Content-Type", "application/json")
-			err = json.NewEncoder(w).Encode(result)
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
+				err = json.NewEncoder(w).Encode(result)
+				if err != nil {
+					log.Printf("Error encoding response payload %+v", err)
+				}
 			{{end}}
 		{{else if IsRestOperationHTML .}}
-			w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 			{{if HasOutput . }}err = {{$oper.Name}}WriteHTML(w, result){{else}}err = {{$oper.Name}}WriteHTML(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else if IsRestOperationCSV .}}
-			w.Header().Set("Content-Type", "text/csv; charset=UTF-8")
 			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
 			{{if HasOutput . }}err = {{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else if IsRestOperationTXT .}}
-			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			_, err = fmt.Fprint(w, result)
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else if IsRestOperationMD .}}
-			w.Header().Set("Content-Type", "text/markdown; charset=UTF-8")
 			_, err = fmt.Fprint(w, result)
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
