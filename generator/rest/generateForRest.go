@@ -523,7 +523,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		var err error
 
 		{{if NeedsContext $oper }}
-			{{GetContextName $oper }} := ctx.New.CreateContext(r)
+			{{GetContextName $oper }} := context.WithValue(ctx.New.CreateContext(r), "sessionUid", r.Header.Get("X-session-uid"))
 		{{end}}
 
 		{{if HasAuthContext $oper}}
