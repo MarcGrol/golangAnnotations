@@ -72,7 +72,6 @@ func generate(inputDir string, structs []model.Struct) error {
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":            IsRestService,
 	"ExtractImports":           ExtractImports,
-	"HasAuthContextArg":        HasAuthContextArg,
 	"GetRestServicePath":       GetRestServicePath,
 	"IsRestOperation":          IsRestOperation,
 	"GetRestOperationPath":     GetRestOperationPath,
@@ -98,11 +97,13 @@ var customTemplateFuncs = template.FuncMap{
 	"GetInputParamString":      GetInputParamString,
 	"GetOutputArgType":         GetOutputArgType,
 	"HasOutput":                HasOutput,
-	"IsPrimitive":              IsPrimitive,
-	"IsNumber":                 IsNumber,
+	"IsPrimitiveArg":           IsPrimitiveArg,
+	"IsNumberArg":              IsNumberArg,
 	"RequiresParamValidation":  RequiresParamValidation,
 	"IsInputArgMandatory":      IsInputArgMandatory,
 	"IsAuthContextArg":         IsAuthContextArg,
+	"HasUpload":                HasUpload,
+	"IsUploadArg":              IsUploadArg,
 	"HasAuthContext":           HasAuthContext,
 	"HasContext":               HasContext,
 	"ReturnsError":             ReturnsError,
@@ -161,17 +162,6 @@ func ExtractImports(s model.Struct) []string {
 	}
 
 	return importsList
-}
-
-func HasAuthContextArg(s model.Struct) bool {
-	for _, oper := range s.Operations {
-		for _, a := range oper.InputArgs {
-			if IsAuthContextArg(a) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func GetRestServicePath(s model.Struct) string {
@@ -465,15 +455,28 @@ func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	return !findArgInArray(strings.Split(optionalArgsString, ","), arg.Name)
 }
 
+func HasUpload(o model.Operation) bool {
+	for _, f := range o.InputArgs {
+		if IsUploadArg(f) {
+			return true
+		}
+	}
+	return false
+}
+
+func IsUploadArg(arg model.Field) bool {
+	return arg.Name == "upload"
+}
+
 func IsAuthContextArg(arg model.Field) bool {
 	return arg.Name == "authContext" && arg.TypeName == "map[string]string"
 }
 
-func IsPrimitive(f model.Field) bool {
+func IsPrimitiveArg(f model.Field) bool {
 	return f.TypeName == "int" || f.TypeName == "string"
 }
 
-func IsNumber(f model.Field) bool {
+func IsNumberArg(f model.Field) bool {
 	return f.TypeName == "int"
 }
 
@@ -547,8 +550,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	    validationErrors := []errorh.FieldError{}
 	    {{end}}
 		{{range .InputArgs}}
-			{{if IsPrimitive . }}
-				{{if IsNumber . }}
+			{{if IsPrimitiveArg . }}
+				{{if IsNumberArg . }}
 					{{.Name}} := 0
 					{{if UsesQueryParams $oper }}
 						{{.Name}}String := r.URL.Query().Get("{{.Name}}")
@@ -594,12 +597,18 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
         }
         {{end}}
 
-		{{if HasInput . }}
+		{{if HasUpload . }}
+			{{GetInputArgName . }}, err := {{$oper.Name}}GetUpload({{GetContextName $oper }}, w, r)
+			if err != nil {
+				errorhandling.HandleHttpError(c, err, w)
+				return
+			}
+		{{else if HasInput . }}
 			// read and parse request body
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-         		errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+				errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 				return
 			}
 		{{end}}
@@ -754,12 +763,14 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 
 	recorder := httptest.NewRecorder()
 
-	{{if HasInput . }}
+	{{if HasUpload . }}
+		{{.Name}}SetUpload(input)
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+	{{else if HasInput . }}
 		rb, _ := json.Marshal(input)
 		// indent for readability
 		var requestBody bytes.Buffer
 		json.Indent(&requestBody, rb, "", "\t")
-
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
 	{{else}}
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
@@ -770,7 +781,8 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 		{{else}}return nil, err{{end}}
 	}
 	req.RequestURI = url
-	{{if HasInput . }}
+	{{if HasUpload . }}
+	{{else if HasInput . }}
 		req.Header.Set("Content-type", "application/json")
 	{{end}}
 	{{if HasOutput . }}
@@ -797,7 +809,8 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	}
 	fmt.Fprintf(logFp, "\t},\n")
 
-	{{if HasInput . }}
+	{{if HasUpload . }}
+	{{else if HasInput . }}
 		fmt.Fprintf(logFp, "\tBody:\n" )
 		fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
 		fmt.Fprintf(logFp, ",\n" )

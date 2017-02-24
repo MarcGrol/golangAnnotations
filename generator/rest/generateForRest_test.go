@@ -163,22 +163,22 @@ func TestGetOutputArgType(t *testing.T) {
 
 func TestIsPrimitiveTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.True(t, IsPrimitive(f))
+	assert.True(t, IsPrimitiveArg(f))
 }
 
 func TestIsPrimitiveFalse(t *testing.T) {
 	f := model.Field{Name: "person", TypeName: "Person"}
-	assert.False(t, IsPrimitive(f))
+	assert.False(t, IsPrimitiveArg(f))
 }
 
 func TestIsNumberTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "int"}
-	assert.True(t, IsNumber(f))
+	assert.True(t, IsNumberArg(f))
 }
 
 func TestIsNumberFalse(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.False(t, IsNumber(f))
+	assert.False(t, IsNumberArg(f))
 }
 
 func createOper(method string) model.Operation {
