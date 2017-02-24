@@ -598,7 +598,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
         {{end}}
 
 		{{if HasUpload . }}
-			{{GetInputArgName . }}, err := {{$oper.Name}}GetUpload({{GetContextName $oper }}, w, r)
+			{{GetInputArgName . }}, err := {{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
 			if err != nil {
 				errorhandling.HandleHttpError(c, err, w)
 				return
