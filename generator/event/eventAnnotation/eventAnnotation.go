@@ -3,8 +3,7 @@ package eventAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	TypeEvent = "Event"
-
+	TypeEvent        = "Event"
 	ParamAggregate   = "aggregate"
 	ParamIsRootEvent = "isrootevent"
 )

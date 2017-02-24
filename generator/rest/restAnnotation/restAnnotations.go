@@ -15,14 +15,14 @@ const (
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamMethod, ParamPath, ParamForm, ParamFormat, ParamOptional}, validateRestOperationAnnotation)
+	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamMethod, ParamPath, ParamForm, ParamFormat, ParamFilename, ParamOptional}, validateRestOperationAnnotation)
 	annotation.RegisterAnnotation(TypeRestService, []string{ParamPath}, validateRestServiceAnnotation)
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == TypeRestOperation {
 		method, hasMethod := annot.Attributes[ParamMethod]
-		return (hasMethod && method != "")
+		return hasMethod && method != ""
 	}
 	return false
 }

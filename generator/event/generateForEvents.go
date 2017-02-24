@@ -118,12 +118,12 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsEvent(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventAnnotation.TypeEvent))
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	return ok
 }
 
 func GetAggregateName(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventAnnotation.TypeEvent))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	if ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
 	}
@@ -131,7 +131,7 @@ func GetAggregateName(s model.Struct) string {
 }
 
 func IsRootEvent(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventAnnotation.TypeEvent))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	if ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
 	}

@@ -34,7 +34,7 @@ func TestGenerateForWeb(t *testing.T) {
 
 	s[0].Operations = append(s[0].Operations,
 		&model.Operation{
-			DocLines:      []string{"// @RestOperation(path = \"/person\", method = \"GET\", format = \"JSON\" )"},
+			DocLines:      []string{"// @RestOperation(path = \"/person\", method = \"GET\", format = \"JSON\", form = \"true\" )"},
 			Name:          "doit",
 			RelatedStruct: &model.Field{TypeName: "MyService"},
 			InputArgs: []model.Field{
@@ -50,7 +50,7 @@ func TestGenerateForWeb(t *testing.T) {
 	assert.Nil(t, err)
 
 	{
-		// check that generated files exisst
+		// check that generated files exists
 		_, err = os.Stat("./testData/$httpMyService.go")
 		assert.NoError(t, err)
 
@@ -62,7 +62,7 @@ func TestGenerateForWeb(t *testing.T) {
 
 	}
 	{
-		// check that generated files exisst
+		// check that generated files exists
 		_, err = os.Stat("./testData/$httpMyService.go")
 		assert.NoError(t, err)
 
@@ -73,7 +73,7 @@ func TestGenerateForWeb(t *testing.T) {
 	}
 
 	{
-		// check that generated files exisst
+		// check that generated files exists
 		_, err = os.Stat("./testData/$httpClientForMyService.go")
 		assert.NoError(t, err)
 

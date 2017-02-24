@@ -53,14 +53,14 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsEventService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
 }
 
 func IsAsync(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	if ok {
-		syncString, found := ann.Attributes[string(eventServiceAnnotation.ParamAsync)]
+		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
 			return true
 		}
@@ -69,17 +69,17 @@ func IsAsync(s model.Struct) bool {
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	if ok {
-		return ann.Attributes[string(eventServiceAnnotation.ParamSelf)]
+		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
 }
 
 func GetEventServiceSubscriptions(s model.Struct) []string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(eventServiceAnnotation.TypeEventService))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	if ok {
-		aggregateString, found := ann.Attributes[string(eventServiceAnnotation.ParamSubscriptions)]
+		aggregateString, found := ann.Attributes[eventServiceAnnotation.ParamSubscriptions]
 		if found {
 			splitted := strings.Split(aggregateString, ",")
 			result := []string{}
@@ -93,7 +93,7 @@ func GetEventServiceSubscriptions(s model.Struct) []string {
 }
 
 func IsEventOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, string(eventServiceAnnotation.TypeEventOperation))
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	return ok
 }
 

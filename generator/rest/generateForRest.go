@@ -76,6 +76,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperation":          IsRestOperation,
 	"GetRestOperationPath":     GetRestOperationPath,
 	"GetRestOperationMethod":   GetRestOperationMethod,
+	"IsRestOperationForm":      IsRestOperationForm,
 	"IsRestOperationJSON":      IsRestOperationJSON,
 	"IsRestOperationHTML":      IsRestOperationHTML,
 	"IsRestOperationCSV":       IsRestOperationCSV,
@@ -83,7 +84,6 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationMD":        IsRestOperationMD,
 	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationCustom":    IsRestOperationCustom,
-	"IsRestOperationForm":      IsRestOperationForm,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
 	"HasContentType":           HasContentType,
 	"GetContentType":           GetContentType,
@@ -124,7 +124,7 @@ func SurroundWithBackTicks(body string) string {
 }
 
 func IsRestService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(restAnnotation.TypeRestService))
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
 }
 
@@ -166,9 +166,9 @@ func ExtractImports(s model.Struct) []string {
 }
 
 func GetRestServicePath(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, string(restAnnotation.TypeRestService))
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamPath)]
+		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
@@ -183,38 +183,38 @@ func HasOperationsWithInput(s model.Struct) bool {
 }
 
 func IsRestOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamPath)]
+		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamMethod)]
+		return ann.Attributes[restAnnotation.ParamMethod]
 	}
 	return ""
 }
 
 func IsRestOperationForm(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.ParamForm))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamForm)] == "true"
+		return ann.Attributes[restAnnotation.ParamForm] == "true"
 	}
 	return false
 }
 
 func GetRestOperationFormat(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamFormat)]
+		return ann.Attributes[restAnnotation.ParamFormat]
 	}
 	return ""
 }
@@ -273,9 +273,9 @@ func GetContentType(operation model.Operation) string {
 }
 
 func GetRestOperationFilename(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		return ann.Attributes[string(restAnnotation.ParamFilename)]
+		return ann.Attributes[restAnnotation.ParamFilename]
 	}
 	return ""
 }
@@ -452,11 +452,11 @@ func RequiresParamValidation(o model.Operation) bool {
 }
 
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.TypeRestOperation))
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if !ok {
 		return false
 	}
-	optionalArgsString, ok := ann.Attributes[string(restAnnotation.ParamOptional)]
+	optionalArgsString, ok := ann.Attributes[restAnnotation.ParamOptional]
 	if !ok {
 		return true
 	}
@@ -589,8 +589,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					 }
 				{{else}}
 					{{if IsRestOperationForm $oper }}
-						{{.Name}}String := r.FormValue("{{.Name}}")
-						if {{.Name}}String == "" {
+						{{.Name}} := r.FormValue("{{.Name}}")
+						if {{.Name}} == "" {
 					{{else if UsesQueryParams $oper }}
 						{{.Name}} := r.URL.Query().Get("{{.Name}}")
 						if {{.Name}} == "" {
