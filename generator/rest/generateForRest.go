@@ -83,6 +83,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationMD":        IsRestOperationMD,
 	"IsRestOperationNoContent": IsRestOperationNoContent,
 	"IsRestOperationCustom":    IsRestOperationCustom,
+	"IsRestOperationForm":      IsRestOperationForm,
 	"IsRestOperationGenerated": IsRestOperationGenerated,
 	"HasContentType":           HasContentType,
 	"GetContentType":           GetContentType,
@@ -200,6 +201,14 @@ func GetRestOperationMethod(o model.Operation) string {
 		return ann.Attributes[string(restAnnotation.ParamMethod)]
 	}
 	return ""
+}
+
+func IsRestOperationForm(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, string(restAnnotation.ParamForm))
+	if ok {
+		return ann.Attributes[string(restAnnotation.ParamForm)] == "true"
+	}
+	return false
 }
 
 func GetRestOperationFormat(o model.Operation) string {
@@ -509,7 +518,11 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 
 	{{range .Operations}}
 		{{if IsRestOperation . }}
-			subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
+			{{if IsRestOperationGenerated . }}
+				subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
+			{{else}}
+				subRouter.HandleFunc(  "{{GetRestOperationPath . }}", ts.{{.Name}}()).Methods("{{GetRestOperationMethod . }}")
+			{{end}}
 		{{end}}
 	{{end}}
 
@@ -553,7 +566,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{if IsPrimitiveArg . }}
 				{{if IsNumberArg . }}
 					{{.Name}} := 0
-					{{if UsesQueryParams $oper }}
+					{{if IsRestOperationForm $oper }}
+						{{.Name}}String := r.FormValue("{{.Name}}")
+						if {{.Name}}String == "" {
+					{{else if UsesQueryParams $oper }}
 						{{.Name}}String := r.URL.Query().Get("{{.Name}}")
 						if {{.Name}}String == "" {
 					{{else}}
@@ -572,7 +588,10 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 						}
 					 }
 				{{else}}
-					{{if UsesQueryParams $oper }}
+					{{if IsRestOperationForm $oper }}
+						{{.Name}}String := r.FormValue("{{.Name}}")
+						if {{.Name}}String == "" {
+					{{else if UsesQueryParams $oper }}
 						{{.Name}} := r.URL.Query().Get("{{.Name}}")
 						if {{.Name}} == "" {
 					{{else}}
