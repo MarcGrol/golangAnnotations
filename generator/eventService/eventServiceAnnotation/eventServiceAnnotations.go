@@ -4,11 +4,11 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
 	TypeEventService   = "EventService"
+	TypeEventOperation = "EventOperation"
+
 	ParamSelf          = "self"
 	ParamSubscriptions = "subscriptions"
 	ParamAsync         = "async"
-
-	TypeEventOperation = "EventOperation"
 )
 
 // Register makes the annotation-registry aware of these annotation

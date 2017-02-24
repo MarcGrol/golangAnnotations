@@ -3,20 +3,21 @@ package eventAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	TypeEvent      = "Event"
-	paramAggregate = "aggregate"
-	isRootEvent    = "isRootEvent"
+	TypeEvent = "Event"
+
+	ParamAggregate   = "aggregate"
+	ParamIsRootEvent = "isrootevent"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeEvent, []string{paramAggregate, isRootEvent}, validateEventAnnotation)
+	annotation.RegisterAnnotation(TypeEvent, []string{ParamAggregate, ParamIsRootEvent}, validateEventAnnotation)
 }
 
 func validateEventAnnotation(annot annotation.Annotation) bool {
 	if annot.Name == TypeEvent {
-		val, hasAggr := annot.Attributes[paramAggregate]
-		return (hasAggr && val != "")
+		val, hasAggr := annot.Attributes[ParamAggregate]
+		return hasAggr && val != ""
 	}
 	return false
 }
