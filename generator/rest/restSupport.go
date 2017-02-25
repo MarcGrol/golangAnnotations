@@ -14,7 +14,7 @@ func ExtractCredentials(language string, r *http.Request) Credentials {
 }
 
 type Credentials struct {
-	Language 	  string
+	Language      string
 	RequestUID    string
 	SessionUID    string
 	EndUserAccess string
