@@ -558,6 +558,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
 				errorhandling.HandleHttpError(c, err, w)
+				return
 			}
 		{{end}}
 
