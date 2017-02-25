@@ -295,6 +295,7 @@ func GetRestOperationRoles(o model.Operation) []string {
 		for i, r := range roles {
 			roles[i] = strings.Trim(r, " ")
 		}
+		return roles
 	}
 	return []string{}
 }
