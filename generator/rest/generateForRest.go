@@ -88,6 +88,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasContentType":           HasContentType,
 	"GetContentType":           GetContentType,
 	"GetRestOperationFilename": GetRestOperationFilename,
+	"GetRestOperationRolesString":    GetRestOperationRolesString,
 	"HasOperationsWithInput":   HasOperationsWithInput,
 	"HasInput":                 HasInput,
 	"GetInputArgType":          GetInputArgType,
@@ -102,10 +103,9 @@ var customTemplateFuncs = template.FuncMap{
 	"IsNumberArg":              IsNumberArg,
 	"RequiresParamValidation":  RequiresParamValidation,
 	"IsInputArgMandatory":      IsInputArgMandatory,
-	"IsAuthContextArg":         IsAuthContextArg,
 	"HasUpload":                HasUpload,
 	"IsUploadArg":              IsUploadArg,
-	"HasAuthContext":           HasAuthContext,
+	"HasCredentials":           HasCredentials,
 	"HasContext":               HasContext,
 	"ReturnsError":             ReturnsError,
 	"NeedsContext":             NeedsContext,
@@ -280,10 +280,22 @@ func GetRestOperationFilename(o model.Operation) string {
 	return ""
 }
 
+func GetRestOperationRolesString(o model.Operation) string {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	if ok {
+		roles := strings.Split(ann.Attributes[restAnnotation.ParamRoles], ",")
+		for i, r := range roles {
+			roles[i] = fmt.Sprintf("\"%s\"", strings.Trim(r, " "))
+		}
+		return fmt.Sprintf("[]string{%s}", strings.Join(roles, ","))
+	}
+	return "[]string{}"
+}
+
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+			if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 				return true
 			}
 		}
@@ -291,9 +303,9 @@ func HasInput(o model.Operation) bool {
 	return false
 }
 
-func HasAuthContext(o model.Operation) bool {
+func HasCredentials(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if arg.Name == "authContext" {
+		if arg.Name == "credentials" {
 			return true
 		}
 	}
@@ -336,7 +348,7 @@ func GetContextName(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			return arg.TypeName
 		}
 	}
@@ -347,7 +359,7 @@ func UsesQueryParams(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "GET" {
 		count := 0
 		for _, arg := range o.InputArgs {
-			if arg.TypeName != "context.Context" && arg.Name != "authContext" {
+			if arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 				count++
 			}
 		}
@@ -358,7 +370,7 @@ func UsesQueryParams(o model.Operation) bool {
 
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			return arg.Name
 		}
 	}
@@ -477,10 +489,6 @@ func IsUploadArg(arg model.Field) bool {
 	return arg.Name == "upload"
 }
 
-func IsAuthContextArg(arg model.Field) bool {
-	return arg.Name == "authContext" && arg.TypeName == "map[string]string"
-}
-
 func IsPrimitiveArg(f model.Field) bool {
 	return f.TypeName == "int" || f.TypeName == "string"
 }
@@ -500,9 +508,7 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{ $structName := .Name }}
 
@@ -539,16 +545,20 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		var err error
 
 		{{if NeedsContext $oper }}
-			{{GetContextName $oper }} := context.WithValue(ctx.New.CreateContext(r), "sessionUid", r.Header.Get("X-session-uid"))
+			{{GetContextName $oper}} := context.WithValue(ctx.New.CreateContext(r), "sessionUid", r.Header.Get("X-session-uid"))
 		{{end}}
 
-		{{if HasAuthContext $oper}}
+		{{if HasCredentials $oper}}
 			language := "nl"
 			langCookie, err := r.Cookie("lang")
 			if err == nil {
 				language = langCookie.Value
 			}
-			authContext := rest.ExtractAuthContext(language, r)
+			credentials := rest.ExtractCredentials(language, r)
+			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
+			if err != nil {
+				errorhandling.HandleHttpError(c, err, w)
+			}
 		{{end}}
 
 		{{if UsesQueryParams $oper }} {{else}}
@@ -909,9 +919,7 @@ var httpClientTemplate string = `
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{ $structName := .Name }}
 
