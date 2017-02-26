@@ -291,11 +291,14 @@ func GetRestOperationRolesString(o model.Operation) string {
 func GetRestOperationRoles(o model.Operation) []string {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
-		roles := strings.Split(ann.Attributes[restAnnotation.ParamRoles], ",")
-		for i, r := range roles {
-			roles[i] = strings.Trim(r, " ")
+		rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]
+		if ok {
+			roles := strings.Split(rolesAttr, ",")
+			for i, r := range roles {
+				roles[i] = strings.Trim(r, " ")
+			}
+			return roles
 		}
-		return roles
 	}
 	return []string{}
 }
