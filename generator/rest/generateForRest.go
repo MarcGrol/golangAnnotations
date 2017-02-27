@@ -99,6 +99,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetInputParamString":         GetInputParamString,
 	"GetOutputArgType":            GetOutputArgType,
 	"HasOutput":                   HasOutput,
+	"HasMetaOutput":               HasMetaOutput,
 	"IsPrimitiveArg":              IsPrimitiveArg,
 	"IsNumberArg":                 IsNumberArg,
 	"RequiresParamValidation":     RequiresParamValidation,
@@ -422,6 +423,19 @@ func GetOutputArgType(o model.Operation) string {
 	return ""
 }
 
+func HasMetaOutput(o model.Operation) bool {
+	var count = 0
+	for _, arg := range o.OutputArgs {
+		if arg.TypeName != "error" {
+			count += 1
+			if count == 2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func GetOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if arg.TypeName != "error" {
@@ -655,7 +669,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
 
 		// call business logic
-		{{if HasOutput . }}
+		{{if HasMetaOutput . }}
+			result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
+		{{else if HasOutput . }}
 			result, err := service.{{$oper.Name}}({{GetInputParamString . }})
 		{{else}}
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
@@ -664,6 +680,13 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			errorhandling.HandleHttpError(c, err, w)
 			return
 		}
+		{{if HasMetaOutput . }}
+			err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+			if err != nil {
+				errorhandling.HandleHttpError(c, err, w)
+				return
+			}
+		{{end}}
 
 		// write OK response body
 		{{if HasContentType .}}
@@ -894,7 +917,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 
 	{{if IsRestOperationJSON . }}
 		{{if HasOutput . }}
-		if recorder.Code != http.StatusOK {
+			if recorder.Code != http.StatusOK {
 				// return error response
 				var errorResp errorh.Error
 				dec := json.NewDecoder(recorder.Body)
