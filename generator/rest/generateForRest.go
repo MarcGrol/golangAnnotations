@@ -653,7 +653,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
         {{end}}
 
 		{{if HasUpload . }}
-			{{GetInputArgName . }}, err := {{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
+			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
 			if err != nil {
 				errorhandling.HandleHttpError(c, err, w)
 				return
@@ -702,13 +702,13 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				}
 			{{end}}
 		{{else if IsRestOperationHTML .}}
-			{{if HasOutput . }}err = {{$oper.Name}}WriteHTML(w, result){{else}}err = {{$oper.Name}}WriteHTML(w){{end}}
+			{{if HasOutput . }}err = service.{{$oper.Name}}WriteHTML(w, result){{else}}err = service.{{$oper.Name}}WriteHTML(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
 		{{else if IsRestOperationCSV .}}
 			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
-			{{if HasOutput . }}err = {{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
+			{{if HasOutput . }}err = service.{{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
 			if err != nil {
 				log.Printf("Error encoding response payload %+v", err)
 			}
@@ -725,7 +725,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{else if IsRestOperationNoContent .}}
 			w.WriteHeader(http.StatusNoContent)
 		{{else if IsRestOperationCustom .}}
-			{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
+			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
 		{{else}}
 			errorh.NewInternalErrorf(0, "Not implemented")
 		{{end}}
