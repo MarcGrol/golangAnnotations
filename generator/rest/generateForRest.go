@@ -681,10 +681,12 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			return
 		}
 		{{if HasMetaOutput . }}
-			err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
-			if err != nil {
-				errorhandling.HandleHttpError(c, err, w)
-				return
+			if meta != nil {
+				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+				if err != nil {
+					errorhandling.HandleHttpError(c, err, w)
+					return
+				}
 			}
 		{{end}}
 
