@@ -176,7 +176,7 @@ func GetRestServicePath(s model.Struct) string {
 }
 
 func HasRestServiceNoTest(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestOperation)
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	if ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
 	}
