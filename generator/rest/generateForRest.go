@@ -39,7 +39,7 @@ func generate(inputDir string, structs []model.Struct) error {
 					return err
 				}
 			}
-			if !HasRestServiceNoTest(service) {
+			if !IsRestServiceNoTest(service) {
 				{
 					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
 					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
@@ -75,6 +75,8 @@ var customTemplateFuncs = template.FuncMap{
 	"ExtractImports":              ExtractImports,
 	"GetRestServicePath":          GetRestServicePath,
 	"IsRestOperation":             IsRestOperation,
+	"IsRestOperationNoWrap":       IsRestOperationNoWrap,
+	"IsRestOperationGenerated":    IsRestOperationGenerated,
 	"GetRestOperationPath":        GetRestOperationPath,
 	"GetRestOperationMethod":      GetRestOperationMethod,
 	"IsRestOperationForm":         IsRestOperationForm,
@@ -85,7 +87,6 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationMD":           IsRestOperationMD,
 	"IsRestOperationNoContent":    IsRestOperationNoContent,
 	"IsRestOperationCustom":       IsRestOperationCustom,
-	"IsRestOperationGenerated":    IsRestOperationGenerated,
 	"HasContentType":              HasContentType,
 	"GetContentType":              GetContentType,
 	"GetRestOperationFilename":    GetRestOperationFilename,
@@ -128,6 +129,14 @@ func SurroundWithBackTicks(body string) string {
 func IsRestService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
+}
+
+func IsRestServiceNoTest(s model.Struct) bool {
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	if ok {
+		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
+	}
+	return false
 }
 
 func isImportToBeIgnored(imp string) bool {
@@ -175,14 +184,6 @@ func GetRestServicePath(s model.Struct) string {
 	return ""
 }
 
-func HasRestServiceNoTest(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
-	if ok {
-		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
-	}
-	return false
-}
-
 func HasOperationsWithInput(s model.Struct) bool {
 	for _, o := range s.Operations {
 		if HasInput(*o) == true {
@@ -195,6 +196,18 @@ func HasOperationsWithInput(s model.Struct) bool {
 func IsRestOperation(o model.Operation) bool {
 	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
+}
+
+func IsRestOperationNoWrap(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	if ok {
+		return ann.Attributes[restAnnotation.ParamNoWrap] == "true"
+	}
+	return false
+}
+
+func IsRestOperationGenerated(o model.Operation) bool {
+	return !IsRestOperationNoWrap(o)
 }
 
 func GetRestOperationPath(o model.Operation) string {
@@ -255,10 +268,6 @@ func IsRestOperationNoContent(o model.Operation) bool {
 
 func IsRestOperationCustom(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "custom"
-}
-
-func IsRestOperationGenerated(o model.Operation) bool {
-	return IsRestOperationJSON(o) || IsRestOperationHTML(o) || IsRestOperationCSV(o) || IsRestOperationTXT(o) || IsRestOperationMD(o) || IsRestOperationNoContent(o) || IsRestOperationCustom(o)
 }
 
 func HasContentType(operation model.Operation) bool {
