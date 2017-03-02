@@ -39,31 +39,32 @@ func generate(inputDir string, structs []model.Struct) error {
 					return err
 				}
 			}
-			{
-				target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
-					return err
+			if !HasRestServiceNoTest(service) {
+				{
+					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
+					if err != nil {
+						log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
+						return err
+					}
+				}
+				{
+					target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
+					if err != nil {
+						log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
+						return err
+					}
+				}
+				{
+					target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
+					if err != nil {
+						log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
+						return err
+					}
 				}
 			}
-			{
-				target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
-					return err
-				}
-			}
-			{
-				target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
-					return err
-				}
-			}
-
 		}
 	}
 	return nil
@@ -172,6 +173,14 @@ func GetRestServicePath(s model.Struct) string {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
+}
+
+func HasRestServiceNoTest(s model.Struct) bool {
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestOperation)
+	if ok {
+		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
+	}
+	return false
 }
 
 func HasOperationsWithInput(s model.Struct) bool {
