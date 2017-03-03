@@ -7,6 +7,7 @@ import (
 )
 
 type TestSuiteDescriptor struct {
+	Package   string
 	TestCases []TestCaseDescriptor
 }
 

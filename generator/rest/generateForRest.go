@@ -797,6 +797,7 @@ func TestMain(m *testing.M) {
 	fmt.Fprintf(logFp, ")\n")
 
 	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
+	fmt.Fprintf(logFp, "\tPackage: \"{{.PackageName}}\",\n")
 	fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
 
 	beforeAll()
