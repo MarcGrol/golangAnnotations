@@ -792,9 +792,7 @@ func TestMain(m *testing.M) {
 	}()
 	fmt.Fprintf(logFp, "package %s\n\n", dirname )
 	fmt.Fprintf(logFp, "// Generated automatically based on running of api-tests\n\n" )
-	fmt.Fprintf(logFp, "import (\n")
-	fmt.Fprintf(logFp, "\"github.com/MarcGrol/golangAnnotations/generator/rest/testcase\"\n")
-	fmt.Fprintf(logFp, ")\n")
+	fmt.Fprintf(logFp, "import \"github.com/MarcGrol/golangAnnotations/generator/rest/testcase\"\n")
 
 	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
 	fmt.Fprintf(logFp, "\tPackage: \"{{.PackageName}}\",\n")

@@ -36,7 +36,7 @@ type ResponseDescriptor struct {
 func WriteTestLogsAsMarkdown(results TestSuiteDescriptor) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/markdown; charset=UTF-8")
-		fmt.Fprintf(w, "# HTTP exchange for all testcases in package\n\n")
+		fmt.Fprintf(w, "# HTTP exchange for all testcases in package %s\n\n", results.Package)
 		for _, tc := range results.TestCases {
 			fmt.Fprintf(w, "## %s\n", tc.Name)
 			fmt.Fprintf(w, "%s\n", tc.Description)
