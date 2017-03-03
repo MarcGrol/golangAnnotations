@@ -42,7 +42,7 @@ func WriteTestLogsAsMarkdown(results TestSuiteDescriptor) http.HandlerFunc {
 			fmt.Fprintf(w, "### Operation %s\n", tc.Operation)
 
 			fmt.Fprintf(w, "\n### http-request:\n")
-			fmt.Fprintf(w, "    %s %s%s HTTP/1.1\n", tc.Request.Method, "/api", tc.Request.Url)
+			fmt.Fprintf(w, "    %s %s HTTP/1.1\n", tc.Request.Method, tc.Request.Url)
 			for _, h := range tc.Request.Headers {
 				fmt.Fprintf(w, "    %s\n", h)
 			}
