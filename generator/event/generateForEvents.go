@@ -395,6 +395,14 @@ import (
 {{range .Structs}}
 {{if IsEvent . }}
 
+func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregate {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
+	err := StoreEvent{{.Name}}(c, &event, sessionUID)
+	if err == nil {
+		aggregate.Apply{{.Name}}(c, event)
+	}
+	return err
+}
+
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
 func StoreEvent{{.Name}}(c context.Context, event *{{.PackageName}}.{{.Name}}, sessionUID string) error {
 	envlp, err := event.Wrap(sessionUID)
