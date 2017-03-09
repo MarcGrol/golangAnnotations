@@ -810,11 +810,13 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func beforeAll() {
+var beforeAll = defaultBeforeAll
+func defaultBeforeAll() {
 	mytime.SetMockNow()
 }
 
-func afterAll() {
+var afterAll = defaultAfterAll
+func defaultAfterAll() {
     mytime.SetDefaultNow()
 }
 
