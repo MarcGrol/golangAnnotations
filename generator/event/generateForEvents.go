@@ -395,10 +395,10 @@ import (
 {{range .Structs}}
 {{if IsEvent . }}
 
-func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregate {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
+func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
 	err := StoreEvent{{.Name}}(c, &event, sessionUID)
 	if err == nil {
-		aggregate.Apply{{.Name}}(c, event)
+		aggregateRoot.Apply{{.Name}}(c, event)
 	}
 	return err
 }
