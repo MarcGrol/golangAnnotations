@@ -396,7 +396,7 @@ import (
 {{if IsEvent . }}
 
 func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
-	err := StoreEvent{{.Name}}(c, &event, sessionUID)
+	err := StoreEvent{{.Name}}(c, sessionUID, &event)
 	if err == nil {
 		aggregateRoot.Apply{{.Name}}(c, event)
 	}
@@ -404,7 +404,7 @@ func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregate
 }
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
-func StoreEvent{{.Name}}(c context.Context, event *{{.PackageName}}.{{.Name}}, sessionUID string) error {
+func StoreEvent{{.Name}}(c context.Context, sessionUID string, event *{{.PackageName}}.{{.Name}}) error {
 	envlp, err := event.Wrap(sessionUID)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
