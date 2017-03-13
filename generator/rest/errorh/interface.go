@@ -1,13 +1,17 @@
 package errorh
 
+//go:generate golangAnnotations -input-dir .
+
+// @JsonStruct()
 type Error struct {
-	httpCode        int
-	underlyingError error
+	httpCode        int          `json:"-"`
+	underlyingError error        `json:"-"`
 	ErrorMessage    string       `json:"errorMessage"`
 	ErrorCode       int          `json:"errorCode"`
 	FieldErrors     []FieldError `json:"fieldErrors"` // only applicable for invalidinput
 }
 
+// @JsonStruct()
 type FieldError struct {
 	SubCode int      `json:"subCode"`
 	Field   string   `json:"field"`

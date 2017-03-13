@@ -1,0 +1,985 @@
+{
+	"structs": [
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Error",
+			"fields": [
+				{
+					"name": "httpCode",
+					"typeName": "int",
+					"tag": "`json:\"-\"`"
+				},
+				{
+					"name": "underlyingError",
+					"typeName": "error",
+					"tag": "`json:\"-\"`"
+				},
+				{
+					"name": "ErrorMessage",
+					"typeName": "string",
+					"tag": "`json:\"errorMessage\"`"
+				},
+				{
+					"name": "ErrorCode",
+					"typeName": "int",
+					"tag": "`json:\"errorCode\"`"
+				},
+				{
+					"name": "FieldErrors",
+					"typeName": "FieldError",
+					"isSlice": true,
+					"tag": "`json:\"fieldErrors\"`",
+					"commentLines": [
+						"// only applicable for invalidinput"
+					]
+				}
+			],
+			"operations": [
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "Error",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "GetHttpCode",
+					"outputArgs": [
+						{
+							"typeName": "int"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "GetErrorCode",
+					"outputArgs": [
+						{
+							"typeName": "int"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "GetFieldErrors",
+					"outputArgs": [
+						{
+							"typeName": "FieldError",
+							"isSlice": true
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsInternalError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsNotImplementedError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsInvalidInputError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsNotAuthorizedError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsNotFoundError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "IsConflictError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "FieldError",
+			"fields": [
+				{
+					"name": "SubCode",
+					"typeName": "int",
+					"tag": "`json:\"subCode\"`"
+				},
+				{
+					"name": "Field",
+					"typeName": "string",
+					"tag": "`json:\"field\"`"
+				},
+				{
+					"name": "Msg",
+					"typeName": "string",
+					"tag": "`json:\"msg\"`"
+				},
+				{
+					"name": "Args",
+					"typeName": "string",
+					"isSlice": true,
+					"tag": "`json:\"args\"`"
+				}
+			]
+		}
+	],
+	"operations": [
+		{
+			"packageName": "errorh",
+			"filename": "common.go",
+			"name": "FieldErrorForMissingParameter",
+			"inputArgs": [
+				{
+					"name": "parameter",
+					"typeName": "string"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "FieldError"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "common.go",
+			"name": "FieldErrorForInvalidParameter",
+			"inputArgs": [
+				{
+					"name": "parameter",
+					"typeName": "string"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "FieldError"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewInternalErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewInternalError",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotImplementedErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotImplementedError",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewInvalidInputErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewInvalidInputErrorSpecific",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "fieldErrors",
+					"typeName": "FieldError",
+					"isSlice": true
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotAuthorizedErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotAuthorizedError",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotFoundErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewNotFoundError",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewConflictErrorf",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"name": "NewConflictError",
+			"inputArgs": [
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "Error",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "GetHttpCode",
+			"outputArgs": [
+				{
+					"typeName": "int"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "GetErrorCode",
+			"outputArgs": [
+				{
+					"typeName": "int"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "GetFieldErrors",
+			"outputArgs": [
+				{
+					"typeName": "FieldError",
+					"isSlice": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsInternalError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsNotImplementedError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsInvalidInputError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsNotAuthorizedError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsNotFoundError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "IsConflictError",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "GetErrorCode",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "int"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "GetHttpCode",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "int"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsInternalError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsNotImplementedError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsInvalidInputError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "GetFieldErrors",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "FieldError",
+					"isSlice": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsNotAuthorizedError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsNotFoundError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "IsConflictError",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		}
+	],
+	"interfaces": [
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "HttpError",
+			"methods": [
+				{
+					"name": "GetHttpCode",
+					"outputArgs": [
+						{
+							"typeName": "int"
+						}
+					]
+				},
+				{
+					"name": "GetErrorCode",
+					"outputArgs": [
+						{
+							"typeName": "int"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "Internal",
+			"methods": [
+				{
+					"name": "IsInternalError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotImplemented",
+			"methods": [
+				{
+					"name": "IsNotImplementedError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "InvalidInput",
+			"methods": [
+				{
+					"name": "IsInvalidInputError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"name": "GetFieldErrors",
+					"outputArgs": [
+						{
+							"typeName": "FieldError",
+							"isSlice": true
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotAuthorized",
+			"methods": [
+				{
+					"name": "IsNotAuthorizedError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotFound",
+			"methods": [
+				{
+					"name": "IsNotFoundError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "Conflict",
+			"methods": [
+				{
+					"name": "IsConflictError",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				}
+			]
+		}
+	],
+	"typedefs": [
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Error"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "FieldError"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "HttpError"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "Internal"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotImplemented"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "InvalidInput"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotAuthorized"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "NotFound"
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "Conflict"
+		}
+	]
+}
