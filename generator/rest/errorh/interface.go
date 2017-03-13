@@ -1,7 +1,7 @@
 package errorh
 
 type Error struct {
-	httpErrorType   int
+	httpCode        int
 	underlyingError error
 	ErrorMessage    string       `json:"errorMessage"`
 	ErrorCode       int          `json:"errorCode"`

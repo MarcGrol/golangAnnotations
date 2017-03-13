@@ -15,7 +15,7 @@ func NewInternalError(code int, err error) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = err
 	newError.ErrorMessage = err.Error()
-	newError.httpErrorType = http.StatusInternalServerError
+	newError.httpCode = http.StatusInternalServerError
 	return newError
 }
 
@@ -28,7 +28,7 @@ func NewNotImplementedError(code int, err error) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = err
 	newError.ErrorMessage = err.Error()
-	newError.httpErrorType = http.StatusNotImplemented
+	newError.httpCode = http.StatusNotImplemented
 	return newError
 }
 
@@ -41,7 +41,7 @@ func NewConflictError(code int, err error) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = err
 	newError.ErrorMessage = err.Error()
-	newError.httpErrorType = http.StatusConflict
+	newError.httpCode = http.StatusConflict
 	return newError
 }
 
@@ -50,7 +50,7 @@ func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error 
 	newError.ErrorCode = code
 	newError.underlyingError = fmt.Errorf(format, args...)
 	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpErrorType = http.StatusBadRequest
+	newError.httpCode = http.StatusBadRequest
 	return newError
 }
 
@@ -59,7 +59,7 @@ func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = errors.New("Input validation error")
 	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpErrorType = http.StatusBadRequest
+	newError.httpCode = http.StatusBadRequest
 	newError.FieldErrors = fieldErrors
 	return newError
 }
@@ -73,7 +73,7 @@ func NewNotFoundError(code int, err error) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = err
 	newError.ErrorMessage = err.Error()
-	newError.httpErrorType = http.StatusNotFound
+	newError.httpCode = http.StatusNotFound
 	return newError
 }
 
@@ -86,7 +86,7 @@ func NewNotAuthorizedError(code int, err error) *Error {
 	newError.ErrorCode = code
 	newError.underlyingError = err
 	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpErrorType = http.StatusForbidden
+	newError.httpCode = http.StatusForbidden
 	return newError
 }
 
@@ -95,15 +95,15 @@ func (err Error) Error() string {
 }
 
 func (err Error) IsInternalError() bool {
-	return err.httpErrorType == http.StatusInternalServerError
+	return err.httpCode == http.StatusInternalServerError
 }
 
 func (err Error) IsNotImplementedError() bool {
-	return err.httpErrorType == http.StatusNotImplemented
+	return err.httpCode == http.StatusNotImplemented
 }
 
 func (err Error) IsInvalidInputError() bool {
-	return err.httpErrorType == http.StatusBadRequest
+	return err.httpCode == http.StatusBadRequest
 }
 
 func (err Error) GetFieldErrors() []FieldError {
@@ -111,19 +111,19 @@ func (err Error) GetFieldErrors() []FieldError {
 }
 
 func (err Error) IsNotFoundError() bool {
-	return err.httpErrorType == http.StatusNotFound
+	return err.httpCode == http.StatusNotFound
 }
 
 func (err Error) IsConflictError() bool {
-	return err.httpErrorType == http.StatusConflict
+	return err.httpCode == http.StatusConflict
 }
 
 func (err Error) IsNotAuthorizedError() bool {
-	return err.httpErrorType == http.StatusForbidden
+	return err.httpCode == http.StatusForbidden
 }
 
 func (err Error) GetHttpCode() int {
-	return err.httpErrorType
+	return err.httpCode
 }
 
 func (err Error) GetErrorCode() int {
