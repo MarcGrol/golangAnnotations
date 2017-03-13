@@ -43,6 +43,8 @@ func GetHttpCode(err error) int {
 
 type Internal interface {
 	error
+	HttpCode
+	ErrorCode
 	IsInternalError() bool
 }
 
@@ -57,6 +59,8 @@ func IsInternalError(err error) bool {
 
 type NotImplemented interface {
 	error
+	HttpCode
+	ErrorCode
 	IsNotImplementedError() bool
 }
 
@@ -71,6 +75,8 @@ func IsNotImplementedError(err error) bool {
 
 type InvalidInput interface {
 	error
+	HttpCode
+	ErrorCode
 	IsInvalidInputError() bool
 	GetFieldErrors() []FieldError
 }
@@ -95,6 +101,8 @@ func GetFieldErrors(err error) []FieldError {
 
 type NotAuthorized interface {
 	error
+	HttpCode
+	ErrorCode
 	IsNotAuthorizedError() bool
 }
 
@@ -109,6 +117,8 @@ func IsNotAuthorizedError(err error) bool {
 
 type NotFound interface {
 	error
+	HttpCode
+	ErrorCode
 	IsNotFoundError() bool
 }
 
@@ -123,6 +133,8 @@ func IsNotFoundError(err error) bool {
 
 type Conflict interface {
 	error
+	HttpCode
+	ErrorCode
 	IsConflictError() bool
 }
 
