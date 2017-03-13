@@ -90,44 +90,44 @@ func NewNotAuthorizedError(code int, err error) *Error {
 	return newError
 }
 
-func (err Error) Error() string {
-	return err.ErrorMessage
+func (error Error) Error() string {
+	return error.ErrorMessage
 }
 
-func (err Error) IsInternalError() bool {
-	return err.httpCode == http.StatusInternalServerError
+func (error Error) IsInternalError() bool {
+	return error.httpCode == http.StatusInternalServerError
 }
 
-func (err Error) IsNotImplementedError() bool {
-	return err.httpCode == http.StatusNotImplemented
+func (error Error) IsNotImplementedError() bool {
+	return error.httpCode == http.StatusNotImplemented
 }
 
-func (err Error) IsInvalidInputError() bool {
-	return err.httpCode == http.StatusBadRequest
+func (error Error) IsInvalidInputError() bool {
+	return error.httpCode == http.StatusBadRequest
 }
 
-func (err Error) GetFieldErrors() []FieldError {
-	return err.FieldErrors
+func (error Error) GetFieldErrors() []FieldError {
+	return error.FieldErrors
 }
 
-func (err Error) IsNotFoundError() bool {
-	return err.httpCode == http.StatusNotFound
+func (error Error) IsNotFoundError() bool {
+	return error.httpCode == http.StatusNotFound
 }
 
-func (err Error) IsConflictError() bool {
-	return err.httpCode == http.StatusConflict
+func (error Error) IsConflictError() bool {
+	return error.httpCode == http.StatusConflict
 }
 
-func (err Error) IsNotAuthorizedError() bool {
-	return err.httpCode == http.StatusForbidden
+func (error Error) IsNotAuthorizedError() bool {
+	return error.httpCode == http.StatusForbidden
 }
 
-func (err Error) GetHttpCode() int {
-	return err.httpCode
+func (error Error) GetHttpCode() int {
+	return error.httpCode
 }
 
-func (err Error) GetErrorCode() int {
-	return err.ErrorCode
+func (error Error) GetErrorCode() int {
+	return error.ErrorCode
 }
 
 func GetFieldErrors(err error) []FieldError {
