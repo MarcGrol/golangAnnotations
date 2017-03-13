@@ -405,16 +405,16 @@ func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregate
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
 func StoreEvent{{.Name}}(c context.Context, sessionUID string, event *{{.PackageName}}.{{.Name}}) error {
-	envlp, err := event.Wrap(sessionUID)
+	envelope, err := event.Wrap(sessionUID)
 	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
 
-	err = New().Put(c, envlp)
+	err = New().Put(c, envelope)
 	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
-	event.Timestamp = envlp.Timestamp.In(mytime.DutchLocation())
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
 	return nil
 }
 
