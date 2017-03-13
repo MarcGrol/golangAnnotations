@@ -25,15 +25,6 @@ type HttpError interface {
 	GetErrorCode() int
 }
 
-func GetErrorCode(err error) int {
-	if err != nil {
-		if httpError, ok := err.(HttpError); ok {
-			return httpError.GetErrorCode()
-		}
-	}
-	return 0
-}
-
 func GetHttpCode(err error) int {
 	if err != nil {
 		if httpError, ok := err.(HttpError); ok {
@@ -41,6 +32,15 @@ func GetHttpCode(err error) int {
 		}
 	}
 	return 500
+}
+
+func GetErrorCode(err error) int {
+	if err != nil {
+		if httpError, ok := err.(HttpError); ok {
+			return httpError.GetErrorCode()
+		}
+	}
+	return 0
 }
 
 type Internal interface {
