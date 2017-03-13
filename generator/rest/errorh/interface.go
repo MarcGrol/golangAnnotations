@@ -15,100 +15,64 @@ type FieldError struct {
 	Args    []string `json:"args"`
 }
 
-type ErrorWithCodes interface {
+type HttpCode interface {
 	GetHttpCode() int
-	GetErrorCode() int
-}
-
-type InternalError interface {
-	error
-	ErrorWithCodes
-	IsInternalError() bool
-}
-
-type NotImplementedError interface {
-	error
-	ErrorWithCodes
-	IsNotImplementedError() bool
-}
-
-type ConflictError interface {
-	error
-	ErrorWithCodes
-	IsConflictError() bool
-}
-
-type NotFound interface {
-	error
-	ErrorWithCodes
-	IsNotFoundError() bool
-}
-
-type NotAuthorized interface {
-	error
-	ErrorWithCodes
-	IsNotAuthorizedError() bool
-}
-
-type InvalidInput interface {
-	error
-	ErrorWithCodes
-	IsInvalidInputError() bool
-	GetFieldErrors() []FieldError
-}
-
-func IsErrorWithCodes(err error) bool {
-	if err != nil {
-		if _, ok := err.(ErrorWithCodes); ok {
-			return true
-		}
-	}
-	return false
 }
 
 func GetErrorCode(err error) int {
 	if err != nil {
-		if specificError, ok := err.(ErrorWithCodes); ok {
+		if specificError, ok := err.(ErrorCode); ok {
 			return specificError.GetErrorCode()
 		}
 	}
 	return 0
 }
 
+type ErrorCode interface {
+	GetErrorCode() int
+}
+
 func GetHttpCode(err error) int {
 	if err != nil {
-		if specificError, ok := err.(ErrorWithCodes); ok {
+		if specificError, ok := err.(HttpCode); ok {
 			return specificError.GetHttpCode()
 		}
 	}
 	return 500
 }
 
+type Internal interface {
+	error
+	IsInternalError() bool
+}
+
 func IsInternalError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(InternalError); ok {
+		if specificError, ok := err.(Internal); ok {
 			return specificError.IsInternalError()
 		}
 	}
 	return false
 }
 
+type NotImplemented interface {
+	error
+	IsNotImplementedError() bool
+}
+
 func IsNotImplementedError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(NotImplementedError); ok {
+		if specificError, ok := err.(NotImplemented); ok {
 			return specificError.IsNotImplementedError()
 		}
 	}
 	return false
 }
 
-func IsConflictError(err error) bool {
-	if err != nil {
-		if specificError, ok := err.(ConflictError); ok {
-			return specificError.IsConflictError()
-		}
-	}
-	return false
+type InvalidInput interface {
+	error
+	IsInvalidInputError() bool
+	GetFieldErrors() []FieldError
 }
 
 func IsInvalidInputError(err error) bool {
@@ -120,6 +84,34 @@ func IsInvalidInputError(err error) bool {
 	return false
 }
 
+func GetFieldErrors(err error) []FieldError {
+	if err != nil {
+		if specificError, ok := err.(InvalidInput); ok {
+			return specificError.GetFieldErrors()
+		}
+	}
+	return []FieldError{}
+}
+
+type NotAuthorized interface {
+	error
+	IsNotAuthorizedError() bool
+}
+
+func IsNotAuthorizedError(err error) bool {
+	if err != nil {
+		if specificError, ok := err.(NotAuthorized); ok {
+			return specificError.IsNotAuthorizedError()
+		}
+	}
+	return false
+}
+
+type NotFound interface {
+	error
+	IsNotFoundError() bool
+}
+
 func IsNotFoundError(err error) bool {
 	if err != nil {
 		if specificError, ok := err.(NotFound); ok {
@@ -129,10 +121,15 @@ func IsNotFoundError(err error) bool {
 	return false
 }
 
-func IsNotAuthorizedError(err error) bool {
+type Conflict interface {
+	error
+	IsConflictError() bool
+}
+
+func IsConflictError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(NotAuthorized); ok {
-			return specificError.IsNotAuthorizedError()
+		if specificError, ok := err.(Conflict); ok {
+			return specificError.IsConflictError()
 		}
 	}
 	return false

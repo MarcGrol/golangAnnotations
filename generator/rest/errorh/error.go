@@ -32,19 +32,6 @@ func NewNotImplementedError(code int, err error) *Error {
 	return newError
 }
 
-func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
-	return NewConflictError(code, fmt.Errorf(format, args...))
-}
-
-func NewConflictError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = err.Error()
-	newError.httpCode = http.StatusConflict
-	return newError
-}
-
 func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
@@ -64,6 +51,18 @@ func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
 	return newError
 }
 
+func NewNotAuthorizedErrorf(code int, format string, args ...interface{}) *Error {
+	return NewNotAuthorizedError(code, fmt.Errorf(format, args...))
+}
+
+func NewNotAuthorizedError(code int, err error) *Error {
+	newError := new(Error)
+	newError.ErrorCode = code
+	newError.underlyingError = err
+	newError.ErrorMessage = newError.underlyingError.Error()
+	newError.httpCode = http.StatusForbidden
+	return newError
+}
 func NewNotFoundErrorf(code int, format string, args ...interface{}) *Error {
 	return NewNotFoundError(code, fmt.Errorf(format, args...))
 }
@@ -77,21 +76,33 @@ func NewNotFoundError(code int, err error) *Error {
 	return newError
 }
 
-func NewNotAuthorizedErrorf(code int, format string, args ...interface{}) *Error {
-	return NewNotAuthorizedError(code, fmt.Errorf(format, args...))
+func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
+	return NewConflictError(code, fmt.Errorf(format, args...))
 }
 
-func NewNotAuthorizedError(code int, err error) *Error {
+func NewConflictError(code int, err error) *Error {
 	newError := new(Error)
 	newError.ErrorCode = code
 	newError.underlyingError = err
-	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpCode = http.StatusForbidden
+	newError.ErrorMessage = err.Error()
+	newError.httpCode = http.StatusConflict
 	return newError
 }
 
 func (error Error) Error() string {
 	return error.ErrorMessage
+}
+
+func (error Error) GetHttpCode() int {
+	return error.httpCode
+}
+
+func (error Error) GetErrorCode() int {
+	return error.ErrorCode
+}
+
+func (error Error) GetFieldErrors() []FieldError {
+	return error.FieldErrors
 }
 
 func (error Error) IsInternalError() bool {
@@ -106,8 +117,8 @@ func (error Error) IsInvalidInputError() bool {
 	return error.httpCode == http.StatusBadRequest
 }
 
-func (error Error) GetFieldErrors() []FieldError {
-	return error.FieldErrors
+func (error Error) IsNotAuthorizedError() bool {
+	return error.httpCode == http.StatusForbidden
 }
 
 func (error Error) IsNotFoundError() bool {
@@ -116,29 +127,4 @@ func (error Error) IsNotFoundError() bool {
 
 func (error Error) IsConflictError() bool {
 	return error.httpCode == http.StatusConflict
-}
-
-func (error Error) IsNotAuthorizedError() bool {
-	return error.httpCode == http.StatusForbidden
-}
-
-func (error Error) GetHttpCode() int {
-	return error.httpCode
-}
-
-func (error Error) GetErrorCode() int {
-	return error.ErrorCode
-}
-
-func GetFieldErrors(err error) []FieldError {
-	return getFieldErrors(err)
-}
-
-func getFieldErrors(err error) []FieldError {
-	if IsInvalidInputError(err) {
-		e, _ := err.(InvalidInput)
-		return e.GetFieldErrors()
-	} else {
-		return []FieldError{}
-	}
 }
