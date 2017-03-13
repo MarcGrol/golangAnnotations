@@ -4,11 +4,11 @@ package errorh
 
 // @JsonStruct()
 type Error struct {
-	httpCode        int          `json:"-"`
-	underlyingError error        `json:"-"`
-	ErrorMessage    string       `json:"errorMessage"`
-	ErrorCode       int          `json:"errorCode"`
-	FieldErrors     []FieldError `json:"fieldErrors"` // only applicable for invalidinput
+	message      string       `json:"-"`
+	httpCode     int          `json:"-"`
+	ErrorMessage string       `json:"errorMessage"`
+	ErrorCode    int          `json:"errorCode"`
+	FieldErrors  []FieldError `json:"fieldErrors"` // only applicable for invalidInput
 }
 
 // @JsonStruct()
@@ -98,6 +98,7 @@ func GetFieldErrors(err error) []FieldError {
 type NotAuthorized interface {
 	HttpError
 	IsNotAuthorizedError() bool
+	GetMessage() string
 }
 
 func IsNotAuthorizedError(err error) bool {
@@ -107,6 +108,15 @@ func IsNotAuthorizedError(err error) bool {
 		}
 	}
 	return false
+}
+
+func GetMessage(err error) string {
+	if err != nil {
+		if specificError, ok := err.(NotAuthorized); ok {
+			return specificError.GetMessage()
+		}
+	}
+	return ""
 }
 
 type NotFound interface {

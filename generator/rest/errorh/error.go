@@ -1,7 +1,6 @@
 package errorh
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -11,12 +10,12 @@ func NewInternalErrorf(code int, format string, args ...interface{}) *Error {
 }
 
 func NewInternalError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = err.Error()
-	newError.httpCode = http.StatusInternalServerError
-	return newError
+	return &Error{
+		httpCode:     http.StatusInternalServerError,
+		ErrorMessage: err.Error(),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 
 func NewNotImplementedErrorf(code int, format string, args ...interface{}) *Error {
@@ -24,56 +23,60 @@ func NewNotImplementedErrorf(code int, format string, args ...interface{}) *Erro
 }
 
 func NewNotImplementedError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = err.Error()
-	newError.httpCode = http.StatusNotImplemented
-	return newError
+	return &Error{
+		httpCode:     http.StatusNotImplemented,
+		ErrorMessage: err.Error(),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 
 func NewInvalidInputErrorf(code int, format string, args ...interface{}) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = fmt.Errorf(format, args...)
-	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpCode = http.StatusBadRequest
-	return newError
+	return &Error{
+		httpCode:     http.StatusBadRequest,
+		ErrorMessage: fmt.Sprintf(format, args...),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 
 func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = errors.New("Input validation error")
-	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpCode = http.StatusBadRequest
-	newError.FieldErrors = fieldErrors
-	return newError
+	return &Error{
+		httpCode:     http.StatusBadRequest,
+		ErrorMessage: "Input validation error",
+		ErrorCode:    code,
+		FieldErrors:  fieldErrors,
+	}
 }
 
 func NewNotAuthorizedErrorf(code int, format string, args ...interface{}) *Error {
-	return NewNotAuthorizedError(code, fmt.Errorf(format, args...))
+	return NewNotAuthorizedErrorfWithMessage(fmt.Errorf(format, args...), code, "")
 }
 
 func NewNotAuthorizedError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = newError.underlyingError.Error()
-	newError.httpCode = http.StatusForbidden
-	return newError
+	return NewNotAuthorizedErrorfWithMessage(err, code, err.Error())
+}
+
+func NewNotAuthorizedErrorfWithMessage(err error, code int, format string, args ...interface{}) *Error {
+	return &Error{
+		message:      fmt.Sprintf(format, args...),
+		httpCode:     http.StatusForbidden,
+		ErrorMessage: err.Error(),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 func NewNotFoundErrorf(code int, format string, args ...interface{}) *Error {
 	return NewNotFoundError(code, fmt.Errorf(format, args...))
 }
 
 func NewNotFoundError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = err.Error()
-	newError.httpCode = http.StatusNotFound
-	return newError
+	return &Error{
+		httpCode:     http.StatusNotFound,
+		ErrorMessage: err.Error(),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 
 func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
@@ -81,16 +84,20 @@ func NewConflictErrorf(code int, format string, args ...interface{}) *Error {
 }
 
 func NewConflictError(code int, err error) *Error {
-	newError := new(Error)
-	newError.ErrorCode = code
-	newError.underlyingError = err
-	newError.ErrorMessage = err.Error()
-	newError.httpCode = http.StatusConflict
-	return newError
+	return &Error{
+		httpCode:     http.StatusConflict,
+		ErrorMessage: err.Error(),
+		ErrorCode:    code,
+		FieldErrors:  []FieldError{},
+	}
 }
 
 func (error Error) Error() string {
 	return error.ErrorMessage
+}
+
+func (error Error) GetMessage() string {
+	return error.message
 }
 
 func (error Error) GetHttpCode() int {

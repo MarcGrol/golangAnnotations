@@ -9,13 +9,13 @@
 			"name": "Error",
 			"fields": [
 				{
-					"name": "httpCode",
-					"typeName": "int",
+					"name": "message",
+					"typeName": "string",
 					"tag": "`json:\"-\"`"
 				},
 				{
-					"name": "underlyingError",
-					"typeName": "error",
+					"name": "httpCode",
+					"typeName": "int",
 					"tag": "`json:\"-\"`"
 				},
 				{
@@ -34,7 +34,7 @@
 					"isSlice": true,
 					"tag": "`json:\"fieldErrors\"`",
 					"commentLines": [
-						"// only applicable for invalidinput"
+						"// only applicable for invalidInput"
 					]
 				}
 			],
@@ -47,6 +47,20 @@
 						"typeName": "Error"
 					},
 					"name": "Error",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "errorh",
+					"filename": "error.go",
+					"relatedStruct": {
+						"name": "error",
+						"typeName": "Error"
+					},
+					"name": "GetMessage",
 					"outputArgs": [
 						{
 							"typeName": "string"
@@ -431,6 +445,34 @@
 		{
 			"packageName": "errorh",
 			"filename": "error.go",
+			"name": "NewNotAuthorizedErrorfWithMessage",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				},
+				{
+					"name": "code",
+					"typeName": "int"
+				},
+				{
+					"name": "format",
+					"typeName": "string"
+				},
+				{
+					"name": "args"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "Error",
+					"isPointer": true
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
 			"name": "NewNotFoundErrorf",
 			"inputArgs": [
 				{
@@ -526,6 +568,20 @@
 				"typeName": "Error"
 			},
 			"name": "Error",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "error.go",
+			"relatedStruct": {
+				"name": "error",
+				"typeName": "Error"
+			},
+			"name": "GetMessage",
 			"outputArgs": [
 				{
 					"typeName": "string"
@@ -662,7 +718,7 @@
 		{
 			"packageName": "errorh",
 			"filename": "interface.go",
-			"name": "GetErrorCode",
+			"name": "GetHttpCode",
 			"inputArgs": [
 				{
 					"name": "err",
@@ -678,7 +734,7 @@
 		{
 			"packageName": "errorh",
 			"filename": "interface.go",
-			"name": "GetHttpCode",
+			"name": "GetErrorCode",
 			"inputArgs": [
 				{
 					"name": "err",
@@ -769,6 +825,22 @@
 			"outputArgs": [
 				{
 					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "errorh",
+			"filename": "interface.go",
+			"name": "GetMessage",
+			"inputArgs": [
+				{
+					"name": "err",
+					"typeName": "error"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "string"
 				}
 			]
 		},
@@ -893,6 +965,14 @@
 					"outputArgs": [
 						{
 							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"name": "GetMessage",
+					"outputArgs": [
+						{
+							"typeName": "string"
 						}
 					]
 				}
