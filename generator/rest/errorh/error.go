@@ -50,7 +50,7 @@ func NewInvalidInputErrorSpecific(code int, fieldErrors []FieldError) *Error {
 }
 
 func NewNotAuthorizedErrorf(code int, format string, args ...interface{}) *Error {
-	return NewNotAuthorizedErrorfWithMessage(fmt.Errorf(format, args...), code, "")
+	return NewNotAuthorizedErrorfWithMessage(fmt.Errorf(format, args...), code, format, args...)
 }
 
 func NewNotAuthorizedError(code int, err error) *Error {
