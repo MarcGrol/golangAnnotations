@@ -15,36 +15,32 @@ type FieldError struct {
 	Args    []string `json:"args"`
 }
 
-type HttpCode interface {
+type HttpError interface {
+	error
 	GetHttpCode() int
+	GetErrorCode() int
 }
 
 func GetErrorCode(err error) int {
 	if err != nil {
-		if specificError, ok := err.(ErrorCode); ok {
-			return specificError.GetErrorCode()
+		if httpError, ok := err.(HttpError); ok {
+			return httpError.GetErrorCode()
 		}
 	}
 	return 0
 }
 
-type ErrorCode interface {
-	GetErrorCode() int
-}
-
 func GetHttpCode(err error) int {
 	if err != nil {
-		if specificError, ok := err.(HttpCode); ok {
-			return specificError.GetHttpCode()
+		if httpError, ok := err.(HttpError); ok {
+			return httpError.GetHttpCode()
 		}
 	}
 	return 500
 }
 
 type Internal interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsInternalError() bool
 }
 
@@ -58,9 +54,7 @@ func IsInternalError(err error) bool {
 }
 
 type NotImplemented interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsNotImplementedError() bool
 }
 
@@ -74,9 +68,7 @@ func IsNotImplementedError(err error) bool {
 }
 
 type InvalidInput interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsInvalidInputError() bool
 	GetFieldErrors() []FieldError
 }
@@ -100,9 +92,7 @@ func GetFieldErrors(err error) []FieldError {
 }
 
 type NotAuthorized interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsNotAuthorizedError() bool
 }
 
@@ -116,9 +106,7 @@ func IsNotAuthorizedError(err error) bool {
 }
 
 type NotFound interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsNotFoundError() bool
 }
 
@@ -132,9 +120,7 @@ func IsNotFoundError(err error) bool {
 }
 
 type Conflict interface {
-	error
-	HttpCode
-	ErrorCode
+	HttpError
 	IsConflictError() bool
 }
 
