@@ -567,11 +567,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 
 	{{range .Operations}}
 		{{if IsRestOperation . }}
-			{{if IsRestOperationGenerated . }}
-				subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
-			{{else}}
-				subRouter.HandleFunc(  "{{GetRestOperationPath . }}", ts.{{.Name}}()).Methods("{{GetRestOperationMethod . }}")
-			{{end}}
+			subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
 		{{end}}
 	{{end}}
 
@@ -749,6 +745,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
       }
  }
+{{else}}
+ // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
+func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		{{if NeedsContext $oper }}{{GetContextName $oper}} := ctx.New.CreateContext(r){{end}}
+		service.{{$oper.Name}}({{GetInputParamString . }})
+	}
+}
 {{end}}
 {{end}}
 {{end}}
