@@ -12,7 +12,7 @@ Using this intermediate representation, the tool uses your annotations to genera
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(uid string) (Person,error) {
+    func (s Service) getPerson(uid string) (*Person,error) {
         ...
     } 
 
