@@ -7,7 +7,7 @@
 ## Summary
 
 The golangAnnotations-tool parses your golang source-code into an intermediate representation.
-Using this intermediate representation, the tool uses your annotations to generate predictable source code that would be cumbersome and error-prone to write manually. Bottom line, a lot less code needs to be written.
+Using this intermediate representation, the tool uses your annotations to generate source code that would be cumbersome and error-prone to write manually. Bottom line, a lot less code needs to be written.
 
 Example:
     
