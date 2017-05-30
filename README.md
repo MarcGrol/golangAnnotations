@@ -34,8 +34,9 @@ Example:
 
 This first implementation provides the following kind of annotations:
 - web-services (jax-rs like):
-    - Generate server-side http-handling for a regular "service"
-    - Generate helpers to ease integration testing of web-services
+    - Generate server-side http-handling for a "service"
+    - Generate client-side http-handling for a "service"
+    - Generate helpers to ease integration testing of your services
 
 - event-sourcing:
     - Describe which events belong to which aggregate
