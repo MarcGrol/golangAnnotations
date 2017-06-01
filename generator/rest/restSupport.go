@@ -17,7 +17,7 @@ func ExtractCredentials(language string, r *http.Request) Credentials {
 			EndUserAccess: "",
 			EndUserRole:   "supplier",
 			EndUserUID:    username,
-			Password:      password,
+			ApiKey:        password,
 		}
 	}
 	return Credentials{
@@ -37,7 +37,7 @@ type Credentials struct {
 	EndUserAccess string
 	EndUserRole   string
 	EndUserUID    string
-	Password      string
+	ApiKey        string
 }
 
 func decodeBasicAuthHeader(r *http.Request) (string, string, error) {
