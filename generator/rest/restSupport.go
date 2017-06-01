@@ -41,9 +41,14 @@ type Credentials struct {
 }
 
 func decodeBasicAuthHeader(r *http.Request) (string, string, error) {
-	auth := strings.SplitN(r.Header["Authorization"][0], " ", 2)
+	authHeader := r.Header["Authorization"]
+	if len(authHeader) == 0 {
+		return "", "", fmt.Errorf("Missing header")
+	}
+
+	auth := strings.SplitN(authHeader[0], " ", 2)
 	if len(auth) != 2 || auth[0] != "Basic" {
-		return "", "", fmt.Errorf("Invalid/missing header")
+		return "", "", fmt.Errorf("Invalid header")
 	}
 
 	payload, _ := base64.StdEncoding.DecodeString(auth[1])
