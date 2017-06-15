@@ -24,9 +24,9 @@ Based on the annotation line code is generated that will do do all http handling
   - unmarshall request
   - call business logic
   - marshall response
-  - write). 
+  - write response 
 
-In addition, typestrong test functions are generated.
+In addition, typestrong test functions are generated that ease testing of your rest operations.
 
 The same "annotation"-approach is used to ease event-sourcing.
 
