@@ -74,7 +74,7 @@ Observe that ./examples/event/$wrappers.go and ./examples/event/$aggregates.go h
 
 ### Command to trigger code-generation:
 
-We use the "go:generate" mechanism to trigger our goAnnotations-executable. See [example.go](./examples/event/example.go).
+We use the "go:generate" mechanism to trigger our goAnnotations-executable.
 In order to trigger this mechanisme we use a '//go:genarate' comment with the command to be executed.
 
 example:
@@ -85,7 +85,8 @@ So can can use the regular toolchain to trigger code-genaration
 
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
-    // go imports will include all the required imports
+    // go imports will fix all the imports
     $ for i in `find . -name "*.go"`; do goimports -w -local github.com/ ${i}; done
+    // fixes formatting for generated code
     $ for i in `find . -name "*.go"`; do gofmt -s -w ${i}; done
     
