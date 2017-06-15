@@ -45,7 +45,7 @@ This first implementation provides the following kind of annotations:
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
-A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. Observe that ./examples/web/tourService.go will be generated.
+A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. Observe that [./examples/rest/tourService.go](./examples/rest/tourService.go) is used as input.
 
     // @RestService( path = "/api" )
     type Service struct {
@@ -57,9 +57,9 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
+Observe that ./examples/rest/$tourService.go have been generated.
+
 [Example](https://github.com/MarcGrol/golangAnnotations/wiki/example-of-generated-code) of generated rest-service.
-
-
 
 ## How to use event-sourcing related annotations?
 
@@ -70,7 +70,7 @@ A regular golang struct definition with our own "Event"-annotation.
         ...
     }        
 
-Observe that ./examples/event/wrappers.go and ./examples/event/aggregates.go have been created in examples/event.
+Observe that ./examples/event/$wrappers.go and ./examples/event/$aggregates.go have been created in ./examples/structExample.
 
 ### Command to trigger code-generation:
 
