@@ -3,9 +3,9 @@ package rest
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"text/template"
-
 	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
@@ -218,6 +218,12 @@ func GetRestOperationPath(o model.Operation) string {
 	return ""
 }
 
+func GetAllPathParams(o model.Operation) []string {
+	re, _ := regexp.Compile(`\{(.*)\}`)
+	path := GetRestOperationPath(o)
+	return re.FindAllString(path, -1)
+}
+
 func GetRestOperationMethod(o model.Operation) string {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if ok {
@@ -393,7 +399,7 @@ func UsesQueryParams(o model.Operation) bool {
 				count++
 			}
 		}
-		return count > 1
+		return count > len(GetAllPathParams(o))
 	}
 	return false
 }
