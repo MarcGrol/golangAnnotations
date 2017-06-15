@@ -57,7 +57,9 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that ./examples/web/httpTourService.go and./examples/web/TourServiceHelpers_test.go will been created in examples/web.
+[Example](https://github.com/MarcGrol/golangAnnotations/wiki/example-of-generated-code) of generated rest-service.
+
+
 
 ## How to use event-sourcing related annotations?
 
