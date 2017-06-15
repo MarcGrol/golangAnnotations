@@ -41,7 +41,7 @@ This first implementation provides the following kind of annotations:
 - event-sourcing:
     - Describe which events belong to which aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
-    - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be eeasily stored and emitted
+    - Type-strong boiler-plate code to wrap and unwrap events into an envelope so that it can be easily stored and emitted
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
