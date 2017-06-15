@@ -19,6 +19,14 @@ Example:
         ...
     } 
 
+Based on the annotation line code is generated that will do do all http handling:
+  - read-request
+  - unmarshall request
+  - call business logic
+  - marshall response
+  - write). 
+In addition, typestrong test functions are generated.
+
 ## Getting the software
 
     $ go get -u -t github.com/MarcGrol/golangAnnotations
