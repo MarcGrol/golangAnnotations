@@ -59,7 +59,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
 
 Observe that ./examples/rest/$tourService.go have been generated.
 
-[Example](https://github.com/MarcGrol/golangAnnotations/wiki/example-of-generated-code) of generated http handler.
+[Example](https://github.com/MarcGrol/golangAnnotations/wiki/example-of-generated-code) of the generated http handler.
 
 ## How to use event-sourcing related annotations?
 
