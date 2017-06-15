@@ -83,6 +83,7 @@ So can can use the regular toolchain to trigger code-genaration
 
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
-    // recursively call go imports
-    $ go fmt ./...
+    // go imports will include all the required imports
+    $ for i in `find . -name "*.go"`; do goimports -w -local github.com/ ${i}; done
+    $ for i in `find . -name "*.go"`; do gofmt -s -w ${i}; done
     
