@@ -45,7 +45,7 @@ This first implementation provides the following kind of annotations:
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
-A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. See [./examples/web/tourService.go](./examples/web/tourService.go)
+A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. Observe that ./examples/web/tourService.go will be generated.
 
     // @RestService( path = "/api" )
     type Service struct {
@@ -57,18 +57,18 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that [./examples/web/httpTourService.go](./examples/web/httpTourService.go) and [./examples/web/TourServiceHelpers_test.go](./examples/web/TourServiceHelpers_test.go) has been created in [examples/web](examples/web)
+Observe that ./examples/web/httpTourService.go and./examples/web/TourServiceHelpers_test.go will been created in examples/web.
 
 ## How to use event-sourcing related annotations?
 
-A regular golang struct definition with our own "Event"-annotation. See [./examples/event/example.go](./examples/event/example.go)
+A regular golang struct definition with our own "Event"-annotation.
     
     // @Event( aggregate = Tour" )
     type TourEtappeCreated struct {
         ...
     }        
 
-Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event](examples/event)
+Observe that ./examples/event/wrappers.go and ./examples/event/aggregates.go have been created in examples/event.
 
 ### Command to trigger code-generation:
 
@@ -83,8 +83,6 @@ So can can use the regular toolchain to trigger code-genaration
 
     $ cd ${GOPATH/src/github.com/MarcGrol/golangAnnotations
     $ go generate ./...
+    // recursively call go imports
     $ go fmt ./...
     
-Observe that [wrappers.go](./examples/event/wrappers.go) and [aggregates.go](./examples/event/aggregates.go) have been created in [examples/event/](examples/event/) 
-
-and [httpTourservice.go](./examples/web/httpTourService.go) has been created in [./examples/web/](./examples/web/) 
