@@ -25,7 +25,10 @@ Based on the annotation line code is generated that will do do all http handling
   - call business logic
   - marshall response
   - write). 
+
 In addition, typestrong test functions are generated.
+
+The same "annotation"-approach is used to ease event-sourcing.
 
 ## Getting the software
 
