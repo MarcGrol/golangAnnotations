@@ -2,7 +2,9 @@
 
 package rest
 
-import "time"
+import (
+	"time"
+)
 
 //go:generate golangAnnotations -input-dir .
 

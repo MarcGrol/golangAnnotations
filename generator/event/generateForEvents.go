@@ -372,7 +372,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	//	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
 	assert.Equal(t, "test_session", wrapped.SessionUID)
 	assert.Equal(t, "1234321", wrapped.UUID)
-    assert.Equal(t, "2016-02-27T01:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
+    assert.Equal(t, "2016-02-27T00:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
 	assert.Equal(t, int64(0), wrapped.SequenceNumber)
 	again, ok := GetIfIs{{.Name}}(wrapped)
 	assert.True(t, ok)
