@@ -720,7 +720,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
 
 		{{if HasRestOperationAfter . }}
-			err = service.{{$oper.Name}}HandleAfter(c, method, url, {{GetInputArgName . }}, result)
+			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
 				errorhandling.HandleHttpError(c, err, w)
 				return
