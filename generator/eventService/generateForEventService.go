@@ -155,7 +155,7 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
-			logging.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
+			mylog.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
 			return
 		}
 
@@ -165,10 +165,10 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 			Payload: asJson,
 		})
 		if err != nil {
-			logging.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
+			mylog.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
 			return
 		}
-		logging.New().Info(c, "Enqueued task to url %s", taskUrl)
+		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
 	}
 }
 
@@ -199,16 +199,16 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	{
 	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-				logging.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
+				mylog.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
 		    if err != nil {
-				logging.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
+				mylog.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic, err)
 			} else {
-				logging.New().Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
+				mylog.New().Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 			}
