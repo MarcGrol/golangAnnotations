@@ -77,6 +77,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperation":             IsRestOperation,
 	"IsRestOperationNoWrap":       IsRestOperationNoWrap,
 	"IsRestOperationGenerated":    IsRestOperationGenerated,
+	"HasRestOperationAfter":       HasRestOperationAfter,
 	"GetRestOperationPath":        GetRestOperationPath,
 	"GetRestOperationMethod":      GetRestOperationMethod,
 	"IsRestOperationForm":         IsRestOperationForm,
@@ -208,6 +209,14 @@ func IsRestOperationNoWrap(o model.Operation) bool {
 
 func IsRestOperationGenerated(o model.Operation) bool {
 	return !IsRestOperationNoWrap(o)
+}
+
+func HasRestOperationAfter(o model.Operation) bool {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	if ok {
+		return ann.Attributes[restAnnotation.ParamAfter] == "true"
+	}
+	return false
 }
 
 func GetRestOperationPath(o model.Operation) string {
@@ -707,6 +716,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					errorhandling.HandleHttpError(c, err, w)
 					return
 				}
+			}
+		{{end}}
+
+		{{if HasRestOperationAfter . }}
+			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
+			if err != nil {
+				errorhandling.HandleHttpError(c, err, w)
+				return
 			}
 		{{end}}
 
