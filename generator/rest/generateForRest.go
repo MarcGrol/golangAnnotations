@@ -420,7 +420,6 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 	}
 	for _, pathParam := range GetAllPathParams(o) {
 		if pathParam == arg.Name {
-			log.Printf("FOUND path param: %s\n", pathParam)
 			return false
 		}
 	}
