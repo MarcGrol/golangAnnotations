@@ -97,7 +97,9 @@ var customTemplateFuncs = template.FuncMap{
 	"GetInputArgType":             GetInputArgType,
 	"GetOutputArgDeclaration":     GetOutputArgDeclaration,
 	"GetOutputArgName":            GetOutputArgName,
-	"UsesQueryParams":             UsesQueryParams,
+	"HasAnyPathParam":             HasAnyPathParam,
+	"IsSliceParam":                IsSliceParam,
+	"IsQueryParam":                IsQueryParam,
 	"GetInputArgName":             GetInputArgName,
 	"GetInputParamString":         GetInputParamString,
 	"GetOutputArgType":            GetOutputArgType,
@@ -227,10 +229,18 @@ func GetRestOperationPath(o model.Operation) string {
 	return ""
 }
 
+func HasAnyPathParam(o model.Operation) bool {
+	return len(GetAllPathParams(o)) > 0
+}
+
 func GetAllPathParams(o model.Operation) []string {
 	re, _ := regexp.Compile(`\{(.*)\}`)
 	path := GetRestOperationPath(o)
-	return re.FindAllString(path, -1)
+	params := re.FindAllString(path, -1)
+	for idx, param := range params {
+		params[idx] = param[1 : len(param)-1]
+	}
+	return params
 }
 
 func GetRestOperationMethod(o model.Operation) string {
@@ -400,17 +410,21 @@ func GetInputArgType(o model.Operation) string {
 	return ""
 }
 
-func UsesQueryParams(o model.Operation) bool {
-	if GetRestOperationMethod(o) == "GET" {
-		count := 0
-		for _, arg := range o.InputArgs {
-			if arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
-				count++
-			}
-		}
-		return count > len(GetAllPathParams(o))
+func IsSliceParam(arg model.Field) bool {
+	return arg.IsSlice
+}
+
+func IsQueryParam(o model.Operation, arg model.Field) bool {
+	if arg.TypeName == "context.Context" || arg.TypeName == "rest.Credentials" {
+		return false
 	}
-	return false
+	for _, pathParam := range GetAllPathParams(o) {
+		if pathParam == arg.Name {
+			log.Printf("FOUND path param: %s\n", pathParam)
+			return false
+		}
+	}
+	return true
 }
 
 func GetInputArgName(o model.Operation) string {
@@ -616,8 +630,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			}
 		{{end}}
 
-		{{if UsesQueryParams $oper }} {{else}}
-		pathParams := mux.Vars(r)
+		{{if HasAnyPathParam $oper }}
+			pathParams := mux.Vars(r)
 			if len(pathParams) > 0 {
 				log.Printf("pathParams:%+v", pathParams)
 			}
@@ -634,9 +648,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{if IsRestOperationForm $oper }}
 						{{.Name}}String := r.FormValue("{{.Name}}")
 						if {{.Name}}String == "" {
-					{{else if UsesQueryParams $oper }}
-						{{.Name}}String := r.URL.Query().Get("{{.Name}}")
-						if {{.Name}}String == "" {
+					{{else if IsQueryParam $oper . }}
+						{{if IsSliceParam . }}
+							{{.Name}}String, ok := r.URL.Query()["{{.Name}}"]
+							if !ok {
+						{{else}}
+							{{.Name}}String := r.URL.Query().Get("{{.Name}}")
+							if {{.Name}}String == "" {
+						{{end}}
 					{{else}}
 						{{.Name}}String, exists := pathParams["{{.Name}}"]
 						if !exists {
@@ -656,9 +675,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 					{{if IsRestOperationForm $oper }}
 						{{.Name}} := r.FormValue("{{.Name}}")
 						if {{.Name}} == "" {
-					{{else if UsesQueryParams $oper }}
-						{{.Name}} := r.URL.Query().Get("{{.Name}}")
-						if {{.Name}} == "" {
+					{{else if IsQueryParam $oper . }}
+						{{if IsSliceParam . }}
+							{{.Name}} := r.URL.Query()["{{.Name}}"]
+							if len({{.Name}}) == 0 {
+						{{else}}
+							{{.Name}} := r.URL.Query().Get("{{.Name}}")
+							if {{.Name}} == "" {
+						{{end}}
 					{{else}}
 						{{.Name}}, exists := pathParams["{{.Name}}"]
 						if !exists {
