@@ -170,9 +170,7 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 const (
 {{range $aggr, $events := .AggregateMap}}
@@ -388,9 +386,7 @@ var storeEventsTemplate string = `
 
 package store
 
-import (
-	"golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{range .Structs}}
 {{if IsEvent . }}

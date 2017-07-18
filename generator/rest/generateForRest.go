@@ -812,15 +812,11 @@ var helpersTemplate string = `
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{ $structName := .Name }}
 
-
 var logFp *os.File
-
 
 func openfile( filename string) *os.File {
 	fp, err := os.Create(filename)
@@ -1030,7 +1026,6 @@ import "golang.org/x/net/context"
 {{ $structName := .Name }}
 
 var debug = false
-
 
 type HTTPClient struct {
 	hostName string

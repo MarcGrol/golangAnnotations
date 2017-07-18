@@ -122,32 +122,28 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{ $structName := .Name }}
 
-const (
-	subscriber = "{{GetEventServiceSelfName .}}"
-)
+const subscriber = "{{GetEventServiceSelfName .}}"
 
-func SubscribeToEvents(router *mux.Router) {
+func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 	{{range GetEventServiceSubscriptions .}}
 	{
 		// Subscribe to topic "{{.}}"
-	    bus.Subscribe("{{.}}", subscriber, handleEvent)
+	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
 	}
 	{{end}}
 
 	{{if IsAsync .}}
-		router.HandleFunc("/tasks/"+subscriber+"/{aggregateName}/{eventTypeName}", httpHandleEventAsync()).Methods("POST")
+		router.HandleFunc("/tasks/"+subscriber+"/{aggregateName}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
 	{{end}}
 }
 
 {{if IsAsync .}}
 
-func handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}:
 
@@ -172,7 +168,7 @@ func handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	}
 }
 
-func httpHandleEventAsync() http.HandlerFunc {
+func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
@@ -183,15 +179,14 @@ func httpHandleEventAsync() http.HandlerFunc {
 			errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 			return
 		}
-		handleEventAsync(c, envelope.AggregateName, envelope)
+		es.handleEventAsync(c, envelope.AggregateName, envelope)
 	}
 }
 
-func handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
 {{else}}
-func handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 {{end}}
-    es := &{{$structName}}{}
 
     {{range $idxOper, $oper := .Operations}}
 
