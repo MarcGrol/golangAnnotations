@@ -334,7 +334,7 @@ func UnWrap{{.Name}}(envelope *events.Envelope) (*{{.Name}},error) {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-    event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
+    event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation)
 
     return &event, nil
 }
@@ -414,7 +414,7 @@ func StoreEvent{{.Name}}(c context.Context, sessionUID string, event *{{.Package
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
-	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation())
+	event.Timestamp = envelope.Timestamp.In(mytime.DutchLocation)
 	return nil
 }
 
