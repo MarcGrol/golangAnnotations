@@ -23,26 +23,25 @@ func TestGenerateForWeb(t *testing.T) {
 
 	s := []model.Struct{
 		{
-			DocLines:    []string{`// @EventService( self = "self", subscriptions = "other")`},
+			DocLines:    []string{`// @EventService( self = "self" )`},
 			PackageName: "testData",
 			Name:        "MyEventService",
-			Operations:  []*model.Operation{},
+			Operations: []*model.Operation{
+				{
+					DocLines:      []string{`// @EventOperation( topic = "other" )`},
+					Name:          "doit",
+					RelatedStruct: &model.Field{TypeName: "MyService"},
+					InputArgs: []model.Field{
+						{Name: "c", TypeName: "context.Context"},
+						{Name: "structExample", TypeName: "events.OrderCreated"},
+					},
+					OutputArgs: []model.Field{
+						{TypeName: "error"},
+					},
+				},
+			},
 		},
 	}
-
-	s[0].Operations = append(s[0].Operations,
-		&model.Operation{
-			DocLines:      []string{`// @EventOperation()`},
-			Name:          "doit",
-			RelatedStruct: &model.Field{TypeName: "MyService"},
-			InputArgs: []model.Field{
-				{Name: "c", TypeName: "context.Context"},
-				{Name: "structExample", TypeName: "events.OrderCreated"},
-			},
-			OutputArgs: []model.Field{
-				{TypeName: "error"},
-			},
-		})
 
 	err := Generate("testData", model.ParsedSources{Structs: s})
 	assert.Nil(t, err)
@@ -62,7 +61,7 @@ func TestIsRestService(t *testing.T) {
 	restAnnotation.Register()
 	s := model.Struct{
 		DocLines: []string{
-			`//@EventService( self = "me", subscriptions = "other")`},
+			`//@EventService( self = "me")`},
 	}
 	assert.True(t, IsEventService(s))
 }
@@ -71,10 +70,9 @@ func TestGetEventServiceSelf(t *testing.T) {
 	restAnnotation.Register()
 	s := model.Struct{
 		DocLines: []string{
-			`//@EventService( self = "me", subscriptions = "other1, other2")`},
+			`//@EventService( self = "me" )`},
 	}
 	assert.Equal(t, "me", GetEventServiceSelfName(s))
-	assert.Equal(t, []string{"other1", "other2"}, GetEventServiceSubscriptions(s))
 }
 
 func TestIsEventOperation(t *testing.T) {
@@ -93,7 +91,7 @@ func createOper() model.Operation {
 	restAnnotation.Register()
 	o := model.Operation{
 		DocLines: []string{
-			fmt.Sprintf("//@EventOperation()"),
+			fmt.Sprintf("//@EventOperation( topic = \"other1\" )"),
 		},
 		InputArgs: []model.Field{
 			{Name: "ctx", TypeName: "context.Context"},

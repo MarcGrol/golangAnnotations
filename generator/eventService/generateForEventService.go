@@ -55,13 +55,14 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":               IsEventService,
-	"IsAsync":                      IsAsync,
-	"IsEventOperation":             IsEventOperation,
-	"GetInputArgType":              GetInputArgType,
-	"GetInputArgPackage":           GetInputArgPackage,
-	"GetEventServiceSubscriptions": GetEventServiceSubscriptions,
-	"GetEventServiceSelfName":      GetEventServiceSelfName,
+	"IsEventService":          IsEventService,
+	"IsAsync":                 IsAsync,
+	"IsEventOperation":        IsEventOperation,
+	"GetInputArgType":         GetInputArgType,
+	"GetInputArgPackage":      GetInputArgPackage,
+	"GetEventServiceSelfName": GetEventServiceSelfName,
+	"GetEventServiceTopics":   GetEventServiceTopics,
+	"GetEventOperationTopic":  GetEventOperationTopic,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -88,20 +89,32 @@ func GetEventServiceSelfName(s model.Struct) string {
 	return ""
 }
 
-func GetEventServiceSubscriptions(s model.Struct) []string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
-	if ok {
-		aggregateString, found := ann.Attributes[eventServiceAnnotation.ParamSubscriptions]
-		if found {
-			splitted := strings.Split(aggregateString, ",")
-			result := []string{}
-			for _, s := range splitted {
-				result = append(result, strings.TrimSpace(s))
+func GetEventServiceTopics(s model.Struct) []string {
+	topics := []string{}
+operations:
+	for _, o := range s.Operations {
+		if IsEventOperation(*o) {
+			operationAnn, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
+			if ok {
+				topic := operationAnn.Attributes[eventServiceAnnotation.ParamTopic]
+				for _, t := range topics {
+					if t == topic {
+						continue operations
+					}
+				}
+				topics = append(topics, topic)
 			}
-			return result
 		}
 	}
-	return []string{}
+	return topics
+}
+
+func GetEventOperationTopic(s model.Struct) string {
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventOperation)
+	if ok {
+		return ann.Attributes[eventServiceAnnotation.ParamTopic]
+	}
+	return ""
 }
 
 func IsEventOperation(o model.Operation) bool {
@@ -143,7 +156,7 @@ import "golang.org/x/net/context"
 func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 	const subscriber = "{{GetEventServiceSelfName .}}"
-	{{range GetEventServiceSubscriptions .}}
+	{{range GetEventServiceTopics .}}
 	{
 		// Subscribe to topic "{{.}}"
 	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
@@ -151,7 +164,7 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 	{{end}}
 
 	{{if IsAsync .}}
-		router.HandleFunc("/tasks/{{GetEventServiceSelfName .}}/{aggregateName}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
+		router.HandleFunc("/tasks/{{GetEventServiceSelfName .}}/{topic}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
 	{{end}}
 }
 
@@ -161,7 +174,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
-		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", envelope.AggregateName, envelope.EventTypeName )
+		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName )
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
