@@ -27,16 +27,28 @@ func generate(inputDir string, structs []model.Struct) error {
 	if err != nil {
 		return err
 	}
+
+	eventServices := []model.Struct{}
 	for _, service := range structs {
 		if IsEventService(service) {
-			{
-				target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating handlers for event-service %s: %s", service.Name, err)
-					return err
-				}
-			}
+			eventServices = append(eventServices, service)
+		}
+	}
+
+	templateData := struct {
+		PackageName string
+		Services    []model.Struct
+	}{
+		PackageName: packageName,
+		Services:    eventServices,
+	}
+
+	if len(eventServices) > 0 {
+		target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
+		err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "handlers", handlersTemplate, customTemplateFuncs, target)
+		if err != nil {
+			log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
+			return err
 		}
 	}
 	return nil
@@ -124,11 +136,13 @@ package {{.PackageName}}
 
 import "golang.org/x/net/context"
 
+{{range $idxService, $service := .Services}}
+
 {{ $structName := .Name }}
 
-const subscriber = "{{GetEventServiceSelfName .}}"
-
 func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
+
+	const subscriber = "{{GetEventServiceSelfName .}}"
 	{{range GetEventServiceSubscriptions .}}
 	{
 		// Subscribe to topic "{{.}}"
@@ -137,7 +151,7 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 	{{end}}
 
 	{{if IsAsync .}}
-		router.HandleFunc("/tasks/"+subscriber+"/{aggregateName}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
+		router.HandleFunc("/tasks/{{GetEventServiceSelfName .}}/{aggregateName}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
 	{{end}}
 }
 
@@ -145,9 +159,9 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 	switch envelope.EventTypeName {
-	case{{range $idxOper, $oper := .Operations}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}:
+	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
-		taskUrl := fmt.Sprintf("/tasks/%s/%s/%s", subscriber, envelope.AggregateName, envelope.EventTypeName )
+		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", envelope.AggregateName, envelope.EventTypeName )
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
@@ -187,9 +201,8 @@ func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, env
 {{else}}
 func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 {{end}}
-
+	const subscriber = "{{GetEventServiceSelfName .}}"
     {{range $idxOper, $oper := .Operations}}
-
 	{{if IsEventOperation $oper}}
 	{
 	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
@@ -209,10 +222,8 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 			}
 	    }
 	}
-
 	{{end}}
-
 {{end}}
-
 }
+{{end}}
 `
