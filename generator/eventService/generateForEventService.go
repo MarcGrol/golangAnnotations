@@ -94,32 +94,29 @@ func GetEventServiceTopics(s model.Struct) []string {
 operations:
 	for _, o := range s.Operations {
 		if IsEventOperation(*o) {
-			operationAnn, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
-			if ok {
-				topic := operationAnn.Attributes[eventServiceAnnotation.ParamTopic]
-				for _, t := range topics {
-					if t == topic {
-						continue operations
-					}
+			topic := GetEventOperationTopic(*o)
+			for _, t := range topics {
+				if t == topic {
+					continue operations
 				}
-				topics = append(topics, topic)
 			}
+			topics = append(topics, topic)
 		}
 	}
 	return topics
 }
 
-func GetEventOperationTopic(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventOperation)
+func IsEventOperation(o model.Operation) bool {
+	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
+	return ok
+}
+
+func GetEventOperationTopic(o model.Operation) string {
+	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	if ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
 	return ""
-}
-
-func IsEventOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
-	return ok
 }
 
 func GetInputArgType(o model.Operation) string {
@@ -156,15 +153,15 @@ import "golang.org/x/net/context"
 func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 	const subscriber = "{{GetEventServiceSelfName .}}"
+	{{ $serviceName := GetEventServiceSelfName $service }}
 	{{range GetEventServiceTopics .}}
 	{
 		// Subscribe to topic "{{.}}"
 	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
+		{{if IsAsync $service }}
+			router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
+		{{end}}
 	}
-	{{end}}
-
-	{{if IsAsync .}}
-		router.HandleFunc("/tasks/{{GetEventServiceSelfName .}}/{topic}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
 	{{end}}
 }
 
