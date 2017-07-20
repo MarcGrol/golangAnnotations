@@ -1,10 +1,9 @@
 package event
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
-
-	"io/ioutil"
 
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"

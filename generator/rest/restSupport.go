@@ -5,7 +5,29 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"golang.org/x/net/context"
 )
+
+type Credentials struct {
+	Language      string
+	RequestUID    string
+	SessionUID    string
+	EndUserAccess string
+	EndUserRole   string
+	EndUserUID    string
+	ApiKey        string
+}
+
+type restSupport interface {
+	Logger
+
+	CreateContext(r *http.Request) context.Context
+
+	HandleHttpError(c context.Context, credentials Credentials, err error, w http.ResponseWriter, r *http.Request)
+}
+
+var Support restSupport
 
 func ExtractCredentials(language string, r *http.Request) Credentials {
 	username, password, err := decodeBasicAuthHeader(r)
@@ -28,16 +50,6 @@ func ExtractCredentials(language string, r *http.Request) Credentials {
 		EndUserRole:   r.Header.Get("X-enduser-role"),
 		EndUserUID:    r.Header.Get("X-enduser-uid"),
 	}
-}
-
-type Credentials struct {
-	Language      string
-	RequestUID    string
-	SessionUID    string
-	EndUserAccess string
-	EndUserRole   string
-	EndUserUID    string
-	ApiKey        string
 }
 
 func decodeBasicAuthHeader(r *http.Request) (string, string, error) {

@@ -2,10 +2,9 @@ package rest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"testing"
-
-	"io/ioutil"
 
 	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"

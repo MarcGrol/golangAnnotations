@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
-
 	"text/template"
 
 	"github.com/MarcGrol/golangAnnotations/model"
