@@ -200,7 +200,7 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 		var envelope events.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			errorhandling.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+			errorhandling.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 		es.handleEventAsync(c, envelope.AggregateName, envelope)
