@@ -615,16 +615,16 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			{{GetContextName $oper}} := context.WithValue(ctx.New.CreateContext(r), "sessionUid", r.Header.Get("X-session-uid"))
 		{{end}}
 
+		language := "nl"
+		langCookie, err := r.Cookie("lang")
+		if err == nil {
+			language = langCookie.Value
+		}
+		credentials := rest.ExtractCredentials(language, r)
 		{{if HasCredentials $oper}}
-			language := "nl"
-			langCookie, err := r.Cookie("lang")
-			if err == nil {
-				language = langCookie.Value
-			}
-			credentials := rest.ExtractCredentials(language, r)
 			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
-				errorhandling.HandleHttpError(c, err, w)
+				errorhandling.HandleHttpError(c, credentials, err, w)
 				return
 			}
 		{{end}}
@@ -699,7 +699,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if RequiresParamValidation .}}
         if len(validationErrors) > 0 {
-            errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
+            errorhandling.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w)
             return
         }
         {{end}}
@@ -707,7 +707,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasUpload . }}
 			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
 			if err != nil {
-				errorhandling.HandleHttpError(c, err, w)
+				errorhandling.HandleHttpError(c, credentials, err, w)
 				return
 			}
 		{{else if HasInput . }}
@@ -715,7 +715,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-				errorhandling.HandleHttpError(c, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
+				errorhandling.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w)
 				return
 			}
 		{{end}}
@@ -729,14 +729,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
 		{{end}}
 		if err != nil {
-			errorhandling.HandleHttpError(c, err, w)
+			errorhandling.HandleHttpError(c, credentials, err, w)
 			return
 		}
 		{{if HasMetaOutput . }}
 			if meta != nil {
 				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
 				if err != nil {
-					errorhandling.HandleHttpError(c, err, w)
+					errorhandling.HandleHttpError(c, credentials, err, w)
 					return
 				}
 			}
@@ -745,7 +745,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasRestOperationAfter . }}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
-				errorhandling.HandleHttpError(c, err, w)
+				errorhandling.HandleHttpError(c, credentials, err, w)
 				return
 			}
 		{{end}}
