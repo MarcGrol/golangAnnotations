@@ -175,7 +175,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
-			mylog.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
+			rest.Support.Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
 			return
 		}
 
@@ -185,10 +185,10 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 			Payload: asJson,
 		})
 		if err != nil {
-			mylog.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
+			rest.Support.Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)
 			return
 		}
-		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
+		rest.Support.Info(c, "Enqueued task to url %s", taskUrl)
 	}
 }
 
@@ -200,7 +200,7 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 		var envelope events.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			errorhandling.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			rest.Support.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 		es.handleEventAsync(c, envelope.AggregateName, envelope)
@@ -217,16 +217,16 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 	{
 	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-				mylog.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
+				rest.Support.Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
 		    if err != nil {
-				mylog.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
+				rest.Support.Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic, err)
 			} else {
-				mylog.New().Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
+				rest.Support.Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
 			}
