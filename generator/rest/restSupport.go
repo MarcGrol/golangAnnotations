@@ -2,12 +2,39 @@ package rest
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"golang.org/x/net/context"
+
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
+
+type restErrorHandler interface {
+	HandleRestError(c context.Context, credentials Credentials, error errorh.Error, r *http.Request)
+}
+
+var RestErrorHandler restErrorHandler
+
+func HandleHttpError(c context.Context, credentials Credentials, err error, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(errorh.GetHttpCode(err))
+
+	errorResp := errorh.Error{
+		ErrorMessage: err.Error(),
+		ErrorCode:    errorh.GetErrorCode(err),
+		FieldErrors:  errorh.GetFieldErrors(err),
+	}
+
+	if RestErrorHandler != nil {
+		RestErrorHandler.HandleRestError(c, credentials, errorResp, r)
+	}
+
+	// write response
+	json.NewEncoder(w).Encode(errorResp)
+}
 
 type Credentials struct {
 	Language      string
@@ -18,14 +45,6 @@ type Credentials struct {
 	EndUserUID    string
 	ApiKey        string
 }
-
-type restSupport interface {
-	CreateContext(r *http.Request) context.Context
-
-	HandleHttpError(c context.Context, credentials Credentials, err error, w http.ResponseWriter, r *http.Request)
-}
-
-var Support restSupport
 
 func ExtractCredentials(language string, r *http.Request) Credentials {
 	username, password, err := decodeBasicAuthHeader(r)
@@ -68,5 +87,4 @@ func decodeBasicAuthHeader(r *http.Request) (string, string, error) {
 	}
 
 	return pair[0], pair[1], nil
-
 }

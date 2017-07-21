@@ -612,7 +612,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		var err error
 
 		{{if NeedsContext $oper }}
-			{{GetContextName $oper}} := rest.Support.CreateContext(r)
+			{{GetContextName $oper}} := ctx.New.CreateContext(r)
 		{{end}}
 
 		language := "nl"
@@ -624,7 +624,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasCredentials $oper}}
 			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
-				rest.Support.HandleHttpError(c, credentials, err, w, r)
+				rest.HandleHttpError(c, credentials, err, w, r)
 				return
 			}
 		{{end}}
@@ -699,7 +699,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if RequiresParamValidation .}}
         if len(validationErrors) > 0 {
-            rest.Support.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
+            rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
             return
         }
         {{end}}
@@ -707,7 +707,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasUpload . }}
 			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
 			if err != nil {
-				rest.Support.HandleHttpError(c, credentials, err, w, r)
+				rest.HandleHttpError(c, credentials, err, w, r)
 				return
 			}
 		{{else if HasInput . }}
@@ -715,7 +715,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-				rest.Support.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+				rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 				return
 			}
 		{{end}}
@@ -729,14 +729,14 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
 		{{end}}
 		if err != nil {
-			rest.Support.HandleHttpError(c, credentials, err, w, r)
+			rest.HandleHttpError(c, credentials, err, w, r)
 			return
 		}
 		{{if HasMetaOutput . }}
 			if meta != nil {
 				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
 				if err != nil {
-					rest.Support.HandleHttpError(c, credentials, err, w, r)
+					rest.HandleHttpError(c, credentials, err, w, r)
 					return
 				}
 			}
@@ -745,7 +745,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{if HasRestOperationAfter . }}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
-				rest.Support.HandleHttpError(c, credentials, err, w, r)
+				rest.HandleHttpError(c, credentials, err, w, r)
 				return
 			}
 		{{end}}
@@ -795,7 +795,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
  // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		{{if NeedsContext $oper }}{{GetContextName $oper}} := rest.Support.CreateContext(r){{end}}
+		{{if NeedsContext $oper }}{{GetContextName $oper}} := ctx.New.CreateContext(r){{end}}
 		service.{{$oper.Name}}({{GetInputParamString . }})
 	}
 }
