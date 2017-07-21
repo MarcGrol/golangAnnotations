@@ -20,8 +20,6 @@ type Credentials struct {
 }
 
 type restSupport interface {
-	Logger
-
 	CreateContext(r *http.Request) context.Context
 
 	HandleHttpError(c context.Context, credentials Credentials, err error, w http.ResponseWriter, r *http.Request)

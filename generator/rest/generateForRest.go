@@ -1073,7 +1073,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     if debug {
 		dump, err := httputil.DumpRequest(req, true)
 		if err == nil {
-			rest.Support.Debug(ctx, "HTTP request-payload:\n %s", dump)
+			mylog.New().Debug(ctx, "HTTP request-payload:\n %s", dump)
 		}
     }
 
@@ -1092,7 +1092,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
 	if debug {
 		respDump, err := httputil.DumpResponse(res, true)
 		if err == nil {
-			rest.Support.Debug(ctx,"HTTP response-payload:\n%s", string(respDump))
+			mylog.New().Debug(ctx,"HTTP response-payload:\n%s", string(respDump))
 		}
 	}
 
