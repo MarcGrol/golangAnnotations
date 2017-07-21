@@ -795,7 +795,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
  // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		{{if NeedsContext $oper }}{{GetContextName $oper}} := ctx.Support.CreateContext(r){{end}}
+		{{if NeedsContext $oper }}{{GetContextName $oper}} := rest.Support.CreateContext(r){{end}}
 		service.{{$oper.Name}}({{GetInputParamString . }})
 	}
 }
