@@ -121,7 +121,7 @@ func GetEventOperationTopic(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -131,7 +131,7 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
