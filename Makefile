@@ -74,12 +74,8 @@ install:
 	$(GO) install ./...
 
 clean:
-	rm -rfv ./examples/structExample/\$$aggregates.go ./examples/structExample/\$$wrappers.go \
-		./examples/structExample/\$$wrappers_test.go \
-		./examples/structExample/\$$structExample_json.go ./examples/structExample/\$$enumExample_json.go \
-		./examples/rest/\$$httpTourServiceHelpers_test.go ./examples/rest/\$$http*.go \
-		./examples/rest/restTestLog/ ./examples/store/\$$structExampleEventStore.go \
-		./generator/rest/testData/
+	find . -name '\$$*.go' -exec rm -rfv {} +
+	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
 	$(GO) clean ./...
 
 .PHONY:

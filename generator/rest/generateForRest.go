@@ -582,7 +582,6 @@ package {{.PackageName}}
 import (
 	"log"
 	"net/http"
-	"golang.org/x/net/context"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
