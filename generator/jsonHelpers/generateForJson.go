@@ -131,6 +131,8 @@ var enumTemplate string = `
 
 package {{.PackageName}}
 
+import "encoding/json"
+
 {{range .Enums}}
 
 // Helpers for json-enum {{.Name}}

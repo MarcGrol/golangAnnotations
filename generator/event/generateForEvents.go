@@ -170,7 +170,10 @@ var aggregateTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"fmt"
+	"golang.org/x/net/context"
+)
 
 const (
 {{range $aggr, $events := .AggregateMap}}
@@ -265,6 +268,13 @@ var wrappersTemplate string = `
 
 package {{.PackageName}}
 
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	uuid "github.com/satori/go.uuid"
+)
+
 const (
 {{range .Structs}}
 {{if IsEvent . }}
@@ -346,6 +356,13 @@ var wrappersTestTemplate string = `
 
 package {{.PackageName}}
 
+import (
+	"reflect"
+	"testing"
+	"time"
+	"github.com/stretchr/testify/assert"
+)
+
 func testGetUID() string {
 	return "1234321"
 }
@@ -386,13 +403,17 @@ var storeEventsTemplate string = `
 
 package store
 
-import "golang.org/x/net/context"
+import (
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+)
 
 {{range .Structs}}
 {{if IsEvent . }}
 
-func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
-	err := StoreEvent{{.Name}}(c, sessionUID, &event)
+func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials, sessionUID string, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
+	err := StoreEvent{{.Name}}(c, credentials, sessionUID, &event)
 	if err == nil {
 		aggregateRoot.Apply{{.Name}}(c, event)
 	}
@@ -400,13 +421,13 @@ func StoreAndApplyEvent{{.Name}}(c context.Context, sessionUID string, aggregate
 }
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
-func StoreEvent{{.Name}}(c context.Context, sessionUID string, event *{{.PackageName}}.{{.Name}}) error {
+func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, sessionUID string, event *{{.PackageName}}.{{.Name}}) error {
 	envelope, err := event.Wrap(sessionUID)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
 
-	err = New().Put(c, envelope)
+	err = New().Put(c, credentials, envelope)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}

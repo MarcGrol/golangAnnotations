@@ -144,7 +144,15 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
+)
 
 {{range $idxService, $service := .Services}}
 

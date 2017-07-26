@@ -579,7 +579,14 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"log"
+	"net/http"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
+)
 
 {{ $structName := .Name }}
 
@@ -812,7 +819,19 @@ var helpersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"sort"
+	"strings"
+	"testing"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+)
 
 {{ $structName := .Name }}
 
@@ -1022,7 +1041,15 @@ var httpClientTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httputil"
+	"strings"
+	"time"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+)
 
 {{ $structName := .Name }}
 
@@ -1133,8 +1160,8 @@ var testServiceTemplate = `
 package {{.PackageName}}
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
+	"github.com/gorilla/mux"
 )
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router
