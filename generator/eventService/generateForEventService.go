@@ -221,7 +221,7 @@ func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, env
 func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
-	credentials := rest.Credentials{SessionUID:sessionUID}
+	credentials := rest.Credentials{SessionUID: envelope.SessionUID}
     {{range $idxOper, $oper := .Operations}}
 	{{if IsEventOperation $oper}}
 	{
