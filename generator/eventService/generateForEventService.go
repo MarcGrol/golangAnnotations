@@ -203,12 +203,13 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
+		credentials := rest.Credentials{}
 
 		// read and parse request body
 		var envelope events.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			rest.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 		es.handleEventAsync(c, envelope.AggregateName, envelope)
@@ -220,6 +221,7 @@ func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, env
 func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
+	credentials := rest.Credentials{SessionUID:sessionUID}
     {{range $idxOper, $oper := .Operations}}
 	{{if IsEventOperation $oper}}
 	{
@@ -228,7 +230,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 				mylog.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
-		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
+		    err := es.{{$oper.Name}}(c, credentials, *event)
 		    if err != nil {
 				mylog.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
