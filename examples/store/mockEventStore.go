@@ -1,9 +1,6 @@
 package store
 
-import (
-	"golang.org/x/net/context"
-
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
+import ("golang.org/x/net/context""github.com/MarcGrol/golangAnnotations/generator/rest"
 )
 
 type EventStore interface {

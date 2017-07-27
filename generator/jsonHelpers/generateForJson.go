@@ -73,12 +73,10 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 			}
 		}
 
-		if len(data.Enums) > 0 || len(data.Structs) > 0 {
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
-			if err != nil {
-				log.Fatalf("Error generating wrappers for enums (%s)", err)
-				return err
-			}
+		if len(data.Enums) > 0 || len(data.Structs) > 0 {		err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
+		if err != nil {
+			log.Fatalf("Error generating wrappers for enums (%s)", err)
+			return err}
 		}
 	}
 
