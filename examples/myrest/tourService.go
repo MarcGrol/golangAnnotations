@@ -34,7 +34,7 @@ type EtappeResult struct {
 	SprintRankings []string `json:"sprintRankings"`
 }
 
-// @RestService( path = "/api/tour" )
+// @RestService( path = "/api/tour", novalidation = "true" )
 type TourService struct {
 }
 

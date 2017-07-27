@@ -115,11 +115,11 @@ var customTemplateFuncs = template.FuncMap{
 	"HasCredentials":              HasCredentials,
 	"HasContext":                  HasContext,
 	"ReturnsError":                ReturnsError,
-	"NeedsContext":                        NeedsContext,
-	"GetContextName":                      GetContextName,
-	"WithBackTicks":                       SurroundWithBackTicks,
-	"BackTick":                            BackTick,
-	"ToFirstUpper":                        toFirstUpper,
+	"NeedsContext":                NeedsContext,
+	"GetContextName":              GetContextName,
+	"WithBackTicks":               SurroundWithBackTicks,
+	"BackTick":                    BackTick,
+	"ToFirstUpper":                toFirstUpper,
 }
 
 func BackTick() string {
@@ -143,8 +143,7 @@ func IsRestServiceNoValidation(s model.Struct) bool {
 }
 
 func IsRestServiceNoTest(s model.Struct) bool {
-	ifann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
-	; ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
 	}
 	return false
@@ -333,10 +332,8 @@ func GetRestOperationRolesString(o model.Operation) string {
 }
 
 func GetRestOperationRoles(o model.Operation) []string {
-	ifann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	; ok {
-		ifrolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]
-		; ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]; ok {
 			roles := strings.Split(rolesAttr, ",")
 			for i, r := range roles {
 				roles[i] = strings.Trim(r, " ")
