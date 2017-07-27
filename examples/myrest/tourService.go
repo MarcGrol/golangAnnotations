@@ -1,10 +1,8 @@
 // +build !ci
 
-package rest
+package myrest
 
-import (
-	"time"
-)
+import "time"
 
 //go:generate golangAnnotations -input-dir .
 

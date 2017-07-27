@@ -71,8 +71,7 @@ func IsEventService(s model.Struct) bool {
 }
 
 func IsAsync(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
 			return true
@@ -82,8 +81,7 @@ func IsAsync(s model.Struct) bool {
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
@@ -112,8 +110,7 @@ func IsEventOperation(o model.Operation) bool {
 }
 
 func GetEventOperationTopic(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
 	return ""
@@ -121,7 +118,7 @@ func GetEventOperationTopic(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -131,7 +128,7 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
@@ -144,7 +141,15 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
+)
 
 {{range $idxService, $service := .Services}}
 
@@ -167,7 +172,7 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 {{if IsAsync .}}
 
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope events.Envelope) {
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
@@ -195,21 +200,22 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
+		credentials := rest.Credentials{}
 
 		// read and parse request body
 		var envelope events.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			rest.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
-		es.handleEventAsync(c, envelope.AggregateName, envelope)
+		es.handleEventAsync(c, credentials, envelope.AggregateName, envelope)
 	}
 }
 
-func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envelope events.Envelope) {
 {{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope events.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
     {{range $idxOper, $oper := .Operations}}
@@ -220,7 +226,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 				mylog.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,
 						envelope.AggregateUID, topic)
-		    err := es.{{$oper.Name}}(c, envelope.SessionUID, *event)
+		    err := es.{{$oper.Name}}(c, credentials, *event)
 		    if err != nil {
 				mylog.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
 						subscriber, envelope.EventTypeName, envelope.AggregateName,

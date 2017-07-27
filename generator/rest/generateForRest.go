@@ -75,6 +75,7 @@ var customTemplateFuncs = template.FuncMap{
 	"ExtractImports":              ExtractImports,
 	"GetRestServicePath":          GetRestServicePath,
 	"IsRestOperation":             IsRestOperation,
+	"IsRestServiceNoValidation":   IsRestServiceNoValidation,
 	"IsRestOperationNoWrap":       IsRestOperationNoWrap,
 	"IsRestOperationGenerated":    IsRestOperationGenerated,
 	"HasRestOperationAfter":       HasRestOperationAfter,
@@ -134,9 +135,15 @@ func IsRestService(s model.Struct) bool {
 	return ok
 }
 
+func IsRestServiceNoValidation(s model.Struct) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
+	}
+	return false
+}
+
 func IsRestServiceNoTest(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
 	}
 	return false
@@ -180,8 +187,7 @@ func ExtractImports(s model.Struct) []string {
 }
 
 func GetRestServicePath(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
@@ -202,8 +208,7 @@ func IsRestOperation(o model.Operation) bool {
 }
 
 func IsRestOperationNoWrap(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamNoWrap] == "true"
 	}
 	return false
@@ -214,16 +219,14 @@ func IsRestOperationGenerated(o model.Operation) bool {
 }
 
 func HasRestOperationAfter(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamAfter] == "true"
 	}
 	return false
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
@@ -244,24 +247,21 @@ func GetAllPathParams(o model.Operation) []string {
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamMethod]
 	}
 	return ""
 }
 
 func IsRestOperationForm(o model.Operation) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamForm] == "true"
 	}
 	return false
 }
 
 func GetRestOperationFormat(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFormat]
 	}
 	return ""
@@ -317,8 +317,7 @@ func GetContentType(operation model.Operation) string {
 }
 
 func GetRestOperationFilename(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFilename]
 	}
 	return ""
@@ -333,10 +332,8 @@ func GetRestOperationRolesString(o model.Operation) string {
 }
 
 func GetRestOperationRoles(o model.Operation) []string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
-	if ok {
-		rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]
-		if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]; ok {
 			roles := strings.Split(rolesAttr, ",")
 			for i, r := range roles {
 				roles[i] = strings.Trim(r, " ")
@@ -579,7 +576,13 @@ var handlersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"log"
+	"net/http"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
+)
 
 {{ $structName := .Name }}
 
@@ -602,6 +605,8 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 	return router
 }
 
+{{ $noValidation := IsRestServiceNoValidation . }}
+
 {{range $idxOper, $oper := .Operations}}
 
 {{if IsRestOperation $oper}}
@@ -621,7 +626,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			language = langCookie.Value
 		}
 		credentials := rest.ExtractCredentials(language, r)
-		{{if HasCredentials $oper}}
+		{{if (not $noValidation) and (HasCredentials $oper) }}
 			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
 				rest.HandleHttpError(c, credentials, err, w, r)
@@ -812,7 +817,19 @@ var helpersTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"sort"
+	"strings"
+	"testing"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+)
 
 {{ $structName := .Name }}
 
@@ -1022,7 +1039,15 @@ var httpClientTemplate string = `
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httputil"
+	"strings"
+	"time"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+)
 
 {{ $structName := .Name }}
 
@@ -1133,8 +1158,8 @@ var testServiceTemplate = `
 package {{.PackageName}}
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
+	"github.com/gorilla/mux"
 )
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router

@@ -72,10 +72,13 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 				data.Structs = append(data.Structs, s)
 			}
 		}
-		err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
-		if err != nil {
-			log.Fatalf("Error generating wrappers for enums (%s)", err)
-			return err
+
+		if len(data.Enums) > 0 || len(data.Structs) > 0 {
+			err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
+			if err != nil {
+				log.Fatalf("Error generating wrappers for enums (%s)", err)
+				return err
+			}
 		}
 	}
 
@@ -130,6 +133,8 @@ var enumTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
+
+import "encoding/json"
 
 {{range .Enums}}
 

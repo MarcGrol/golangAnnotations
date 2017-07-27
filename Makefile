@@ -18,9 +18,9 @@ deps:
 	go get -u -t ./...                                  # get the application with all its deps
 
 verify:
-	@echo "----------------------------"
+	@echo "----------------------------------"
 	@echo "Run static analysis on source-code"
-	@echo "----------------------------"
+	@echo "----------------------------------"
 	$(GO) vet ./...
 	golint ./...
 
@@ -34,27 +34,27 @@ imports:
 	@echo "------------------"
 	@echo "Optimizing imports"
 	@echo "------------------"
-	for i in `find . -name "*.go"`; do goimports -w -local github.com/ $${i}; done
+	find . -name '*.go' -exec goimports -l -w -local github.com/ {} \;
 
 format:
 	@echo "----------------------"
 	@echo "Formatting source-code"
 	@echo "----------------------"
-	for i in `find . -name "*.go"`; do gofmt -s -w $${i}; done
+	find . -name '*.go' -exec gofmt -l -s -w {} \;
 
 gen: generate imports format
 
 test:
-	@echo "-------------"
+	@echo "---------------------"
 	@echo "Running backend tests"
-	@echo "-------------"
+	@echo "---------------------"
 	$(GO) test ./...                        # run unit tests
 	make format
 
 citest:
-	@echo "-------------"
+	@echo "---------------------"
 	@echo "Running backend tests"
-	@echo "-------------"
+	@echo "---------------------"
 	$(GO) get -u golang.org/x/tools/cmd/goimports
 	$(GO) generate -tags ci  ./...
 	make imports
@@ -62,24 +62,20 @@ citest:
 	make format
 
 coverage:
-	@echo "-------------"
+	@echo "----------------"
 	@echo "Running coverage"
-	@echo "-------------"
+	@echo "----------------"
 	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
 
 install:
-	@echo "----------------"
+	@echo "----------------------------"
 	@echo "Installing for $(GO_VERSION)"
-	@echo "----------------"
+	@echo "----------------------------"
 	$(GO) install ./...
 
 clean:
-	rm -rfv ./examples/structExample/\$$aggregates.go ./examples/structExample/\$$wrappers.go \
-		./examples/structExample/\$$wrappers_test.go \
-		./examples/structExample/\$$structExample_json.go ./examples/structExample/\$$enumExample_json.go \
-		./examples/rest/\$$httpTourServiceHelpers_test.go ./examples/rest/\$$http*.go \
-		./examples/rest/restTestLog/ ./examples/store/\$$structExampleEventStore.go \
-		./generator/rest/testData/
+	find . -name '\$$*.go' -exec rm -rfv {} +
+	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
 	$(GO) clean ./...
 
 .PHONY:
