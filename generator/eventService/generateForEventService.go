@@ -71,8 +71,7 @@ func IsEventService(s model.Struct) bool {
 }
 
 func IsAsync(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
 			return true
@@ -82,8 +81,7 @@ func IsAsync(s model.Struct) bool {
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
@@ -112,8 +110,7 @@ func IsEventOperation(o model.Operation) bool {
 }
 
 func GetEventOperationTopic(o model.Operation) string {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
 	return ""

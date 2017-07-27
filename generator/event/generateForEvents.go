@@ -123,16 +123,14 @@ func IsEvent(s model.Struct) bool {
 }
 
 func GetAggregateName(s model.Struct) string {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
 	}
 	return ""
 }
 
 func IsRootEvent(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
-	if ok {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
 	}
 	return false

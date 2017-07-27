@@ -5,6 +5,7 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 const (
 	TypeRestOperation = "RestOperation"
 	TypeRestService   = "RestService"
+	ParamNoValidation = "novalidation"
 	ParamNoTest       = "notest"
 	ParamNoWrap       = "nowrap"
 	ParamAfter        = "after"
@@ -20,7 +21,7 @@ const (
 // Register makes the annotation-registry aware of these annotation
 func Register() {
 	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles}, validateRestOperationAnnotation)
-	annotation.RegisterAnnotation(TypeRestService, []string{ParamNoTest, ParamPath}, validateRestServiceAnnotation)
+	annotation.RegisterAnnotation(TypeRestService, []string{ParamNoValidation,ParamNoTest, ParamPath}, validateRestServiceAnnotation)
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
