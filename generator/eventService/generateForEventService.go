@@ -180,7 +180,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
-			mylog.New().Error(c, "Error marshalling payload for task %s for url %s: %s", envelope.EventTypeName, taskUrl, err)
+			mylog.New().Error(c, "Error marshalling payload for url %s: %s", taskUrl, err)
 			return
 		}
 
@@ -223,18 +223,15 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 	{
 	    event, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-				mylog.New().Debug(c, "-->> As %s: Start handling %s event %s.%s on topic %s",
-						subscriber, envelope.EventTypeName, envelope.AggregateName,
-						envelope.AggregateUID, topic)
+			mylog.New().Debug(c, "-->> As %s: Start handling '%s' for aggregate '%s/%s'",
+				subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
 		    err := es.{{$oper.Name}}(c, credentials, *event)
 		    if err != nil {
-				mylog.New().Error(c, "<<-- As %s: Error handling %s event %s.%s on topic %s: %s",
-						subscriber, envelope.EventTypeName, envelope.AggregateName,
-						envelope.AggregateUID, topic, err)
+				mylog.New().Error(c, "<<-- As %s: Error handling '%s' for aggregate '%s/%s': %s",
+					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID, err)
 			} else {
-				mylog.New().Debug(c, "<<--As %s: Successfully handled %s event %s.%s on topic %s",
-						subscriber, envelope.EventTypeName, envelope.AggregateName,
-						envelope.AggregateUID, topic)
+				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for aggregate '%s/%s'",
+					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
 			}
 	    }
 	}
