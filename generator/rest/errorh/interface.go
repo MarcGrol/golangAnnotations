@@ -19,6 +19,16 @@ type FieldError struct {
 	Args    []string `json:"args"`
 }
 
+func MapToError(err error) Error {
+	return Error{
+		message:      GetMessage(err),
+		httpCode:     GetHttpCode(err),
+		ErrorMessage: err.Error(),
+		ErrorCode:    GetErrorCode(err),
+		FieldErrors:  GetFieldErrors(err),
+	}
+}
+
 type HttpError interface {
 	error
 	GetHttpCode() int
@@ -50,8 +60,8 @@ type Internal interface {
 
 func IsInternalError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(Internal); ok {
-			return specificError.IsInternalError()
+		if internal, ok := err.(Internal); ok {
+			return internal.IsInternalError()
 		}
 	}
 	return false
@@ -64,8 +74,8 @@ type NotImplemented interface {
 
 func IsNotImplementedError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(NotImplemented); ok {
-			return specificError.IsNotImplementedError()
+		if notImplemented, ok := err.(NotImplemented); ok {
+			return notImplemented.IsNotImplementedError()
 		}
 	}
 	return false
@@ -79,8 +89,8 @@ type InvalidInput interface {
 
 func IsInvalidInputError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(InvalidInput); ok {
-			return specificError.IsInvalidInputError()
+		if invalidInput, ok := err.(InvalidInput); ok {
+			return invalidInput.IsInvalidInputError()
 		}
 	}
 	return false
@@ -88,8 +98,8 @@ func IsInvalidInputError(err error) bool {
 
 func GetFieldErrors(err error) []FieldError {
 	if err != nil {
-		if specificError, ok := err.(InvalidInput); ok {
-			return specificError.GetFieldErrors()
+		if invalidInput, ok := err.(InvalidInput); ok {
+			return invalidInput.GetFieldErrors()
 		}
 	}
 	return []FieldError{}
@@ -103,8 +113,8 @@ type NotAuthorized interface {
 
 func IsNotAuthorizedError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(NotAuthorized); ok {
-			return specificError.IsNotAuthorizedError()
+		if notAuthorized, ok := err.(NotAuthorized); ok {
+			return notAuthorized.IsNotAuthorizedError()
 		}
 	}
 	return false
@@ -112,8 +122,8 @@ func IsNotAuthorizedError(err error) bool {
 
 func GetMessage(err error) string {
 	if err != nil {
-		if specificError, ok := err.(NotAuthorized); ok {
-			return specificError.GetMessage()
+		if notAuthorized, ok := err.(NotAuthorized); ok {
+			return notAuthorized.GetMessage()
 		}
 	}
 	return ""
@@ -126,8 +136,8 @@ type NotFound interface {
 
 func IsNotFoundError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(NotFound); ok {
-			return specificError.IsNotFoundError()
+		if notFound, ok := err.(NotFound); ok {
+			return notFound.IsNotFoundError()
 		}
 	}
 	return false
@@ -140,8 +150,8 @@ type Conflict interface {
 
 func IsConflictError(err error) bool {
 	if err != nil {
-		if specificError, ok := err.(Conflict); ok {
-			return specificError.IsConflictError()
+		if conflict, ok := err.(Conflict); ok {
+			return conflict.IsConflictError()
 		}
 	}
 	return false

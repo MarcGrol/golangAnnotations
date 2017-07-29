@@ -22,11 +22,7 @@ func HandleHttpError(c context.Context, credentials Credentials, err error, w ht
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(errorh.GetHttpCode(err))
 
-	errorResp := errorh.Error{
-		ErrorMessage: err.Error(),
-		ErrorCode:    errorh.GetErrorCode(err),
-		FieldErrors:  errorh.GetFieldErrors(err),
-	}
+	errorResp := errorh.MapToError(err)
 
 	if RestErrorHandler != nil {
 		RestErrorHandler.HandleRestError(c, credentials, errorResp, r)
