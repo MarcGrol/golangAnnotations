@@ -108,6 +108,7 @@ func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struc
 
 var customTemplateFuncs = template.FuncMap{
 	"HasJsonEnumBase": HasJsonEnumBase,
+	"UnstrippedName":  UnstrippedName,
 	"StrippedName":    StrippedName,
 	"HasSlices":       HasSlices,
 }
@@ -138,6 +139,10 @@ func HasJsonEnumBase(e model.Enum) bool {
 func IsJsonStruct(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
+}
+
+func UnstrippedName(lit model.EnumLiteral) string {
+	return lowerInitial(lit.Name)
 }
 
 func StrippedName(e model.Enum, lit model.EnumLiteral) string {
@@ -174,7 +179,7 @@ import "encoding/json"
 
 var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
-		{{range .EnumLiterals}}"{{.Name}}":{{.Name}},
+		{{range .EnumLiterals}}"{{UnstrippedName .}}":{{.Name}},
 		{{end}}
 		{{if HasJsonEnumBase $enum}}{{range .EnumLiterals}}"{{StrippedName $enum .}}":{{.Name}},
 		{{end}}{{end}}
