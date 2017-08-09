@@ -201,7 +201,9 @@ var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
 		{{range .EnumLiterals}}"{{GetPreferredName $enum .}}":{{.Name}},
 		{{end}}
-		{{if HasAlternativeName $enum}}{{range .EnumLiterals}}"{{GetAlternativeName $enum .}}":{{.Name}},
+		{{if HasAlternativeName $enum}}
+		// alternative names for backward compatibility
+		{{range .EnumLiterals}}"{{GetAlternativeName $enum .}}":{{.Name}},
 		{{end}}{{end}}
 	}
 	_{{.Name}}ValueToName = map[{{.Name}}]string{
