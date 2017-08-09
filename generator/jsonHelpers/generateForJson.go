@@ -117,6 +117,13 @@ func IsJsonEnum(e model.Enum) bool {
 	return ok
 }
 
+func IsJsonEnumStripped(e model.Enum) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
+	}
+	return false
+}
+
 func GetJsonEnumBase(e model.Enum) string {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamBase]
@@ -134,8 +141,11 @@ func IsJsonStruct(s model.Struct) bool {
 }
 
 func StrippedName(e model.Enum, lit model.EnumLiteral) string {
-	base := GetJsonEnumBase(e)
-	return lowerInitial(strings.TrimPrefix(lit.Name, base))
+	if IsJsonEnumStripped(e) {
+		base := GetJsonEnumBase(e)
+		return lowerInitial(strings.TrimPrefix(lit.Name, base))
+	}
+	return lit.Name
 }
 
 func lowerInitial(s string) string {
