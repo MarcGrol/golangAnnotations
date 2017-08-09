@@ -110,6 +110,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasJsonEnumBase": HasJsonEnumBase,
 	"UnstrippedName":  UnstrippedName,
 	"StrippedName":    StrippedName,
+	"PreferredName":   PreferredName,
 	"HasSlices":       HasSlices,
 }
 
@@ -150,6 +151,14 @@ func StrippedName(e model.Enum, lit model.EnumLiteral) string {
 	return lowerInitial(strings.TrimPrefix(lit.Name, base))
 }
 
+func PreferredName(e model.Enum, lit model.EnumLiteral) string {
+	if IsJsonEnumStripped(e) {
+		return StrippedName(e, lit)
+	} else {
+		return UnstrippedName(lit)
+	}
+}
+
 func lowerInitial(s string) string {
 	a := []rune(s)
 	a[0] = unicode.ToLower(a[0])
@@ -185,7 +194,7 @@ var (
 		{{end}}{{end}}
 	}
 	_{{.Name}}ValueToName = map[{{.Name}}]string{
-		{{range .EnumLiterals }}{{.Name}}:"{{StrippedName $enum .}}",
+		{{range .EnumLiterals }}{{.Name}}:"{{PreferredName $enum .}}",
 		{{end}}
 	}
 )
