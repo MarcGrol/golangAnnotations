@@ -153,7 +153,12 @@ func HasAlternativeName(e model.Enum) bool {
 }
 
 func GetAlternativeName(e model.Enum, lit model.EnumLiteral) string {
-	return lowerInitial(lit.Name)
+	if IsJsonEnumStripped(e) {
+		return lowerInitial(lit.Name)
+	} else {
+		base := GetJsonEnumBase(e)
+		return lowerInitial(strings.TrimPrefix(lit.Name, base))
+	}
 }
 
 func GetPreferredName(e model.Enum, lit model.EnumLiteral) string {
