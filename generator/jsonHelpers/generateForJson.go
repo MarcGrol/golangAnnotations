@@ -1,11 +1,11 @@
 package jsonHelpers
 
 import (
-	"log"
-	"text/template"
-
 	"fmt"
+	"log"
 	"strings"
+	"text/template"
+	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -107,17 +107,41 @@ func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struc
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"HasSlices": HasSlices,
+	"HasJsonEnumBase": HasJsonEnumBase,
+	"StrippedName":    StrippedName,
+	"HasSlices":       HasSlices,
 }
 
 func IsJsonEnum(e model.Enum) bool {
-	_, ok := annotation.ResolveAnnotationByName(e.DocLines, string(jsonAnnotation.TypeEnum))
+	_, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
 	return ok
 }
 
+func GetJsonEnumBase(e model.Enum) string {
+	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+		return ann.Attributes[jsonAnnotation.ParamBase]
+	}
+	return ""
+}
+
+func HasJsonEnumBase(e model.Enum) bool {
+	return GetJsonEnumBase(e) != ""
+}
+
 func IsJsonStruct(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, string(jsonAnnotation.TypeStruct))
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
+}
+
+func StrippedName(e model.Enum, lit model.EnumLiteral) string {
+	base := GetJsonEnumBase(e)
+	return lowerInitial(strings.TrimPrefix(lit.Name, base))
+}
+
+func lowerInitial(s string) string {
+	a := []rune(s)
+	a[0] = unicode.ToLower(a[0])
+	return string(a)
 }
 
 func HasSlices(s model.Struct) bool {
@@ -137,36 +161,38 @@ package {{.PackageName}}
 import "encoding/json"
 
 {{range .Enums}}
+{{$enum := .}}
 
 // Helpers for json-enum {{.Name}}
 
 var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
-		{{range .EnumLiterals}} "{{.Name}}":{{.Name}},
+		{{range .EnumLiterals}}"{{.Name}}":{{.Name}},
 		{{end}}
+		{{if HasJsonEnumBase $enum}}{{range .EnumLiterals}}"{{StrippedName $enum .}}":{{.Name}},
+		{{end}}{{end}}
 	}
-
 	_{{.Name}}ValueToName = map[{{.Name}}]string{
-		{{range .EnumLiterals }}{{.Name}}:"{{.Name}}",
+		{{range .EnumLiterals }}{{.Name}}:"{{StrippedName $enum .}}",
 		{{end}}
 	}
 )
 
-func init() {
-	var v {{.Name}}
-	if _, ok := interface{}(v).(fmt.Stringer); ok {
-		_{{.Name}}NameToValue = map[string]{{.Name}}{
-			{{range .EnumLiterals }}interface{}({{.Name}}).(fmt.Stringer).String():  {{.Name}},
-			{{end}}
-		}
+func {{.Name}}ByName(name string, unknown {{.Name}}) {{.Name}} {
+	t, ok := _{{.Name}}NameToValue[name]
+	if !ok {
+		return unknown
 	}
+	return t
+}
+
+func (t {{.Name}}) String() string {
+	v, _ := _{{.Name}}ValueToName[t]
+	return v
 }
 
 // MarshalJSON caters for readable enums with a proper default value
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
-	if s, ok := interface{}(r).(fmt.Stringer); ok {
-		return json.Marshal(s.String())
-	}
 	s, ok := _{{.Name}}ValueToName[r]
 	if !ok {
 		return nil, fmt.Errorf("invalid {{.Name}}: %d", r)

@@ -4,11 +4,20 @@ package structExample
 
 //go:generate golangAnnotations -input-dir .
 
-// @JsonEnum()
+// @JsonEnum( base = "Color" )
 type Color int
 
 const (
-	Red Color = iota
-	Green
-	Blue
+	ColorRed Color = iota
+	ColorGreen
+	ColorBlue
+)
+
+// @JsonEnum( )
+type Word int
+
+const (
+	Aap Word = iota
+	Noot
+	Mies
 )

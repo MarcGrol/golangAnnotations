@@ -5,11 +5,12 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 const (
 	TypeEnum   = "JsonEnum"
 	TypeStruct = "JsonStruct"
+	ParamBase  = "base"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeEnum, []string{}, validateEnumAnnotation)
+	annotation.RegisterAnnotation(TypeEnum, []string{ParamBase}, validateEnumAnnotation)
 	annotation.RegisterAnnotation(TypeStruct, []string{}, validateStructAnnotation)
 }
 

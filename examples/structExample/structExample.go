@@ -22,7 +22,7 @@ func (t TourCreated) GetUID() string {
 }
 
 // @JsonStruct()
-// @Event(aggregate="Tour")
+// @Event(aggregate = "Tour")
 type CyclistCreated struct {
 	Year        int       `json:"year"`
 	CyclistUid  string    `json:"cyclistUid"`
@@ -35,7 +35,7 @@ func (t CyclistCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
-// @Event(aggregate="Tour")
+// @Event(aggregate = "Tour")
 type EtappeCreated struct {
 	Year                 int       `json:"year"`
 	EtappeUid            string    `json:"etappeUid"`
@@ -51,7 +51,7 @@ func (t EtappeCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
-// @Event(aggregate="Tour")
+// @Event(aggregate = "Tour")
 type EtappeResultsCreated struct {
 	Year                     int       `json:"year"`
 	EtappeUid                string    `json:"EtappeUid"`
@@ -66,7 +66,7 @@ func (t EtappeResultsCreated) GetUID() string {
 	return fmt.Sprintf("%d", t.Year)
 }
 
-// @Event(aggregate="Gambler")
+// @Event(aggregate = "Gambler")
 type GamblerCreated struct {
 	GamblerUid       string    `json:"gamblerUid"`
 	GamblerName      string    `json:"gamblerName"`
@@ -79,7 +79,7 @@ func (t GamblerCreated) GetUID() string {
 	return t.GamblerUid
 }
 
-// @Event(aggregate="Gambler")
+// @Event(aggregate = "Gambler")
 type GamblerTeamCreated struct {
 	GamblerUid      string    `json:"gamblerUid"`
 	Year            int       `json:"year"`
@@ -91,7 +91,7 @@ func (t GamblerTeamCreated) GetUID() string {
 	return t.GamblerUid
 }
 
-// @Event(aggregate="News")
+// @Event(aggregate = "News")
 type NewsItemCreated struct {
 	Year              int       `json:"year"`
 	Message           string    `json:"message"`
