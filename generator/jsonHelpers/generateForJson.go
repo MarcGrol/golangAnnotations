@@ -141,11 +141,8 @@ func IsJsonStruct(s model.Struct) bool {
 }
 
 func StrippedName(e model.Enum, lit model.EnumLiteral) string {
-	if IsJsonEnumStripped(e) {
-		base := GetJsonEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(lit.Name, base))
-	}
-	return lit.Name
+	base := GetJsonEnumBase(e)
+	return lowerInitial(strings.TrimPrefix(lit.Name, base))
 }
 
 func lowerInitial(s string) string {
