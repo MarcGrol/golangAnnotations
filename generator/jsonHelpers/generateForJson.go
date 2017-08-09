@@ -107,11 +107,10 @@ func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struc
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"HasJsonEnumBase": HasJsonEnumBase,
-	"UnstrippedName":  UnstrippedName,
-	"StrippedName":    StrippedName,
-	"PreferredName":   PreferredName,
-	"HasSlices":       HasSlices,
+	"HasAlternativeName": HasAlternativeName,
+	"GetAlternativeName": GetAlternativeName,
+	"GetPreferredName":   GetPreferredName,
+	"HasSlices":          HasSlices,
 }
 
 func IsJsonEnum(e model.Enum) bool {
@@ -122,6 +121,13 @@ func IsJsonEnum(e model.Enum) bool {
 func IsJsonEnumStripped(e model.Enum) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
+	}
+	return false
+}
+
+func IsJsonEnumTolerant(e model.Enum) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+		return ann.Attributes[jsonAnnotation.ParamTolerant] == "true"
 	}
 	return false
 }
@@ -142,20 +148,20 @@ func IsJsonStruct(s model.Struct) bool {
 	return ok
 }
 
-func UnstrippedName(lit model.EnumLiteral) string {
+func HasAlternativeName(e model.Enum) bool {
+	return HasJsonEnumBase(e) && IsJsonEnumTolerant(e)
+}
+
+func GetAlternativeName(e model.Enum, lit model.EnumLiteral) string {
 	return lowerInitial(lit.Name)
 }
 
-func StrippedName(e model.Enum, lit model.EnumLiteral) string {
-	base := GetJsonEnumBase(e)
-	return lowerInitial(strings.TrimPrefix(lit.Name, base))
-}
-
-func PreferredName(e model.Enum, lit model.EnumLiteral) string {
+func GetPreferredName(e model.Enum, lit model.EnumLiteral) string {
 	if IsJsonEnumStripped(e) {
-		return StrippedName(e, lit)
+		base := GetJsonEnumBase(e)
+		return lowerInitial(strings.TrimPrefix(lit.Name, base))
 	} else {
-		return UnstrippedName(lit)
+		return lowerInitial(lit.Name)
 	}
 }
 
@@ -188,13 +194,13 @@ import "encoding/json"
 
 var (
 	_{{.Name}}NameToValue = map[string]{{.Name}}{
-		{{range .EnumLiterals}}"{{UnstrippedName .}}":{{.Name}},
+		{{range .EnumLiterals}}"{{GetPreferredName $enum .}}":{{.Name}},
 		{{end}}
-		{{if HasJsonEnumBase $enum}}{{range .EnumLiterals}}"{{StrippedName $enum .}}":{{.Name}},
+		{{if HasAlternativeName $enum}}{{range .EnumLiterals}}"{{GetAlternativeName $enum .}}":{{.Name}},
 		{{end}}{{end}}
 	}
 	_{{.Name}}ValueToName = map[{{.Name}}]string{
-		{{range .EnumLiterals }}{{.Name}}:"{{PreferredName $enum .}}",
+		{{range .EnumLiterals }}{{.Name}}:"{{GetPreferredName $enum .}}",
 		{{end}}
 	}
 )

@@ -4,7 +4,7 @@ package structExample
 
 //go:generate golangAnnotations -input-dir .
 
-// @JsonEnum( base = "Color", stripped = "true" )
+// @JsonEnum( base = "Color", stripped = "true", tolerant = "true" )
 type Color int
 
 const (

@@ -6,12 +6,13 @@ const (
 	TypeEnum      = "JsonEnum"
 	TypeStruct    = "JsonStruct"
 	ParamStripped = "stripped"
+	ParamTolerant = "tolerant"
 	ParamBase     = "base"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeEnum, []string{ParamStripped, ParamBase}, validateEnumAnnotation)
+	annotation.RegisterAnnotation(TypeEnum, []string{ParamStripped, ParamTolerant, ParamBase}, validateEnumAnnotation)
 	annotation.RegisterAnnotation(TypeStruct, []string{}, validateStructAnnotation)
 }
 
