@@ -8,11 +8,12 @@ const (
 	ParamStripped = "stripped"
 	ParamTolerant = "tolerant"
 	ParamBase     = "base"
+	ParamUnknown  = "unknown"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeEnum, []string{ParamStripped, ParamTolerant, ParamBase}, validateEnumAnnotation)
+	annotation.RegisterAnnotation(TypeEnum, []string{ParamStripped, ParamTolerant, ParamBase, ParamUnknown}, validateEnumAnnotation)
 	annotation.RegisterAnnotation(TypeStruct, []string{}, validateStructAnnotation)
 }
 

@@ -110,6 +110,8 @@ var customTemplateFuncs = template.FuncMap{
 	"HasAlternativeName": HasAlternativeName,
 	"GetAlternativeName": GetAlternativeName,
 	"GetPreferredName":   GetPreferredName,
+	"HasUnknownValue":    HasUnknownValue,
+	"GetUnknownValue":    GetUnknownValue,
 	"HasSlices":          HasSlices,
 }
 
@@ -143,9 +145,19 @@ func HasJsonEnumBase(e model.Enum) bool {
 	return GetJsonEnumBase(e) != ""
 }
 
-func IsJsonStruct(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
-	return ok
+func GetJsonEnumUnknown(e model.Enum) string {
+	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+		return ann.Attributes[jsonAnnotation.ParamUnknown]
+	}
+	return ""
+}
+
+func HasUnknownValue(e model.Enum) bool {
+	return GetJsonEnumUnknown(e) != ""
+}
+
+func GetUnknownValue(e model.Enum) string {
+	return GetJsonEnumBase(e) + GetJsonEnumUnknown(e)
 }
 
 func HasAlternativeName(e model.Enum) bool {
@@ -174,6 +186,11 @@ func lowerInitial(s string) string {
 	a := []rune(s)
 	a[0] = unicode.ToLower(a[0])
 	return string(a)
+}
+
+func IsJsonStruct(s model.Struct) bool {
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
+	return ok
 }
 
 func HasSlices(s model.Struct) bool {
@@ -212,13 +229,15 @@ var (
 	}
 )
 
-func {{.Name}}ByName(name string, unknown {{.Name}}) {{.Name}} {
+{{if HasUnknownValue .}}
+func {{.Name}}ByName(name string) {{.Name}} {
 	t, ok := _{{.Name}}NameToValue[name]
 	if !ok {
-		return unknown
+		return {{GetUnknownValue .}}
 	}
 	return t
 }
+{{end}}
 
 func (t {{.Name}}) String() string {
 	v, _ := _{{.Name}}ValueToName[t]
