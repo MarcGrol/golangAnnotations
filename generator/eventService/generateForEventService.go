@@ -57,6 +57,7 @@ func generate(inputDir string, structs []model.Struct) error {
 var customTemplateFuncs = template.FuncMap{
 	"IsEventService":          IsEventService,
 	"IsAsync":                 IsAsync,
+	"IsAdmin":                 IsAdmin,
 	"IsEventOperation":        IsEventOperation,
 	"GetInputArgType":         GetInputArgType,
 	"GetInputArgPackage":      GetInputArgPackage,
@@ -74,6 +75,16 @@ func IsAsync(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
+			return true
+		}
+	}
+	return false
+}
+
+func IsAdmin(s model.Struct) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+		adminString, found := ann.Attributes[eventServiceAnnotation.ParamAdmin]
+		if found && adminString == "true" {
 			return true
 		}
 	}
@@ -184,10 +195,17 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 			return
 		}
 
+		{{if IsAdmin .}}
+		isAdmin := true
+		{{else}}
+		isAdmin := false
+		{{end}}
+
 		err = queue.New().Add(c, queue.Task{
 			Method:  "POST",
 			URL:     taskUrl,
 			Payload: asJson,
+			AdminTask: isAdmin,
 		})
 		if err != nil {
 			mylog.New().Error(c, "Error enqueuing task to url %s: %s", taskUrl, err)

@@ -22,7 +22,7 @@ func TestGenerateForWeb(t *testing.T) {
 
 	s := []model.Struct{
 		{
-			DocLines:    []string{`// @EventService( self = "self" )`},
+			DocLines:    []string{`// @EventService( self = "self", async="true", admin="true" )`},
 			PackageName: "testData",
 			Name:        "MyEventService",
 			Operations: []*model.Operation{
