@@ -183,7 +183,7 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 {{if IsAsync .}}
 
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope events.Envelope) {
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
@@ -201,6 +201,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 		isAdmin := false
 		{{end}}
 
+		// TODO add credentials to task
 		err = queue.New().Add(c, queue.Task{
 			Method:  "POST",
 			URL:     taskUrl,
@@ -226,13 +227,14 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 			rest.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
-		es.handleEventAsync(c, envelope.AggregateName, envelope)
+		// TODO read credentials from http-headers
+		es.handleEventAsync(c, rest.Credentials{}, envelope.AggregateName, envelope)
 	}
 }
 
 func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
 {{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope events.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	credentials := rest.Credentials{SessionUID: envelope.SessionUID}
