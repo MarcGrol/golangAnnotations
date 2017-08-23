@@ -248,7 +248,12 @@ func (t {{.Name}}) String() string {
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	s, ok := _{{.Name}}ValueToName[r]
 	if !ok {
+	{{if HasUnknownValue .}}
+		// use default
+		s = {{GetUnknownValue .}}
+	{{else}}
 		return nil, fmt.Errorf("invalid {{.Name}}: %d", r)
+	{{end}}
 	}
 	return json.Marshal(s)
 }
@@ -258,7 +263,7 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 	{{if HasUnknownValue .}}
-		// return default
+		// use default
 		*r = {{GetUnknownValue .}}
 		return nil
 	{{else}}
