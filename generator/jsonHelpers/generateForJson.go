@@ -250,7 +250,7 @@ func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	if !ok {
 	{{if HasUnknownValue .}}
 		// use default
-		s = {{GetUnknownValue .}}
+		s, _ = _OrderStatusValueToName[{{GetUnknownValue .}}]
 	{{else}}
 		return nil, fmt.Errorf("invalid {{.Name}}: %d", r)
 	{{end}}
