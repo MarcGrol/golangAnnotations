@@ -272,7 +272,13 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	}
 	v, ok := _{{.Name}}NameToValue[s]
 	if !ok {
+	{{if HasUnknownValue .}}
+		// use default
+		*r = {{GetUnknownValue .}}
+		return nil
+	{{else}}
 		return fmt.Errorf("invalid {{.Name}} %q", s)
+	{{end}}
 	}
 	*r = v
 	return nil
