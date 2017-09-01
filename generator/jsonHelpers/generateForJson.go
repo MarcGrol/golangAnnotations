@@ -110,8 +110,8 @@ var customTemplateFuncs = template.FuncMap{
 	"HasAlternativeName": HasAlternativeName,
 	"GetAlternativeName": GetAlternativeName,
 	"GetPreferredName":   GetPreferredName,
-	"HasUnknownValue":    HasUnknownValue,
-	"GetUnknownValue":    GetUnknownValue,
+	"HasDefaultValue":    HasDefaultValue,
+	"GetDefaultValue":    GetDefaultValue,
 	"HasSlices":          HasSlices,
 }
 
@@ -145,19 +145,19 @@ func HasJsonEnumBase(e model.Enum) bool {
 	return GetJsonEnumBase(e) != ""
 }
 
-func GetJsonEnumUnknown(e model.Enum) string {
+func GetJsonEnumDefault(e model.Enum) string {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
-		return ann.Attributes[jsonAnnotation.ParamUnknown]
+		return ann.Attributes[jsonAnnotation.ParamDefault]
 	}
 	return ""
 }
 
-func HasUnknownValue(e model.Enum) bool {
-	return GetJsonEnumUnknown(e) != ""
+func HasDefaultValue(e model.Enum) bool {
+	return GetJsonEnumDefault(e) != ""
 }
 
-func GetUnknownValue(e model.Enum) string {
-	return GetJsonEnumBase(e) + GetJsonEnumUnknown(e)
+func GetDefaultValue(e model.Enum) string {
+	return GetJsonEnumBase(e) + GetJsonEnumDefault(e)
 }
 
 func HasAlternativeName(e model.Enum) bool {
@@ -229,11 +229,11 @@ var (
 	}
 )
 
-{{if HasUnknownValue .}}
+{{if HasDefaultValue .}}
 func {{.Name}}ByName(name string) {{.Name}} {
 	t, ok := _{{.Name}}NameToValue[name]
 	if !ok {
-		return {{GetUnknownValue .}}
+		return {{GetDefaultValue .}}
 	}
 	return t
 }
@@ -248,12 +248,7 @@ func (t {{.Name}}) String() string {
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	s, ok := _{{.Name}}ValueToName[r]
 	if !ok {
-	{{if HasUnknownValue .}}
-		// use default
-		s, _ = _{{.Name}}ValueToName[{{GetUnknownValue .}}]
-	{{else}}
-		return nil, fmt.Errorf("invalid {{.Name}}: %d", r)
-	{{end}}
+		{{if HasDefaultValue .}}s, _ = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", r){{end}}
 	}
 	return json.Marshal(s)
 }
@@ -262,23 +257,11 @@ func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-	{{if HasUnknownValue .}}
-		// use default
-		*r = {{GetUnknownValue .}}
-		return nil
-	{{else}}
 		return fmt.Errorf("{{.Name}} should be a string, got %s", data)
-	{{end}}
 	}
 	v, ok := _{{.Name}}NameToValue[s]
 	if !ok {
-	{{if HasUnknownValue .}}
-		// use default
-		*r = {{GetUnknownValue .}}
-		return nil
-	{{else}}
-		return fmt.Errorf("invalid {{.Name}} %q", s)
-	{{end}}
+	{{if HasDefaultValue .}}v = {{GetDefaultValue .}}{{else}}return fmt.Errorf("invalid {{.Name}} %q", s){{end}}
 	}
 	*r = v
 	return nil
