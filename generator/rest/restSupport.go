@@ -44,7 +44,7 @@ type Credentials struct {
 
 func ExtractCredentials(language string, r *http.Request) Credentials {
 	sessionUID, err := decodeSessionCookie(r)
-	if err != nil {
+	if err == nil {
 		return Credentials{
 			Language:      language,
 			RequestUID:    r.Header.Get("X-request-uid"),
