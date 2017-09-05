@@ -590,7 +590,7 @@ import (
 var (
 	preLogicHook           = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
 	extractCredentialsHook = rest.ExtractCredentials
-	postLogicHook          = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
+	postLogicHook          = func(c context.Context, w http.ResponseWriter, r *http.Request, credentials rest.Credentials) {}
 )
 
 // HTTPHandler registers endpoint in new router
@@ -625,6 +625,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if NeedsContext $oper }}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
+
 			preLogicHook( c, w, r )
 		{{else}}
 			preLogicHook( nil, w, r )
@@ -767,9 +768,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		{{end}}
 
 		{{if NeedsContext $oper }}
-			postLogicHook( c, w, r )
+			postLogicHook( c, w, r, credentials )
 		{{else}}
-			postLogicHook( nil, w, r )
+			postLogicHook( nil, w, r, credentials )
 		{{end}}
 
 		// write OK response body
