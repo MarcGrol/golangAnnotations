@@ -582,9 +582,16 @@ import (
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/context"
 )
 
 {{ $structName := .Name }}
+
+var (
+	preLogicHook           = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
+	extractCredentialsHook = rest.ExtractCredentials
+	postLogicHook          = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
+)
 
 // HTTPHandler registers endpoint in new router
 func (ts *{{.Name}}) HTTPHandler() http.Handler {
@@ -618,6 +625,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		{{if NeedsContext $oper }}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
+			preLogicHook( c, w, r )
+		{{else}}
+			preLogicHook( nil, w, r )
 		{{end}}
 
 		language := "nl"
@@ -625,7 +635,8 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 		if err == nil {
 			language = langCookie.Value
 		}
-		credentials := rest.ExtractCredentials(language, r)
+
+		credentials := extractCredentialsHook(language, r)
 		{{if (not $noValidation) and (HasCredentials $oper) }}
 			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
@@ -753,6 +764,12 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 				rest.HandleHttpError(c, credentials, err, w, r)
 				return
 			}
+		{{end}}
+
+		{{if NeedsContext $oper }}
+			postLogicHook( c, w, r )
+		{{else}}
+			postLogicHook( nil, w, r )
 		{{end}}
 
 		// write OK response body

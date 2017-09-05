@@ -2,7 +2,11 @@
 
 package myrest
 
-import "time"
+import (
+	"time"
+
+	"golang.org/x/net/context"
+)
 
 //go:generate golangAnnotations -input-dir .
 
@@ -39,7 +43,7 @@ type TourService struct {
 }
 
 // @RestOperation( method = "GET", path = "/{year}", format = "JSON" )
-func (ts TourService) getTourOnUid(year int) (*Tour, error) {
+func (ts TourService) getTourOnUid(c context.Context, year int) (*Tour, error) {
 	return &Tour{
 		Year:     2016,
 		Cyclists: []Cyclist{},
@@ -48,7 +52,7 @@ func (ts TourService) getTourOnUid(year int) (*Tour, error) {
 }
 
 // @RestOperation( method = "POST", path = "/{year}/etappe", format = "JSON" )
-func (ts *TourService) createEtappe(year int, etappe Etappe) (*Etappe, error) {
+func (ts *TourService) createEtappe(c context.Context, year int, etappe Etappe) (*Etappe, error) {
 	dateString := "2016-07-14"
 	day, _ := time.Parse(dateString, dateString)
 	return &Etappe{
@@ -60,12 +64,12 @@ func (ts *TourService) createEtappe(year int, etappe Etappe) (*Etappe, error) {
 }
 
 // @RestOperation( method = "PUT", path = "/{year}/etappe/{etappeUid}", format = "JSON" )
-func (ts *TourService) addEtappeResults(year int, etappeUid string, results EtappeResult) error {
+func (ts *TourService) addEtappeResults(c context.Context, year int, etappeUid string, results EtappeResult) error {
 	return nil
 }
 
 // @RestOperation( method = "POST", path = "/{year}/cyclist", format = "JSON" )
-func (ts *TourService) createCyclist(year int, cyclist Cyclist) (*Cyclist, error) {
+func (ts *TourService) createCyclist(c context.Context, year int, cyclist Cyclist) (*Cyclist, error) {
 	return &Cyclist{
 		UID:    "42",
 		Name:   "Boogerd, Michael",
@@ -74,6 +78,6 @@ func (ts *TourService) createCyclist(year int, cyclist Cyclist) (*Cyclist, error
 }
 
 // @RestOperation( method = "DELETE", path = "/{year}/cyclist/{cyclistUid}", format = "JSON" )
-func (ts *TourService) markCyclistAbondoned(year int, cyclistUid string) error {
+func (ts *TourService) markCyclistAbondoned(c context.Context, year int, cyclistUid string) error {
 	return nil
 }
