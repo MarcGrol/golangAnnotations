@@ -107,7 +107,7 @@ func decodeSessionCookie(r *http.Request) (string, error) {
 		return "", fmt.Errorf("No 'consumer_session_uid'-cookie found")
 	}
 
-	if cookie.Value != "" {
+	if cookie.Value == "" {
 		return "", fmt.Errorf("Empty 'consumer_session_uid'-cookie found")
 	}
 
