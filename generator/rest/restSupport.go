@@ -51,7 +51,7 @@ func ExtractCredentials(language string, r *http.Request) Credentials {
 			SessionUID:    sessionUID,
 			EndUserAccess: "",
 			EndUserRole:   "consumer",
-			EndUserUID:    "",
+			EndUserUID:    sessionUID,
 			ApiKey:        "",
 		}
 	}
