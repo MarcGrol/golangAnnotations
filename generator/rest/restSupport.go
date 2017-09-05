@@ -43,6 +43,18 @@ type Credentials struct {
 }
 
 func ExtractCredentials(language string, r *http.Request) Credentials {
+	sessionUID, err := decodeSessionCookie(r)
+	if err != nil {
+		return Credentials{
+			Language:      language,
+			RequestUID:    r.Header.Get("X-request-uid"),
+			SessionUID:    sessionUID,
+			EndUserAccess: "",
+			EndUserRole:   "consumer",
+			EndUserUID:    "",
+			ApiKey:        "",
+		}
+	}
 	username, password, err := decodeBasicAuthHeader(r)
 	if err == nil {
 		return Credentials{
@@ -83,4 +95,21 @@ func decodeBasicAuthHeader(r *http.Request) (string, string, error) {
 	}
 
 	return pair[0], pair[1], nil
+}
+
+func decodeSessionCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("consumer_session_uid")
+	if err != nil {
+		return "", fmt.Errorf("No 'consumer_session_uid'-cookie found")
+	}
+
+	if cookie.Name != "session_uid" {
+		return "", fmt.Errorf("No 'consumer_session_uid'-cookie found")
+	}
+
+	if cookie.Value != "" {
+		return "", fmt.Errorf("Empty 'consumer_session_uid'-cookie found")
+	}
+
+	return cookie.Value, nil
 }
