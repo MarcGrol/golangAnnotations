@@ -851,7 +851,10 @@ import (
 
 {{ $structName := .Name }}
 
-var logFp *os.File
+var (
+    logFp *os.File
+    setCookieHook = func(r *http.Request, headers map[string]string) {}
+)
 
 func openfile( filename string) *os.File {
 	fp, err := os.Create(filename)
@@ -958,6 +961,7 @@ func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetIn
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
+	setCookieHook(req, headers)
 
 	headersToBeSorted := []string{}
 	for key, values := range req.Header {
