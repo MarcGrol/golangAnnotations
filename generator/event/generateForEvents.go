@@ -425,7 +425,7 @@ func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event 
 		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
 
-	err = New().Put(c, credentials, envelope)
+	err = eventStore.New().Put(c, credentials, envelope)
 	if err != nil {
 		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
 	}
