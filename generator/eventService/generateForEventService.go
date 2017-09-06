@@ -183,7 +183,7 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 {{if IsAsync .}}
 
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope envelope.Envelope) {
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
@@ -220,7 +220,7 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 		c := ctx.New.CreateContext(r)
 
 		// read and parse request body
-		var envelope events.Envelope
+		var envelope envelope.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
 			rest.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
@@ -230,9 +230,9 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	}
 }
 
-func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope envelope.Envelope) {
 {{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope events.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope envelope.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	credentials := rest.Credentials{SessionUID: envelope.SessionUID}

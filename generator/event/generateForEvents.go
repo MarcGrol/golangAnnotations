@@ -200,7 +200,7 @@ type {{$aggr}}Aggregate interface {
 }
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelope events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	switch envelope.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
@@ -218,7 +218,7 @@ func Apply{{$aggr}}Event(c context.Context, envelope events.Envelope, aggregateR
 }
 
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
-func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envelope := range envelopes {
 		err = Apply{{$aggr}}Event(c, envelope, aggregateRoot)
@@ -230,7 +230,7 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []events.Envelope, aggreg
 }
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelope *events.Envelope) (events.Event, error) {
+func UnWrap{{$aggr}}Event(envelope *envelope.Envelope) (events.Event, error) {
 	switch envelope.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
@@ -246,7 +246,7 @@ func UnWrap{{$aggr}}Event(envelope *events.Envelope) (events.Event, error) {
 }
 
 // UnWrap{{$aggr}}Events extracts the events from multiple envelopes
-func UnWrap{{$aggr}}Events(envelopes []events.Envelope) ([]events.Event, error) {
+func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]events.Event, error) {
 	events := make([]events.Event, 0, len(envelopes))
 	for _, envelope := range envelopes {
 		event, err := UnWrap{{$aggr}}Event(&envelope)
@@ -290,13 +290,13 @@ var getUID = func() string {
 {{if IsEvent . }}
 
 // Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(sessionUID string) (*events.Envelope,error) {
+func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
     blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-	envelope := events.Envelope{
+	envelope := envelope.Envelope{
 		UUID: getUID(),
 		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
 		SequenceNumber: int64(0), // Set later by event-store
@@ -313,12 +313,12 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*events.Envelope,error) {
 }
 
 // Is{{.Name}} detects of envelope carries event of type {{.Name}}
-func Is{{.Name}}(envelope *events.Envelope) bool {
+func Is{{.Name}}(envelope *envelope.Envelope) bool {
     return envelope.EventTypeName == {{.Name}}EventName
 }
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelope *events.Envelope) (*{{.Name}}, bool) {
+func GetIfIs{{.Name}}(envelope *envelope.Envelope) (*{{.Name}}, bool) {
     if Is{{.Name}}(envelope) == false {
         return nil, false
     }
@@ -330,7 +330,7 @@ func GetIfIs{{.Name}}(envelope *events.Envelope) (*{{.Name}}, bool) {
 }
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelope *events.Envelope) (*{{.Name}},error) {
+func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
     if Is{{.Name}}(envelope) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
     }
