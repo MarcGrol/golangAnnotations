@@ -53,7 +53,7 @@ func TestGenerateForWeb(t *testing.T) {
 	data, err := ioutil.ReadFile("./testData/$eventHandler.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, es.handleEvent)`)
-	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, topic string, envelope envelope.Envelope) {`)
+	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, topic string, envelope eventStore.Envelope) {`)
 }
 
 func TestIsRestService(t *testing.T) {
