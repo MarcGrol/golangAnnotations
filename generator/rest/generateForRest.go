@@ -846,6 +846,9 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/context"
+
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
@@ -854,6 +857,7 @@ import (
 var (
     logFp *os.File
     setCookieHook = func(r *http.Request, headers map[string]string) {}
+	eventsForOperations = map[string]map[string]bool{}
 )
 
 func openfile( filename string) *os.File {
@@ -891,6 +895,11 @@ func TestMain(m *testing.M) {
 	fmt.Fprintf(logFp, "},\n" )
 	fmt.Fprintf(logFp, "}\n" )
 
+	log.Printf("events-for-operations")
+	for operationName, events := range eventsForOperations {
+		log.Printf("operation: %s -> \"%s\"", operationName, mapToList(events))
+	}
+
 	os.Exit(code)
 }
 
@@ -916,15 +925,63 @@ func testCaseDone() {
 	fmt.Fprintf(logFp, "},\n")
 }
 
+func logOperationEvents(c context.Context, operationName string) func(c context.Context) {
+	eventsBeforeTest := collectBefore(c)
+	return func(c context.Context) {
+		collectDelta(c, operationName, eventsBeforeTest)
+	}
+}
+
+func collectBefore(c context.Context) []envelope.Envelope {
+	eventsBefore := []envelope.Envelope{}
+	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+		eventsBefore = append(eventsBefore, e)
+	})
+
+	return eventsBefore
+}
+
+func collectDelta(c context.Context, operationName string, eventsBefore []envelope.Envelope) []envelope.Envelope {
+
+	after := []envelope.Envelope{}
+	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+		after = append(after, e)
+	})
+
+	events, found := eventsForOperations[operationName]
+	if !found {
+		events = map[string]bool{}
+	}
+
+	createdDuringTest := after[len(eventsBefore):]
+	for _, e := range createdDuringTest {
+		events[fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)] = true
+	}
+	eventsForOperations[operationName] = events
+
+	return createdDuringTest
+}
+
+func mapToList(in map[string]bool) string {
+	out := []string{}
+	for e, _ := range in {
+		out = append(out, e)
+	}
+	return strings.Join(out, ",")
+}
+
 
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-func {{.Name}}TestHelper(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-	return {{.Name}}TestHelperWithHeaders( url {{if HasInput . }}, input {{end}}, map[string]string{} )
+func {{.Name}}TestHelper(c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+	return {{.Name}}TestHelperWithHeaders( c, url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelperWithHeaders(c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+
+	testcaseCompletion := logOperationEvents(c,  "{{.Name}}")
+	defer testcaseCompletion(c)
 
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
