@@ -955,10 +955,12 @@ func logOperationEvents(c context.Context, operationName string, allowedEvents [
 }
 
 func collectBefore(c context.Context) []envelope.Envelope {
+	fmt.Fprintf(logFp, "\tPreConditions: []string{\n")
 	eventsBefore := []envelope.Envelope{}
 	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
 		eventsBefore = append(eventsBefore, e)
 	})
+	fmt.Fprintf(logFp, "\t},\n")
 
 	return eventsBefore
 }
@@ -975,6 +977,8 @@ func collectDelta(t *testing.T, c context.Context, operationName string, eventsB
 		events = map[string]bool{}
 	}
 
+	fmt.Fprintf(logFp, "\tPostConditions: []string{\n")
+
 	createdDuringTest := after[len(eventsBefore):]
 	for _, e := range createdDuringTest {
 		eventName := fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)
@@ -983,6 +987,8 @@ func collectDelta(t *testing.T, c context.Context, operationName string, eventsB
 			t.Fatalf("Event '%s' is NOT allowed as result of operation '%s' (allowed: %+v)", eventName, operationName, allowedEvents)
 		}
 	}
+	fmt.Fprintf(logFp, "\t},\n")
+
 	eventsForOperations[operationName] = events
 
 	return createdDuringTest
@@ -1014,14 +1020,14 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if HasInp
 }
 
 func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-
-	testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
-	defer testcaseCompletion(t, c)
-
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
 		fmt.Fprintf(logFp, "\t},\n")
 	}()
+
+	testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
+	defer testcaseCompletion(t, c)
+
 
 	recorder := httptest.NewRecorder()
 
