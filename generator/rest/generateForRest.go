@@ -71,55 +71,56 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":               IsRestService,
-	"ExtractImports":              ExtractImports,
-	"GetRestServicePath":          GetRestServicePath,
-	"IsRestOperation":             IsRestOperation,
-	"IsRestServiceNoValidation":   IsRestServiceNoValidation,
-	"IsRestOperationNoWrap":       IsRestOperationNoWrap,
-	"IsRestOperationGenerated":    IsRestOperationGenerated,
-	"HasRestOperationAfter":       HasRestOperationAfter,
-	"GetRestOperationPath":        GetRestOperationPath,
-	"GetRestOperationMethod":      GetRestOperationMethod,
-	"IsRestOperationForm":         IsRestOperationForm,
-	"IsRestOperationJSON":         IsRestOperationJSON,
-	"IsRestOperationHTML":         IsRestOperationHTML,
-	"IsRestOperationCSV":          IsRestOperationCSV,
-	"IsRestOperationTXT":          IsRestOperationTXT,
-	"IsRestOperationMD":           IsRestOperationMD,
-	"IsRestOperationNoContent":    IsRestOperationNoContent,
-	"IsRestOperationCustom":       IsRestOperationCustom,
-	"HasContentType":              HasContentType,
-	"GetContentType":              GetContentType,
-	"GetRestOperationFilename":    GetRestOperationFilename,
-	"GetRestOperationRolesString": GetRestOperationRolesString,
-	"HasOperationsWithInput":      HasOperationsWithInput,
-	"HasInput":                    HasInput,
-	"GetInputArgType":             GetInputArgType,
-	"GetOutputArgDeclaration":     GetOutputArgDeclaration,
-	"GetOutputArgName":            GetOutputArgName,
-	"HasAnyPathParam":             HasAnyPathParam,
-	"IsSliceParam":                IsSliceParam,
-	"IsQueryParam":                IsQueryParam,
-	"GetInputArgName":             GetInputArgName,
-	"GetInputParamString":         GetInputParamString,
-	"GetOutputArgType":            GetOutputArgType,
-	"HasOutput":                   HasOutput,
-	"HasMetaOutput":               HasMetaOutput,
-	"IsPrimitiveArg":              IsPrimitiveArg,
-	"IsNumberArg":                 IsNumberArg,
-	"RequiresParamValidation":     RequiresParamValidation,
-	"IsInputArgMandatory":         IsInputArgMandatory,
-	"HasUpload":                   HasUpload,
-	"IsUploadArg":                 IsUploadArg,
-	"HasCredentials":              HasCredentials,
-	"HasContext":                  HasContext,
-	"ReturnsError":                ReturnsError,
-	"NeedsContext":                NeedsContext,
-	"GetContextName":              GetContextName,
-	"WithBackTicks":               SurroundWithBackTicks,
-	"BackTick":                    BackTick,
-	"ToFirstUpper":                toFirstUpper,
+	"IsRestService":                  IsRestService,
+	"ExtractImports":                 ExtractImports,
+	"GetRestServicePath":             GetRestServicePath,
+	"IsRestOperation":                IsRestOperation,
+	"IsRestServiceNoValidation":      IsRestServiceNoValidation,
+	"IsRestOperationNoWrap":          IsRestOperationNoWrap,
+	"IsRestOperationGenerated":       IsRestOperationGenerated,
+	"HasRestOperationAfter":          HasRestOperationAfter,
+	"GetRestOperationPath":           GetRestOperationPath,
+	"GetRestOperationMethod":         GetRestOperationMethod,
+	"IsRestOperationForm":            IsRestOperationForm,
+	"IsRestOperationJSON":            IsRestOperationJSON,
+	"IsRestOperationHTML":            IsRestOperationHTML,
+	"IsRestOperationCSV":             IsRestOperationCSV,
+	"IsRestOperationTXT":             IsRestOperationTXT,
+	"IsRestOperationMD":              IsRestOperationMD,
+	"IsRestOperationNoContent":       IsRestOperationNoContent,
+	"IsRestOperationCustom":          IsRestOperationCustom,
+	"HasContentType":                 HasContentType,
+	"GetContentType":                 GetContentType,
+	"GetRestOperationFilename":       GetRestOperationFilename,
+	"GetRestOperationRolesString":    GetRestOperationRolesString,
+	"GetRestOperationProducesEvents": GetRestOperationProducesEvents,
+	"HasOperationsWithInput":         HasOperationsWithInput,
+	"HasInput":                       HasInput,
+	"GetInputArgType":                GetInputArgType,
+	"GetOutputArgDeclaration":        GetOutputArgDeclaration,
+	"GetOutputArgName":               GetOutputArgName,
+	"HasAnyPathParam":                HasAnyPathParam,
+	"IsSliceParam":                   IsSliceParam,
+	"IsQueryParam":                   IsQueryParam,
+	"GetInputArgName":                GetInputArgName,
+	"GetInputParamString":            GetInputParamString,
+	"GetOutputArgType":               GetOutputArgType,
+	"HasOutput":                      HasOutput,
+	"HasMetaOutput":                  HasMetaOutput,
+	"IsPrimitiveArg":                 IsPrimitiveArg,
+	"IsNumberArg":                    IsNumberArg,
+	"RequiresParamValidation":        RequiresParamValidation,
+	"IsInputArgMandatory":            IsInputArgMandatory,
+	"HasUpload":                      HasUpload,
+	"IsUploadArg":                    IsUploadArg,
+	"HasCredentials":                 HasCredentials,
+	"HasContext":                     HasContext,
+	"ReturnsError":                   ReturnsError,
+	"NeedsContext":                   NeedsContext,
+	"GetContextName":                 GetContextName,
+	"WithBackTicks":                  SurroundWithBackTicks,
+	"BackTick":                       BackTick,
+	"ToFirstUpper":                   toFirstUpper,
 }
 
 func BackTick() string {
@@ -342,6 +343,27 @@ func GetRestOperationRoles(o model.Operation) []string {
 		}
 	}
 	return []string{}
+}
+
+func GetRestOperationProducesEvents(o model.Operation) string {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamProcesEvents]; ok {
+			eventsProduced := strings.Split(rolesAttr, ",")
+			for i, r := range eventsProduced {
+				eventsProduced[i] = strings.Trim(r, " ")
+			}
+			return asStringSlice(eventsProduced)
+		}
+	}
+	return asStringSlice([]string{})
+}
+
+func asStringSlice(in []string) string {
+	adjusted := []string{}
+	for _, i := range in {
+		adjusted = append(adjusted, fmt.Sprintf("\"%s\"", i))
+	}
+	return fmt.Sprintf("[]string{%s}", strings.Join(adjusted, ","))
 }
 
 func HasInput(o model.Operation) bool {
@@ -925,10 +947,10 @@ func testCaseDone() {
 	fmt.Fprintf(logFp, "},\n")
 }
 
-func logOperationEvents(c context.Context, operationName string) func(c context.Context) {
+func logOperationEvents(c context.Context, operationName string, allowedEvents []string) func(c context.Context) {
 	eventsBeforeTest := collectBefore(c)
 	return func(c context.Context) {
-		collectDelta(c, operationName, eventsBeforeTest)
+		collectDelta(c, operationName, eventsBeforeTest, allowedEvents)
 	}
 }
 
@@ -941,7 +963,7 @@ func collectBefore(c context.Context) []envelope.Envelope {
 	return eventsBefore
 }
 
-func collectDelta(c context.Context, operationName string, eventsBefore []envelope.Envelope) []envelope.Envelope {
+func collectDelta(c context.Context, operationName string, eventsBefore []envelope.Envelope, allowedEvents []string) []envelope.Envelope {
 
 	after := []envelope.Envelope{}
 	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
@@ -955,7 +977,12 @@ func collectDelta(c context.Context, operationName string, eventsBefore []envelo
 
 	createdDuringTest := after[len(eventsBefore):]
 	for _, e := range createdDuringTest {
-		events[fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)] = true
+		eventName := fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)
+		events[eventName] = true
+		if !isEventAllowed(allowedEvents, eventName) {
+			log.Printf("************ Event '%s' is NOT allowed as result of operation '%s' (allowed: %+v)", eventName, operationName, allowedEvents)
+			os.Exit(1)
+		}
 	}
 	eventsForOperations[operationName] = events
 
@@ -970,6 +997,15 @@ func mapToList(in map[string]bool) string {
 	return strings.Join(out, ",")
 }
 
+func isEventAllowed(allowedEventNames []string, anEventName string) bool {
+	for _, e := range allowedEventNames {
+		if anEventName == e {
+			return true
+		}
+	}
+	return false
+}
+
 
 {{range .Operations}}
 
@@ -980,7 +1016,7 @@ func {{.Name}}TestHelper(c context.Context, url string {{if HasInput . }}, input
 
 func {{.Name}}TestHelperWithHeaders(c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 
-	testcaseCompletion := logOperationEvents(c,  "{{.Name}}")
+	testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
 	defer testcaseCompletion(c)
 
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")

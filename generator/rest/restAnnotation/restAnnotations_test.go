@@ -52,15 +52,26 @@ func TestOptionalArgRestOperationAnnotation(t *testing.T) {
 	annotation.ClearRegisteredAnnotations()
 	Register()
 
-	ann, ok := annotation.ResolveAnnotationByName([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3")`}, "RestOperation")
+	ann, ok := annotation.ResolveAnnotationByName([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3", producesEvents="Order.OrderCreated, Basket.BasketFinalized")`}, "RestOperation")
+	assert.True(t, ok)
 
-	assert.True(t, ok)
-	optionalArgString, ok := ann.Attributes["optionalargs"]
-	assert.True(t, ok)
-	parts := strings.Split(optionalArgString, ",")
-	assert.True(t, findArgInArray(parts, "arg2"))
-	assert.True(t, findArgInArray(parts, "arg3"))
-	assert.False(t, findArgInArray(parts, "arg1"))
+	{
+		optionalArgString, ok := ann.Attributes["optionalargs"]
+		assert.True(t, ok)
+		parts := strings.Split(optionalArgString, ",")
+		assert.True(t, findArgInArray(parts, "arg2"))
+		assert.True(t, findArgInArray(parts, "arg3"))
+		assert.False(t, findArgInArray(parts, "arg1"))
+	}
+
+	{
+		producesEventsArgString, ok := ann.Attributes["producesevents"]
+		assert.True(t, ok)
+		parts := strings.Split(producesEventsArgString, ",")
+		assert.False(t, findArgInArray(parts, "vwfeweegw"))
+		assert.True(t, findArgInArray(parts, "Order.OrderCreated"))
+		assert.True(t, findArgInArray(parts, "Basket.BasketFinalized"))
+	}
 }
 
 func TestCorrectRestServiceAnnotation(t *testing.T) {
