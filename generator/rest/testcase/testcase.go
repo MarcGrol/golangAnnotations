@@ -12,11 +12,13 @@ type TestSuiteDescriptor struct {
 }
 
 type TestCaseDescriptor struct {
-	Name        string
-	Description string
-	Operation   string
-	Request     RequestDescriptor
-	Response    ResponseDescriptor
+	Name           string
+	Description    string
+	Operation      string
+	PreConditions  []string
+	PostConditions []string
+	Request        RequestDescriptor
+	Response       ResponseDescriptor
 }
 
 type RequestDescriptor struct {
