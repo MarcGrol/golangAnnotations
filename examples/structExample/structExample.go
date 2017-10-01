@@ -9,12 +9,18 @@ import (
 
 //go:generate golangAnnotations -input-dir .
 
+type Metadata struct {
+	UUID          string
+	Timestamp     time.Time
+	EventTypeName string
+}
+
 // @JsonStruct()
 // @Event( aggregate = "Tour")
 type TourCreated struct {
-	Year      int       `json:"year"`
-	Tags      []string  `json:"tags"`
-	Timestamp time.Time `json:"-"`
+	Year     int      `json:"year"`
+	Tags     []string `json:"tags"`
+	Metadata Metadata `json:"-"`
 }
 
 func (t TourCreated) GetUID() string {
@@ -24,11 +30,11 @@ func (t TourCreated) GetUID() string {
 // @JsonStruct()
 // @Event(aggregate = "Tour")
 type CyclistCreated struct {
-	Year        int       `json:"year"`
-	CyclistUid  string    `json:"cyclistUid"`
-	CyclistName string    `json:"cyclistName"`
-	CyclistTeam string    `json:"cyclistTeam"`
-	Timestamp   time.Time `json:"-"`
+	Year        int      `json:"year"`
+	CyclistUid  string   `json:"cyclistUid"`
+	CyclistName string   `json:"cyclistName"`
+	CyclistTeam string   `json:"cyclistTeam"`
+	Metadata    Metadata `json:"-"`
 }
 
 func (t CyclistCreated) GetUID() string {
@@ -44,7 +50,7 @@ type EtappeCreated struct {
 	EtappeFinishLocation string    `json:"etappeFinishLocation"`
 	EtappeLength         int       `json:"etappeLength"`
 	EtappeKind           int       `json:"etappeKind"`
-	Timestamp            time.Time `json:"-"`
+	Metadata             Metadata  `json:"-"`
 }
 
 func (t EtappeCreated) GetUID() string {
@@ -53,13 +59,13 @@ func (t EtappeCreated) GetUID() string {
 
 // @Event(aggregate = "Tour")
 type EtappeResultsCreated struct {
-	Year                     int       `json:"year"`
-	EtappeUid                string    `json:"EtappeUid"`
-	BestDayCyclistIds        []string  `json:"bestDayCyclistIds"`
-	BestAllrounderCyclistIds []string  `json:"bestAllrounderCyclistIds"`
-	BestSprinterCyclistIds   []string  `json:"bestSprinterCyclistIds"`
-	BestClimberCyclistIds    []string  `json:"bestClimberCyclistIds"`
-	Timestamp                time.Time `json:"-"`
+	Year                     int      `json:"year"`
+	EtappeUid                string   `json:"EtappeUid"`
+	BestDayCyclistIds        []string `json:"bestDayCyclistIds"`
+	BestAllrounderCyclistIds []string `json:"bestAllrounderCyclistIds"`
+	BestSprinterCyclistIds   []string `json:"bestSprinterCyclistIds"`
+	BestClimberCyclistIds    []string `json:"bestClimberCyclistIds"`
+	Metadata                 Metadata `json:"-"`
 }
 
 func (t EtappeResultsCreated) GetUID() string {
@@ -68,11 +74,11 @@ func (t EtappeResultsCreated) GetUID() string {
 
 // @Event(aggregate = "Gambler")
 type GamblerCreated struct {
-	GamblerUid       string    `json:"gamblerUid"`
-	GamblerName      string    `json:"gamblerName"`
-	GamblerEmail     string    `json:"gamblerEmail"`
-	GamblerImageIUrl string    `json:"gamblerImageIUrl"`
-	Timestamp        time.Time `json:"-"`
+	GamblerUid       string   `json:"gamblerUid"`
+	GamblerName      string   `json:"gamblerName"`
+	GamblerEmail     string   `json:"gamblerEmail"`
+	GamblerImageIUrl string   `json:"gamblerImageIUrl"`
+	Metadata         Metadata `json:"-"`
 }
 
 func (t GamblerCreated) GetUID() string {
@@ -81,10 +87,10 @@ func (t GamblerCreated) GetUID() string {
 
 // @Event(aggregate = "Gambler")
 type GamblerTeamCreated struct {
-	GamblerUid      string    `json:"gamblerUid"`
-	Year            int       `json:"year"`
-	GamblerCyclists []string  `json:"gamblerCyclists"`
-	Timestamp       time.Time `json:"-"`
+	GamblerUid      string   `json:"gamblerUid"`
+	Year            int      `json:"year"`
+	GamblerCyclists []string `json:"gamblerCyclists"`
+	Metadata        Metadata `json:"-"`
 }
 
 func (t GamblerTeamCreated) GetUID() string {
@@ -93,12 +99,12 @@ func (t GamblerTeamCreated) GetUID() string {
 
 // @Event(aggregate = "News")
 type NewsItemCreated struct {
-	Year              int       `json:"year"`
-	Message           string    `json:"message"`
-	Sender            string    `json:"sender"`
-	RelatedCyclistUid string    `json:"relatedCyclistUid"`
-	RelatedEtappeUid  string    `json:"relatedEtappeUid"`
-	Timestamp         time.Time `json:"-"`
+	Year              int      `json:"year"`
+	Message           string   `json:"message"`
+	Sender            string   `json:"sender"`
+	RelatedCyclistUid string   `json:"relatedCyclistUid"`
+	RelatedEtappeUid  string   `json:"relatedEtappeUid"`
+	Metadata          Metadata `json:"-"`
 }
 
 func (t NewsItemCreated) GetUID() string {
