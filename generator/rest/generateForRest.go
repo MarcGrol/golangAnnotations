@@ -71,56 +71,57 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":                  IsRestService,
-	"ExtractImports":                 ExtractImports,
-	"GetRestServicePath":             GetRestServicePath,
-	"IsRestOperation":                IsRestOperation,
-	"IsRestServiceNoValidation":      IsRestServiceNoValidation,
-	"IsRestOperationNoWrap":          IsRestOperationNoWrap,
-	"IsRestOperationGenerated":       IsRestOperationGenerated,
-	"HasRestOperationAfter":          HasRestOperationAfter,
-	"GetRestOperationPath":           GetRestOperationPath,
-	"GetRestOperationMethod":         GetRestOperationMethod,
-	"IsRestOperationForm":            IsRestOperationForm,
-	"IsRestOperationJSON":            IsRestOperationJSON,
-	"IsRestOperationHTML":            IsRestOperationHTML,
-	"IsRestOperationCSV":             IsRestOperationCSV,
-	"IsRestOperationTXT":             IsRestOperationTXT,
-	"IsRestOperationMD":              IsRestOperationMD,
-	"IsRestOperationNoContent":       IsRestOperationNoContent,
-	"IsRestOperationCustom":          IsRestOperationCustom,
-	"HasContentType":                 HasContentType,
-	"GetContentType":                 GetContentType,
-	"GetRestOperationFilename":       GetRestOperationFilename,
-	"GetRestOperationRolesString":    GetRestOperationRolesString,
-	"GetRestOperationProducesEvents": GetRestOperationProducesEvents,
-	"HasOperationsWithInput":         HasOperationsWithInput,
-	"HasInput":                       HasInput,
-	"GetInputArgType":                GetInputArgType,
-	"GetOutputArgDeclaration":        GetOutputArgDeclaration,
-	"GetOutputArgName":               GetOutputArgName,
-	"HasAnyPathParam":                HasAnyPathParam,
-	"IsSliceParam":                   IsSliceParam,
-	"IsQueryParam":                   IsQueryParam,
-	"GetInputArgName":                GetInputArgName,
-	"GetInputParamString":            GetInputParamString,
-	"GetOutputArgType":               GetOutputArgType,
-	"HasOutput":                      HasOutput,
-	"HasMetaOutput":                  HasMetaOutput,
-	"IsPrimitiveArg":                 IsPrimitiveArg,
-	"IsNumberArg":                    IsNumberArg,
-	"RequiresParamValidation":        RequiresParamValidation,
-	"IsInputArgMandatory":            IsInputArgMandatory,
-	"HasUpload":                      HasUpload,
-	"IsUploadArg":                    IsUploadArg,
-	"HasCredentials":                 HasCredentials,
-	"HasContext":                     HasContext,
-	"ReturnsError":                   ReturnsError,
-	"NeedsContext":                   NeedsContext,
-	"GetContextName":                 GetContextName,
-	"WithBackTicks":                  SurroundWithBackTicks,
-	"BackTick":                       BackTick,
-	"ToFirstUpper":                   toFirstUpper,
+	"IsRestService":                         IsRestService,
+	"ExtractImports":                        ExtractImports,
+	"GetRestServicePath":                    GetRestServicePath,
+	"IsRestOperation":                       IsRestOperation,
+	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
+	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
+	"IsRestOperationGenerated":              IsRestOperationGenerated,
+	"HasRestOperationAfter":                 HasRestOperationAfter,
+	"GetRestOperationPath":                  GetRestOperationPath,
+	"GetRestOperationMethod":                GetRestOperationMethod,
+	"IsRestOperationForm":                   IsRestOperationForm,
+	"IsRestOperationJSON":                   IsRestOperationJSON,
+	"IsRestOperationHTML":                   IsRestOperationHTML,
+	"IsRestOperationCSV":                    IsRestOperationCSV,
+	"IsRestOperationTXT":                    IsRestOperationTXT,
+	"IsRestOperationMD":                     IsRestOperationMD,
+	"IsRestOperationNoContent":              IsRestOperationNoContent,
+	"IsRestOperationCustom":                 IsRestOperationCustom,
+	"HasContentType":                        HasContentType,
+	"GetContentType":                        GetContentType,
+	"GetRestOperationFilename":              GetRestOperationFilename,
+	"GetRestOperationRolesString":           GetRestOperationRolesString,
+	"GetRestOperationProducesEvents":        GetRestOperationProducesEvents,
+	"GetRestOperationProducesEventsAsSlice": GetRestOperationProducesEventsAsSlice,
+	"HasOperationsWithInput":                HasOperationsWithInput,
+	"HasInput":                              HasInput,
+	"GetInputArgType":                       GetInputArgType,
+	"GetOutputArgDeclaration":               GetOutputArgDeclaration,
+	"GetOutputArgName":                      GetOutputArgName,
+	"HasAnyPathParam":                       HasAnyPathParam,
+	"IsSliceParam":                          IsSliceParam,
+	"IsQueryParam":                          IsQueryParam,
+	"GetInputArgName":                       GetInputArgName,
+	"GetInputParamString":                   GetInputParamString,
+	"GetOutputArgType":                      GetOutputArgType,
+	"HasOutput":                             HasOutput,
+	"HasMetaOutput":                         HasMetaOutput,
+	"IsPrimitiveArg":                        IsPrimitiveArg,
+	"IsNumberArg":                           IsNumberArg,
+	"RequiresParamValidation":               RequiresParamValidation,
+	"IsInputArgMandatory":                   IsInputArgMandatory,
+	"HasUpload":                             HasUpload,
+	"IsUploadArg":                           IsUploadArg,
+	"HasCredentials":                        HasCredentials,
+	"HasContext":                            HasContext,
+	"ReturnsError":                          ReturnsError,
+	"NeedsContext":                          NeedsContext,
+	"GetContextName":                        GetContextName,
+	"WithBackTicks":                         SurroundWithBackTicks,
+	"BackTick":                              BackTick,
+	"ToFirstUpper":                          toFirstUpper,
 }
 
 func BackTick() string {
@@ -346,16 +347,20 @@ func GetRestOperationRoles(o model.Operation) []string {
 }
 
 func GetRestOperationProducesEvents(o model.Operation) string {
+	return asStringSlice(GetRestOperationProducesEventsAsSlice(o))
+}
+
+func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := strings.Split(rolesAttr, ",")
 			for i, r := range eventsProduced {
 				eventsProduced[i] = strings.Trim(r, " ")
 			}
-			return asStringSlice(eventsProduced)
+			return eventsProduced
 		}
 	}
-	return asStringSlice([]string{})
+	return []string{}
 }
 
 func asStringSlice(in []string) string {
