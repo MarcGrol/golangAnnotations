@@ -347,7 +347,7 @@ func GetRestOperationRoles(o model.Operation) []string {
 
 func GetRestOperationProducesEvents(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
-		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamProcesEvents]; ok {
+		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := strings.Split(rolesAttr, ",")
 			for i, r := range eventsProduced {
 				eventsProduced[i] = strings.Trim(r, " ")

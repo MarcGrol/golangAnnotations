@@ -3,26 +3,26 @@ package restAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	TypeRestOperation = "RestOperation"
-	TypeRestService   = "RestService"
-	ParamNoValidation = "novalidation"
-	ParamNoTest       = "notest"
-	ParamNoWrap       = "nowrap"
-	ParamAfter        = "after"
-	ParamPath         = "path"
-	ParamMethod       = "method"
-	ParamForm         = "form"
-	ParamFormat       = "format"
-	ParamFilename     = "filename"
-	ParamOptional     = "optionalargs"
-	ParamRoles        = "roles"
-	ParamProcesEvents = "producesevents"
+	TypeRestOperation   = "RestOperation"
+	TypeRestService     = "RestService"
+	ParamNoValidation   = "novalidation"
+	ParamNoTest         = "notest"
+	ParamNoWrap         = "nowrap"
+	ParamAfter          = "after"
+	ParamPath           = "path"
+	ParamMethod         = "method"
+	ParamForm           = "form"
+	ParamFormat         = "format"
+	ParamFilename       = "filename"
+	ParamOptional       = "optionalargs"
+	ParamRoles          = "roles"
+	ParamProducesEvents = "producesevents"
 )
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
 	annotation.RegisterAnnotation(TypeRestService, []string{ParamNoValidation, ParamNoTest, ParamPath}, validateRestServiceAnnotation)
-	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProcesEvents}, validateRestOperationAnnotation)
+	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents}, validateRestOperationAnnotation)
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {
