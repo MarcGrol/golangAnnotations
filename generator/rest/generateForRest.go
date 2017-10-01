@@ -959,6 +959,7 @@ func collectBefore(c context.Context) []envelope.Envelope {
 	eventsBefore := []envelope.Envelope{}
 	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
 		eventsBefore = append(eventsBefore, e)
+		fmt.Fprintf(logFp, "\"%s\",\n", fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
 	})
 	fmt.Fprintf(logFp, "\t},\n")
 
@@ -986,6 +987,7 @@ func collectDelta(t *testing.T, c context.Context, operationName string, eventsB
 		if !isEventAllowed(allowedEvents, eventName) {
 			t.Fatalf("Event '%s' is NOT allowed as result of operation '%s' (allowed: %+v)", eventName, operationName, allowedEvents)
 		}
+		fmt.Fprintf(logFp, "\"%s\",\n", eventName)
 	}
 	fmt.Fprintf(logFp, "\t},\n")
 

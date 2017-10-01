@@ -44,6 +44,16 @@ func WriteTestLogsAsMarkdown(results TestSuiteDescriptor) http.HandlerFunc {
 			fmt.Fprintf(w, "%s\n", tc.Description)
 			fmt.Fprintf(w, "### Operation %s\n", tc.Operation)
 
+			fmt.Fprintf(w, "\n### pre-conditons:\n")
+			for _, pc := range tc.PreConditions {
+				fmt.Fprintf(w, "    %s\n", pc)
+			}
+
+			fmt.Fprintf(w, "\n### post-conditions:\n")
+			for _, pc := range tc.PostConditions {
+				fmt.Fprintf(w, "    %s\n", pc)
+			}
+
 			fmt.Fprintf(w, "\n### http-request:\n")
 			fmt.Fprintf(w, "    %s %s HTTP/1.1\n", tc.Request.Method, tc.Request.Url)
 			for _, h := range tc.Request.Headers {
