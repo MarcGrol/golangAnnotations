@@ -55,15 +55,16 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":          IsEventService,
-	"IsAsync":                 IsAsync,
-	"IsAdmin":                 IsAdmin,
-	"IsEventOperation":        IsEventOperation,
-	"GetInputArgType":         GetInputArgType,
-	"GetInputArgPackage":      GetInputArgPackage,
-	"GetEventServiceSelfName": GetEventServiceSelfName,
-	"GetEventServiceTopics":   GetEventServiceTopics,
-	"GetEventOperationTopic":  GetEventOperationTopic,
+	"IsEventService":                  IsEventService,
+	"IsAsync":                         IsAsync,
+	"IsAdmin":                         IsAdmin,
+	"IsEventOperation":                IsEventOperation,
+	"GetInputArgType":                 GetInputArgType,
+	"GetInputArgPackage":              GetInputArgPackage,
+	"GetEventServiceSelfName":         GetEventServiceSelfName,
+	"GetEventServiceTopics":           GetEventServiceTopics,
+	"GetEventOperationTopic":          GetEventOperationTopic,
+	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -96,6 +97,31 @@ func GetEventServiceSelfName(s model.Struct) string {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
+}
+
+func GetEventOperationProducesEvents(o model.Operation) string {
+	return asStringSlice(GetEventOperationProducesEventsAsSlice(o))
+}
+
+func asStringSlice(in []string) string {
+	adjusted := []string{}
+	for _, i := range in {
+		adjusted = append(adjusted, fmt.Sprintf("\"%s\"", i))
+	}
+	return fmt.Sprintf("[]string{%s}", strings.Join(adjusted, ","))
+}
+
+func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+		if rolesAttr, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
+			eventsProduced := strings.Split(rolesAttr, ",")
+			for i, r := range eventsProduced {
+				eventsProduced[i] = strings.Trim(r, " ")
+			}
+			return eventsProduced
+		}
+	}
+	return []string{}
 }
 
 func GetEventServiceTopics(s model.Struct) []string {

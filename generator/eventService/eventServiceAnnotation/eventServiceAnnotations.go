@@ -3,12 +3,13 @@ package eventServiceAnnotation
 import "github.com/MarcGrol/golangAnnotations/annotation"
 
 const (
-	TypeEventService   = "EventService"
-	TypeEventOperation = "EventOperation"
-	ParamSelf          = "self"
-	ParamAsync         = "async"
-	ParamTopic         = "topic"
-	ParamAdmin         = "admin"
+	TypeEventService    = "EventService"
+	TypeEventOperation  = "EventOperation"
+	ParamSelf           = "self"
+	ParamAsync          = "async"
+	ParamTopic          = "topic"
+	ParamAdmin          = "admin"
+	ParamProducesEvents = "producesevents"
 )
 
 // Register makes the annotation-registry aware of these annotation
