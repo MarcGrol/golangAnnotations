@@ -352,8 +352,8 @@ func GetRestOperationProducesEvents(o model.Operation) string {
 
 func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
-		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
-			eventsProduced := strings.Split(rolesAttr, ",")
+		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
+			eventsProduced := strings.Split(attrs, ",")
 			for i, r := range eventsProduced {
 				eventsProduced[i] = strings.Trim(r, " ")
 			}
