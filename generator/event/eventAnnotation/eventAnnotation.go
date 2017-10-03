@@ -5,12 +5,13 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 const (
 	TypeEvent        = "Event"
 	ParamAggregate   = "aggregate"
-	ParamIsRootEvent = "isrootevent"
+	ParamIsRootEvent = "isRootEvent"
+	ParamIsTransient = "isTransient"
 )
 
 // Register makes the annotation-registry aware of this annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeEvent, []string{ParamAggregate, ParamIsRootEvent}, validateEventAnnotation)
+	annotation.RegisterAnnotation(TypeEvent, []string{ParamAggregate, ParamIsRootEvent, ParamIsTransient}, validateEventAnnotation)
 }
 
 func validateEventAnnotation(annot annotation.Annotation) bool {

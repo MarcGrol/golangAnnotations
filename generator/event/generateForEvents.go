@@ -112,6 +112,8 @@ func generate(inputDir string, structs []model.Struct) error {
 var customTemplateFuncs = template.FuncMap{
 	"IsEvent":          IsEvent,
 	"IsRootEvent":      IsRootEvent,
+	"IsPersistent":     IsPersistent,
+	"IsTransient":      IsTransient,
 	"GetAggregateName": GetAggregateName,
 	"HasValueForField": HasValueForField,
 	"ValueForField":    ValueForField,
@@ -132,6 +134,17 @@ func GetAggregateName(s model.Struct) string {
 func IsRootEvent(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
+	}
+	return false
+}
+
+func IsPersistent(s model.Struct) bool {
+	return !IsTransient(s)
+}
+
+func IsTransient(s model.Struct) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+		return ann.Attributes[eventAnnotation.ParamIsTransient] == "true"
 	}
 	return false
 }
@@ -413,7 +426,7 @@ import (
 )
 
 {{range .Structs}}
-{{if IsEvent . }}
+{{if and (IsEvent .) (IsPersistent .) }}
 
 func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
 	err := StoreEvent{{.Name}}(c, credentials, &event)
