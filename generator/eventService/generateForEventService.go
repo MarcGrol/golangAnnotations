@@ -98,6 +98,19 @@ func GetEventServiceSelfName(s model.Struct) string {
 	return ""
 }
 
+func GetEventOperationProducesEvents(o model.Operation) []string {
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+		if atts, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
+			eventsProduced := strings.Split(atts, ",")
+			for i, r := range eventsProduced {
+				eventsProduced[i] = strings.Trim(r, " ")
+			}
+			return eventsProduced
+		}
+	}
+	return []string{}
+}
+
 func GetEventServiceTopics(s model.Struct) []string {
 	topics := []string{}
 operations:
