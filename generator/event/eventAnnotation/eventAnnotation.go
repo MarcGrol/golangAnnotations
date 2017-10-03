@@ -5,8 +5,8 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 const (
 	TypeEvent        = "Event"
 	ParamAggregate   = "aggregate"
-	ParamIsRootEvent = "isRootEvent"
-	ParamIsTransient = "isTransient"
+	ParamIsRootEvent = "isrootevent"
+	ParamIsTransient = "istransient"
 )
 
 // Register makes the annotation-registry aware of this annotation
