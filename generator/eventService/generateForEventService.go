@@ -253,16 +253,15 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 	{
 	    evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envelope)
 	    if found {
-			mylog.New().Debug(c, "-->> As %s: Start handling '%s' for aggregate '%s/%s'",
+			mylog.New().Debug(c, "-->> As %s: Start handling '%s' for '%s/%s'",
 				subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
 		    err := es.{{$oper.Name}}(c, credentials, *evt)
 		    if err != nil {
-				mylog.New().Error(c, "<<-- As %s: Error handling '%s' for aggregate '%s/%s': %s",
-					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID, err)
-				msg := fmt.Sprintf("Subscriber '%s' failed to handle event", subscriber)
+				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
+					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
 				event.HandleEventError(c, isAdmin, topic, envelope, msg, err)
 			} else {
-				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for aggregate '%s/%s'",
+				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
 					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
 			}
 	    }
