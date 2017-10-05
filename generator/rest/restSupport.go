@@ -6,16 +6,22 @@ import (
 
 	"golang.org/x/net/context"
 
-	"google.golang.org/appengine/user"
-
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
-type restErrorHandler interface {
+type restSupport interface {
+	GetAuthUser(c context.Context) *AuthUser
 	HandleRestError(c context.Context, credentials Credentials, error errorh.Error, r *http.Request)
 }
 
-var RestErrorHandler restErrorHandler
+var RestSupport restSupport
+
+func GetAuthUser(c context.Context) *AuthUser {
+	if RestSupport != nil {
+		return RestSupport.GetAuthUser(c)
+	}
+	return nil
+}
 
 func HandleHttpError(c context.Context, credentials Credentials, err error, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
@@ -23,8 +29,8 @@ func HandleHttpError(c context.Context, credentials Credentials, err error, w ht
 
 	errorResp := errorh.MapToError(err)
 
-	if RestErrorHandler != nil {
-		RestErrorHandler.HandleRestError(c, credentials, errorResp, r)
+	if RestSupport != nil {
+		RestSupport.HandleRestError(c, credentials, errorResp, r)
 	}
 
 	// write response
@@ -60,25 +66,12 @@ func ExtractAllCredentials(c context.Context, r *http.Request, language string) 
 		EndUserAccess: r.Header.Get("X-enduser-access"),
 		EndUserRole:   r.Header.Get("X-enduser-role"),
 		EndUserUID:    r.Header.Get("X-enduser-uid"),
-		AuthUser:      GetAuthUser(c),
+		AuthUser:      RestSupport.GetAuthUser(c),
 	}
 }
 
 func ExtractAdminCredentials(c context.Context, r *http.Request, language string) Credentials {
 	return Credentials{
-		AuthUser: GetAuthUser(c),
-	}
-}
-
-func GetAuthUser(c context.Context) *AuthUser {
-	u := user.Current(c)
-	if u == nil {
-		return nil
-	}
-	return &AuthUser{
-		EmailAddress: u.Email,
-		AuthDomain:   u.AuthDomain,
-		IsAdmin:      u.Admin,
-		ID:           u.ID,
+		AuthUser: RestSupport.GetAuthUser(c),
 	}
 }
