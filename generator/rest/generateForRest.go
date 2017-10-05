@@ -74,8 +74,9 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestService":                         IsRestService,
 	"ExtractImports":                        ExtractImports,
 	"GetRestServicePath":                    GetRestServicePath,
-	"IsRestOperation":                       IsRestOperation,
+	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
 	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
+	"IsRestOperation":                       IsRestOperation,
 	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
 	"IsRestOperationGenerated":              IsRestOperationGenerated,
 	"HasRestOperationAfter":                 HasRestOperationAfter,
@@ -137,6 +138,25 @@ func IsRestService(s model.Struct) bool {
 	return ok
 }
 
+func GetRestServicePath(s model.Struct) string {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+		return ann.Attributes[restAnnotation.ParamPath]
+	}
+	return ""
+}
+
+func GetExtractCredentialsMethod(s model.Struct) string {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+		switch ann.Attributes[restAnnotation.ParamCredentials] {
+		case "all":
+			return "rest.ExtractAllCredentials"
+		case "admin":
+			return "rest.ExtractAdminCredentials"
+		}
+	}
+	return "extractCredentials"
+}
+
 func IsRestServiceNoValidation(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
@@ -186,13 +206,6 @@ func ExtractImports(s model.Struct) []string {
 	}
 
 	return importsList
-}
-
-func GetRestServicePath(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
-		return ann.Attributes[restAnnotation.ParamPath]
-	}
-	return ""
 }
 
 func HasOperationsWithInput(s model.Struct) bool {
@@ -615,9 +628,8 @@ import (
 {{ $structName := .Name }}
 
 var (
-	preLogicHook           = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
-	extractCredentialsHook = rest.ExtractCredentials
-	postLogicHook          = func(c context.Context, w http.ResponseWriter, r *http.Request, credentials rest.Credentials) {}
+	preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
+	postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, credentials rest.Credentials) {}
 )
 
 // HTTPHandler registers endpoint in new router
@@ -639,6 +651,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 	return router
 }
 
+{{ $extractCredentialsMethod := GetExtractCredentialsMethod . }}
 {{ $noValidation := IsRestServiceNoValidation . }}
 
 {{range $idxOper, $oper := .Operations}}
@@ -664,9 +677,9 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			language = langCookie.Value
 		}
 
-		credentials := extractCredentialsHook(language, r)
+		credentials := {{ $extractCredentialsMethod }}(c, r, language)
 		{{if (not $noValidation) and (HasCredentials $oper) }}
-			err = validateCredentials(credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
+			err = validateCredentials(c, credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {
 				rest.HandleHttpError(c, credentials, err, w, r)
 				return
