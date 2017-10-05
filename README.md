@@ -15,7 +15,7 @@ Bottom line, a lot less code needs to be written.
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(uid string) (*Person,error) {
+    func (s Service) getPerson(c context.Context, uid string) (*Person,error) {
         ...
     } 
 
