@@ -152,6 +152,8 @@ func GetExtractCredentialsMethod(s model.Struct) string {
 			return "rest.ExtractAllCredentials"
 		case "admin":
 			return "rest.ExtractAdminCredentials"
+		case "none":
+			return "rest.ExtractNoCredentials"
 		}
 	}
 	return "extractCredentials"
