@@ -72,13 +72,13 @@ func ExtractAllCredentials(c context.Context, r *http.Request, language string) 
 
 func ExtractAdminCredentials(c context.Context, r *http.Request, language string) Credentials {
 	return Credentials{
-		Language:language,
+		Language: language,
 		AuthUser: RestSupport.GetAuthUser(c),
 	}
 }
 
 func ExtractNoCredentials(c context.Context, r *http.Request, language string) Credentials {
 	return Credentials{
-		Language:language,
+		Language: language,
 	}
 }

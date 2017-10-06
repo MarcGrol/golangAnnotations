@@ -201,12 +201,11 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
 		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName )
-		isAdmin := {{if IsAdmin .}}true{{else}}false{{end}}
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
 			msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-			event.HandleEventError(c, isAdmin, topic, envelope, msg, err)
+			event.HandleEventError(c, topic, envelope, msg, err)
 			return
 		}
 
@@ -214,11 +213,11 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 			Method:  "POST",
 			URL:     taskUrl,
 			Payload: asJson,
-			AdminTask: isAdmin,
+			AdminTask: {{if IsAdmin .}}true{{else}}false{{end}},
 		})
 		if err != nil {
 			msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-			event.HandleEventError(c, isAdmin, topic, envelope, msg, err)
+			event.HandleEventError(c, topic, envelope, msg, err)
 			return
 		}
 		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
@@ -246,7 +245,6 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	credentials := rest.Credentials{SessionUID: envelope.SessionUID}
-	isAdmin := {{if IsAdmin .}}true{{else}}false{{end}}
 
     {{range $idxOper, $oper := .Operations}}
 	{{if IsEventOperation $oper}}
@@ -259,7 +257,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 		    if err != nil {
 				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
 					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
-				event.HandleEventError(c, isAdmin, topic, envelope, msg, err)
+				event.HandleEventError(c, topic, envelope, msg, err)
 			} else {
 				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
 					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
