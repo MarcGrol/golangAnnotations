@@ -673,13 +673,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 			preLogicHook( nil, w, r )
 		{{end}}
 
-		language := "nl"
-		langCookie, err := r.Cookie("lang")
-		if err == nil {
-			language = langCookie.Value
-		}
-
-		credentials := {{ $extractCredentialsMethod }}(c, r, language)
+		credentials := {{ $extractCredentialsMethod }}(c, r)
 		{{if (not $noValidation) and (HasCredentials $oper) }}
 			err = validateCredentials(c, credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
 			if err != nil {

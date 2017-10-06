@@ -40,6 +40,7 @@ func HandleHttpError(c context.Context, credentials Credentials, err error, w ht
 // @JsonStruct()
 type Credentials struct {
 	Language      string    `json:"language,omitempty"`
+	RequestURI    string    `json:"requestUri,omitempty"`
 	RequestUID    string    `json:"requestUid,omitempty"`
 	SessionUID    string    `json:"sessionUid,omitempty"`
 	EndUserAccess string    `json:"endUserAccess,omitempty"`
@@ -58,9 +59,10 @@ type AuthUser struct {
 	ID           string `json:"id,omitempty"`
 }
 
-func ExtractAllCredentials(c context.Context, r *http.Request, language string) Credentials {
+func ExtractAllCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
-		Language:      language,
+		Language:      ExtractLanguage(r),
+		RequestURI:    r.RequestURI,
 		RequestUID:    r.Header.Get("X-request-uid"),
 		SessionUID:    r.Header.Get("X-session-uid"),
 		EndUserAccess: r.Header.Get("X-enduser-access"),
@@ -70,15 +72,26 @@ func ExtractAllCredentials(c context.Context, r *http.Request, language string) 
 	}
 }
 
-func ExtractAdminCredentials(c context.Context, r *http.Request, language string) Credentials {
+func ExtractAdminCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
-		Language: language,
-		AuthUser: RestSupport.GetAuthUser(c),
+		Language:   ExtractLanguage(r),
+		RequestURI: r.RequestURI,
+		AuthUser:   RestSupport.GetAuthUser(c),
 	}
 }
 
-func ExtractNoCredentials(c context.Context, r *http.Request, language string) Credentials {
+func ExtractNoCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
-		Language: language,
+		Language:   ExtractLanguage(r),
+		RequestURI: r.RequestURI,
 	}
+}
+
+func ExtractLanguage(r *http.Request) string {
+	language := "nl"
+	langCookie, err := r.Cookie("lang")
+	if err == nil {
+		language = langCookie.Value
+	}
+	return language
 }

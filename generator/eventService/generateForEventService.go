@@ -196,16 +196,16 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 {{if IsAsync .}}
 
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope envelope.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope envelope.Envelope) {
 	switch envelope.EventTypeName {
 	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
 
-		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName )
+		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName)
 
 		asJson, err := json.Marshal(envelope)
 		if err != nil {
 			msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-			event.HandleEventError(c, topic, envelope, msg, err)
+			event.HandleEventError(c, credentials, topic, envelope, msg, err)
 			return
 		}
 
@@ -217,7 +217,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 		})
 		if err != nil {
 			msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-			event.HandleEventError(c, topic, envelope, msg, err)
+			event.HandleEventError(c, credentials, topic, envelope, msg, err)
 			return
 		}
 		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
@@ -232,7 +232,7 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 		var envelope envelope.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			rest.HandleHttpError(c, rest.Credentials{}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			rest.HandleHttpError(c, rest.Credentials{RequestURI: r.RequestURI}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 		es.handleEventAsync(c, envelope.AggregateName, envelope)
@@ -240,11 +240,15 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 }
 
 func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope envelope.Envelope) {
+
+	credentials := rest.Credentials {
+		RequestURI: fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName),
+		SessionUID: envelope.SessionUID,
+	}
 {{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope envelope.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope envelope.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
-	credentials := rest.Credentials{SessionUID: envelope.SessionUID}
 
     {{range $idxOper, $oper := .Operations}}
 	{{if IsEventOperation $oper}}
@@ -257,7 +261,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, topic string, envelope
 		    if err != nil {
 				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
 					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
-				event.HandleEventError(c, topic, envelope, msg, err)
+				event.HandleEventError(c, credentials, topic, envelope, msg, err)
 			} else {
 				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
 					subscriber, envelope.EventTypeName, envelope.AggregateName, envelope.AggregateUID)
