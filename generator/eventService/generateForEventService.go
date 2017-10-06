@@ -228,9 +228,7 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		credentials := rest.Credentials {
-			RequestURI: r.RequestURI,
-		}
+		credentials := rest.Credentials{RequestURI: r.RequestURI}
 
 		// read and parse request body
 		var envelope envelope.Envelope
