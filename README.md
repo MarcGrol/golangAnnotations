@@ -15,7 +15,7 @@ Bottom line, a lot less code needs to be written.
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(uid string) (*Person,error) {
+    func (s Service) getPerson(c context.Context, uid string) (*Person,error) {
         ...
     } 
 
@@ -32,7 +32,7 @@ The same "annotation"-approach is used to ease event-sourcing.
 
 ## Getting the software
 
-    $ go get -u -t github.com/MarcGrol/golangAnnotations
+    $ go get -u -t -v github.com/MarcGrol/golangAnnotations/...
 
 ## Testing and installing
 
@@ -52,6 +52,10 @@ This first implementation provides the following kind of annotations:
     - Generate client-side http-handling for a "service"
     - Generate helpers to ease integration testing of your services
 
+- event-listeners:
+    - Generate server-side http-handling for receiving events
+    - Generate helpers to ease integration testing of your event-listeners
+
 - event-sourcing:
     - Describe which events belong to which aggregate
     - Type-strong boiler-plate code to build an aggregate from individual events
@@ -67,7 +71,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
     }
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(uid string) (*Person, error) {
+    func (s Service) getPerson(c context.Context, uid string) (*Person, error) {
         ...
     }        
 
