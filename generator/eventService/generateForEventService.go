@@ -228,23 +228,23 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
+		credentials := rest.Credentials {
+			RequestURI: r.RequestURI,
+		}
+
 		// read and parse request body
 		var envelope envelope.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envelope)
 		if err != nil {
-			rest.HandleHttpError(c, rest.Credentials{RequestURI: r.RequestURI}, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
-		es.handleEventAsync(c, envelope.AggregateName, envelope)
+		credentials.SessionUID = envelope.SessionUID
+		es.handleEventAsync(c, credentials, envelope.AggregateName, envelope)
 	}
 }
 
-func (es *{{$structName}}) handleEventAsync(c context.Context, topic string, envelope envelope.Envelope) {
-
-	credentials := rest.Credentials {
-		RequestURI: fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envelope.EventTypeName),
-		SessionUID: envelope.SessionUID,
-	}
+func (es *{{$structName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envelope envelope.Envelope) {
 {{else}}
 func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope envelope.Envelope) {
 {{end}}
