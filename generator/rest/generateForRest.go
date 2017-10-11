@@ -166,6 +166,13 @@ func IsRestServiceNoValidation(s model.Struct) bool {
 	return false
 }
 
+func IsRestServiceUnprotected(s model.Struct) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+		return ann.Attributes[restAnnotation.ParamProtected] == "false"
+	}
+	return false
+}
+
 func IsRestServiceNoTest(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
@@ -675,7 +682,7 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
 
 		credentials := {{ $extractCredentialsMethod }}(c, r)
 		{{if (not $noValidation) and (HasCredentials $oper) }}
-			err = validateCredentials(c, credentials, "{{GetRestOperationPath . }}", {{GetRestOperationRolesString $oper}})
+			err = validateCredentials(c, credentials, {{GetRestOperationRolesString $oper}})
 			if err != nil {
 				rest.HandleHttpError(c, credentials, err, w, r)
 				return

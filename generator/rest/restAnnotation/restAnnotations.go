@@ -7,6 +7,7 @@ const (
 	TypeRestService     = "RestService"
 	ParamCredentials    = "credentials"
 	ParamNoValidation   = "novalidation"
+	ParamProtected      = "protected"
 	ParamNoTest         = "notest"
 	ParamNoWrap         = "nowrap"
 	ParamAfter          = "after"
@@ -22,7 +23,7 @@ const (
 
 // Register makes the annotation-registry aware of these annotation
 func Register() {
-	annotation.RegisterAnnotation(TypeRestService, []string{ParamCredentials, ParamNoValidation, ParamNoTest, ParamPath}, validateRestServiceAnnotation)
+	annotation.RegisterAnnotation(TypeRestService, []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath}, validateRestServiceAnnotation)
 	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents}, validateRestOperationAnnotation)
 }
 
