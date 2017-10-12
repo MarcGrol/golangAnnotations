@@ -396,7 +396,7 @@ func asStringSlice(in []string) string {
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 				return true
 			}
 		}
@@ -406,7 +406,7 @@ func HasInput(o model.Operation) bool {
 
 func HasCredentials(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if arg.Name == "credentials" {
+		if IsCredentialsArg(arg) {
 			return true
 		}
 	}
@@ -415,7 +415,7 @@ func HasCredentials(o model.Operation) bool {
 
 func HasContext(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName == "context.Context" {
+		if IsContextArg(arg) {
 			return true
 		}
 	}
@@ -424,7 +424,7 @@ func HasContext(o model.Operation) bool {
 
 func ReturnsError(o model.Operation) bool {
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName == "error" {
+		if IsErrorArg(arg) {
 			return true
 		}
 	}
@@ -437,7 +437,7 @@ func NeedsContext(o model.Operation) bool {
 
 func GetContextName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName == "context.Context" {
+		if IsContextArg(arg) {
 			return arg.Name
 		}
 	}
@@ -449,7 +449,7 @@ func GetContextName(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.TypeName
 		}
 	}
@@ -461,7 +461,7 @@ func IsSliceParam(arg model.Field) bool {
 }
 
 func IsQueryParam(o model.Operation, arg model.Field) bool {
-	if arg.TypeName == "context.Context" || arg.TypeName == "rest.Credentials" {
+	if IsContextArg(arg) || IsCredentialsArg(arg) {
 		return false
 	}
 	for _, pathParam := range GetAllPathParams(o) {
@@ -474,7 +474,7 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.Name
 		}
 	}
@@ -491,7 +491,7 @@ func GetInputParamString(o model.Operation) string {
 
 func HasOutput(o model.Operation) bool {
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName != "error" {
+		if !IsErrorArg(arg) {
 			return true
 		}
 	}
@@ -500,7 +500,7 @@ func HasOutput(o model.Operation) bool {
 
 func GetOutputArgType(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName != "error" {
+		if !IsErrorArg(arg) {
 			slice := ""
 			if arg.IsSlice {
 				slice = "[]"
@@ -518,7 +518,7 @@ func GetOutputArgType(o model.Operation) string {
 func HasMetaOutput(o model.Operation) bool {
 	var count = 0
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName != "error" {
+		if !IsErrorArg(arg) {
 			count += 1
 			if count == 2 {
 				return true
@@ -530,7 +530,7 @@ func HasMetaOutput(o model.Operation) bool {
 
 func GetOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName != "error" {
+		if !IsErrorArg(arg) {
 			pointer := ""
 			addressOf := ""
 			if arg.IsPointer {
@@ -551,7 +551,7 @@ func GetOutputArgDeclaration(o model.Operation) string {
 
 func GetOutputArgName(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
-		if arg.TypeName != "error" {
+		if !IsErrorArg(arg) {
 			if !arg.IsPointer || arg.IsSlice {
 
 				return "&resp"
@@ -573,7 +573,7 @@ func findArgInArray(array []string, toMatch string) bool {
 
 func RequiresParamValidation(o model.Operation) bool {
 	for _, field := range o.InputArgs {
-		if field.TypeName == "int" || field.TypeName == "string" && IsInputArgMandatory(o, field) {
+		if IsNumberArg(field) || IsStringArg(field) && IsInputArgMandatory(o, field) {
 			return true
 		}
 	}
@@ -602,16 +602,32 @@ func HasUpload(o model.Operation) bool {
 	return false
 }
 
-func IsUploadArg(arg model.Field) bool {
-	return arg.Name == "upload"
+func IsErrorArg(f model.Field) bool {
+	return f.TypeName == "error"
+}
+
+func IsUploadArg(f model.Field) bool {
+	return f.Name == "upload"
+}
+
+func IsContextArg(f model.Field) bool {
+	return f.TypeName == "context.Context"
+}
+
+func IsCredentialsArg(f model.Field) bool {
+	return f.TypeName == "rest.Credentials"
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return f.TypeName == "int" || f.TypeName == "string"
+	return IsNumberArg(f) || IsStringArg(f)
 }
 
 func IsNumberArg(f model.Field) bool {
 	return f.TypeName == "int"
+}
+
+func IsStringArg(f model.Field) bool {
+	return f.TypeName == "string"
 }
 
 func toFirstUpper(in string) string {
