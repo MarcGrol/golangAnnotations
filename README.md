@@ -15,7 +15,7 @@ Bottom line, a lot less code needs to be written.
 Example:
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(c context.Context, uid string) (*Person,error) {
+    func (s *Service) getPerson(c context.Context, uid string) (*Person,error) {
         ...
     } 
 
@@ -71,7 +71,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
     }
     
     // @RestOperation( method = "GET", path = "/person/{uid}" )
-    func (s Service) getPerson(c context.Context, uid string) (*Person, error) {
+    func (s *Service) getPerson(c context.Context, uid string) (*Person, error) {
         ...
     }        
 
