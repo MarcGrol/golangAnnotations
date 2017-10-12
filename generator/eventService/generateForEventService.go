@@ -314,9 +314,36 @@ import (
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
 )
-func getEvents(c context.Context) []envelope.Envelope {
+
+{{range $idxService, $service := .Services}}
+
+   {{ $struct := . }}
+   {{ $structName := .Name }}
+
+   {{range $idxOper, $oper := .Operations}}
+		{{if IsEventOperation $oper}}
+
+		func {{$oper.Name}}In{{$service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) {
+			envlp, err := event.Wrap(creds.SessionUID)
+			if err != nil {
+				t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+			}
+
+			eventsBefore := getEvents(c, creds)
+
+			es.handleEvent{{IsAsyncAsString $struct}}(c, creds, "caregiver", *envlp)
+
+			eventsAfter := getEvents(c, creds)
+			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}}, getEventsDelta(eventsBefore, eventsAfter))		}
+		{{end}}
+
+    {{end}}
+
+{{end}}
+
+func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
 	eventsBefore := []envelope.Envelope{}
-	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+	eventStore.New().IterateAll(c, creds, func(e envelope.Envelope) {
 		eventsBefore = append(eventsBefore, e)
 	})
 	return eventsBefore
@@ -345,31 +372,4 @@ func isAllowed(allowedEventNames []string, event envelope.Envelope) bool {
 	}
 	return false
 }
-
-{{range $idxService, $service := .Services}}
-
-     {{ $struct := . }}
-	 {{ $structName := .Name }}
-
-   {{range $idxOper, $oper := .Operations}}
-		{{if IsEventOperation $oper}}
-
-		func {{$oper.Name}}EventHandlerTestHelper(t *testing.T, c context.Context, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) {
-			envlp, err := event.Wrap(credentials.SessionUID)
-			if err != nil {
-				t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-			}
-
-			eventsBefore := getEvents(c)
-
-			es.handleEvent{{IsAsyncAsString $struct}}(c, credentials, "caregiver", *envlp)
-
-			eventsAfter := getEvents(c)
-			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}}, getEventsDelta(eventsBefore, eventsAfter))		}
-		{{end}}
-
-    {{end}}
-
-{{end}}
-
 `
