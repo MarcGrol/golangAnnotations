@@ -377,7 +377,10 @@ func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := strings.Split(attrs, ",")
 			for i, r := range eventsProduced {
-				eventsProduced[i] = strings.Trim(r, " ")
+				event := strings.Trim(r, " ")
+				if event != "" {
+					eventsProduced[i] = event
+				}
 			}
 			return eventsProduced
 		}
