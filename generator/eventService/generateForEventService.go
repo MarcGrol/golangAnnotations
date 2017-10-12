@@ -50,20 +50,29 @@ func generate(inputDir string, structs []model.Struct) error {
 			log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
 			return err
 		}
+
+		target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
+		err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "testHandlers", handlersTestTemplate, customTemplateFuncs, target)
+		if err != nil {
+			log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
+			return err
+		}
 	}
 	return nil
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":          IsEventService,
-	"IsAsync":                 IsAsync,
-	"IsAdmin":                 IsAdmin,
-	"IsEventOperation":        IsEventOperation,
-	"GetInputArgType":         GetInputArgType,
-	"GetInputArgPackage":      GetInputArgPackage,
-	"GetEventServiceSelfName": GetEventServiceSelfName,
-	"GetEventServiceTopics":   GetEventServiceTopics,
-	"GetEventOperationTopic":  GetEventOperationTopic,
+	"IsEventService":                  IsEventService,
+	"IsAsync":                         IsAsync,
+	"IsAdmin":                         IsAdmin,
+	"IsEventOperation":                IsEventOperation,
+	"GetInputArgType":                 GetInputArgType,
+	"GetInputArgPackage":              GetInputArgPackage,
+	"GetEventServiceSelfName":         GetEventServiceSelfName,
+	"GetEventServiceTopics":           GetEventServiceTopics,
+	"GetEventOperationTopic":          GetEventOperationTopic,
+	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
+	"IsAsyncAsString":                 IsAsyncAsString,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -79,6 +88,13 @@ func IsAsync(s model.Struct) bool {
 		}
 	}
 	return false
+}
+
+func IsAsyncAsString(s model.Struct) string {
+	if IsAsync(s) {
+		return "Async"
+	}
+	return ""
 }
 
 func IsAdmin(s model.Struct) bool {
@@ -98,7 +114,7 @@ func GetEventServiceSelfName(s model.Struct) string {
 	return ""
 }
 
-func GetEventOperationProducesEvents(o model.Operation) []string {
+func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if atts, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := strings.Split(atts, ",")
@@ -109,6 +125,18 @@ func GetEventOperationProducesEvents(o model.Operation) []string {
 		}
 	}
 	return []string{}
+}
+
+func GetEventOperationProducesEvents(o model.Operation) string {
+	return asStringSlice(GetEventOperationProducesEventsAsSlice(o))
+}
+
+func asStringSlice(in []string) string {
+	adjusted := []string{}
+	for _, i := range in {
+		adjusted = append(adjusted, fmt.Sprintf("\"%s\"", i))
+	}
+	return fmt.Sprintf("[]string{%s}", strings.Join(adjusted, ","))
 }
 
 func GetEventServiceTopics(s model.Struct) []string {
@@ -270,4 +298,78 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 {{end}}
 }
 {{end}}
+`
+
+var handlersTestTemplate string = `
+// Generated automatically by golangAnnotations: do not edit manually
+
+package {{.PackageName}}
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"golang.org/x/net/context"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
+	"github.com/gorilla/mux"
+)
+func getEvents(c context.Context) []envelope.Envelope {
+	eventsBefore := []envelope.Envelope{}
+	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+		eventsBefore = append(eventsBefore, e)
+	})
+	return eventsBefore
+}
+
+func getEventsDelta(before, after []envelope.Envelope) []envelope.Envelope {
+	delta := after[len(before):]
+	for _, e := range delta {
+		delta = append(delta, e)
+	}
+	return delta
+}
+func verifyAllowed(t *testing.T, allowedNames []string, delta []envelope.Envelope) {
+	for _, e := range delta {
+		if !isAllowed(allowedNames, e) {
+			t.Fatalf("Event %s.%s is not allowed", e.AggregateName, e.EventTypeName)
+		}
+	}
+}
+
+func isAllowed(allowedEventNames []string, event envelope.Envelope) bool {
+	for _, name := range allowedEventNames {
+		if name == fmt.Sprintf("%s.%s", event.AggregateName, event.EventTypeName) {
+			return true
+		}
+	}
+	return false
+}
+
+{{range $idxService, $service := .Services}}
+
+     {{ $struct := . }}
+	 {{ $structName := .Name }}
+
+   {{range $idxOper, $oper := .Operations}}
+		{{if IsEventOperation $oper}}
+
+		func {{$oper.Name}}EventHandlerTestHelper(t *testing.T, c context.Context, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) {
+			envlp, err := event.Wrap(credentials.SessionUID)
+			if err != nil {
+				t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+			}
+
+			eventsBefore := getEvents(c)
+
+			es.handleEvent{{IsAsyncAsString $struct}}(c, credentials, "caregiver", *envlp)
+
+			eventsAfter := getEvents(c)
+			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}}, getEventsDelta(eventsBefore, eventsAfter))		}
+		{{end}}
+
+    {{end}}
+
+{{end}}
+
 `
