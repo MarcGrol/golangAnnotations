@@ -73,6 +73,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventOperationTopic":          GetEventOperationTopic,
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 	"IsAsyncAsString":                 IsAsyncAsString,
+	"IsEventNotTransient":             IsEventNotTransient,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -95,6 +96,16 @@ func IsAsyncAsString(s model.Struct) string {
 		return "Async"
 	}
 	return ""
+}
+
+func IsEventNotTransient(o model.Operation) bool {
+	for _, arg := range o.InputArgs {
+		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+			// TODO MarcGrol: is there a better way to find out of an event can be stored?
+			return !strings.Contains(arg.TypeName, "Discovered")
+		}
+	}
+	return false
 }
 
 func IsAdmin(s model.Struct) bool {
@@ -326,7 +337,16 @@ import (
    {{range $idxOper, $oper := .Operations}}
 		{{if IsEventOperation $oper}}
 
-		func {{$oper.Name}}In{{$service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) {
+		func {{$oper.Name}}In{{$service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+			{{if IsEventNotTransient $oper}}
+			{
+				err := store.StoreEvent{{GetInputArgType $oper}}(c, creds, &event)
+				if err != nil {
+					t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+				}
+			}
+			{{end}}
+
 			envlp, err := event.Wrap(creds.SessionUID)
 			if err != nil {
 				t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
@@ -337,7 +357,11 @@ import (
 			es.handleEvent{{IsAsyncAsString $struct}}(c, creds, "caregiver", *envlp)
 
 			eventsAfter := getEvents(c, creds)
-			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}}, getEventsDelta(eventsBefore, eventsAfter))		}
+			delta :=  getEventsDelta(eventsBefore, eventsAfter)
+			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}},delta)
+
+			return delta
+		}
 		{{end}}
 
     {{end}}
@@ -353,12 +377,9 @@ func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
 }
 
 func getEventsDelta(before, after []envelope.Envelope) []envelope.Envelope {
-	delta := after[len(before):]
-	for _, e := range delta {
-		delta = append(delta, e)
-	}
-	return delta
+	return after[len(before):]
 }
+
 func verifyAllowed(t *testing.T, allowedNames []string, delta []envelope.Envelope) {
 	for _, e := range delta {
 		if !isAllowed(allowedNames, e) {
