@@ -1079,6 +1079,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 	{{else if IsRestOperationForm . }}
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	{{else if HasInput . }}
 		rb, _ := json.Marshal(input)
 		// indent for readability
