@@ -904,6 +904,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -1057,11 +1058,11 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 	return {{.Name}}TestHelperWithHeaders( t, c, url {{if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
 	defer func() {
 		fmt.Fprintf(logFp, "\t},\n")
@@ -1076,6 +1077,8 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 	{{if HasUpload . }}
 		{{.Name}}SetUpload(input)
 		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+	{{else if IsRestOperationForm . }}
+		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
 	{{else if HasInput . }}
 		rb, _ := json.Marshal(input)
 		// indent for readability
