@@ -51,12 +51,18 @@ func generate(inputDir string, structs []model.Struct) error {
 			return err
 		}
 
-		target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
-		err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "testHandlers", handlersTestTemplate, customTemplateFuncs, target)
-		if err != nil {
-			log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
-			return err
+		for _, eventService := range eventServices {
+			if !IsEventServiceNoTest(eventService) {
+				target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
+				err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "testHandlers", handlersTestTemplate, customTemplateFuncs, target)
+				if err != nil {
+					log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
+					return err
+				}
+				break
+			}
 		}
+
 	}
 	return nil
 }
@@ -65,6 +71,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsEventService":                  IsEventService,
 	"IsAsync":                         IsAsync,
 	"IsAdmin":                         IsAdmin,
+	"IsEventServiceNoTest":            IsEventServiceNoTest,
 	"IsEventOperation":                IsEventOperation,
 	"GetInputArgType":                 GetInputArgType,
 	"GetInputArgPackage":              GetInputArgPackage,
@@ -114,6 +121,13 @@ func IsAdmin(s model.Struct) bool {
 		if found && adminString == "true" {
 			return true
 		}
+	}
+	return false
+}
+
+func IsEventServiceNoTest(s model.Struct) bool {
+	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+		return ann.Attributes[eventServiceAnnotation.ParamNoTest] == "true"
 	}
 	return false
 }
@@ -331,6 +345,8 @@ import (
 
 {{range $idxService, $service := .Services}}
 
+   {{if not (IsEventServiceNoTest .) }}
+
    {{ $struct := . }}
    {{ $structName := .Name }}
 
@@ -365,6 +381,8 @@ import (
 		{{end}}
 
     {{end}}
+
+	{{end}}
 
 {{end}}
 
