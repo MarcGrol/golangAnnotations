@@ -1059,7 +1059,7 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 
 {{if IsRestOperation . }}
 func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-	return {{.Name}}TestHelperWithHeaders( t, c, url {{if HasInput . }}, input {{end}}, map[string]string{} )
+	return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
 func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
