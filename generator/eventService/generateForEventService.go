@@ -324,7 +324,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 		asJson, err := json.Marshal(env)
 		if err != nil {
 			msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-			errorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+			myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
 			return
 		}
 
@@ -335,7 +335,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 		})
 		if err != nil {
 			msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-			errorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+			myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
 			return
 		}
 		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
@@ -377,7 +377,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 		    if err != nil {
 				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
 					subscriber, env.EventTypeName, env.AggregateName, env.AggregateUID)
-				errorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+				myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
 			} else {
 				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
 					subscriber, env.EventTypeName, env.AggregateName, env.AggregateUID)

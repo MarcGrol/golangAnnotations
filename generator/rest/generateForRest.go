@@ -969,7 +969,7 @@ func TestMain(m *testing.M) {
 var beforeAll = defaultBeforeAll
 func defaultBeforeAll() {
 	mytime.SetMockNow()
-	errorhandling.Init()
+	myerrorhandling.Init()
 }
 
 var afterAll = defaultAfterAll
