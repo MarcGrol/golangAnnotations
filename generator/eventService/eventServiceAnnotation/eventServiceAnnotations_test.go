@@ -24,9 +24,9 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 		assert.Equal(t, "true", async)
 	}
 	{
-		admin, ok := ann.Attributes[ParamAdmin]
+		process, ok := ann.Attributes[ParamProcess]
 		assert.True(t, ok)
-		assert.Equal(t, "true", admin)
+		assert.Equal(t, "default", process)
 	}
 	{
 		producesEvents, ok := ann.Attributes[ParamProducesEvents]

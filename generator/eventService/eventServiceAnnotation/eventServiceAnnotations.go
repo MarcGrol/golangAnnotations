@@ -8,6 +8,7 @@ const (
 	ParamSelf           = "self"
 	ParamAsync          = "async"
 	ParamTopic          = "topic"
+	ParamProcess        = "process"
 	ParamNoTest         = "notest"
 	ParamProducesEvents = "producesevents"
 )
@@ -15,7 +16,7 @@ const (
 // Register makes the annotation-registry aware of these annotation
 func Register() {
 	annotation.RegisterAnnotation(TypeEventService, []string{ParamSelf, ParamAsync, ParamNoTest}, validateEventServiceAnnotation)
-	annotation.RegisterAnnotation(TypeEventOperation, []string{ParamTopic}, validateEventOperationAnnotation)
+	annotation.RegisterAnnotation(TypeEventOperation, []string{ParamTopic, ParamProcess}, validateEventOperationAnnotation)
 }
 
 func validateEventServiceAnnotation(annot annotation.Annotation) bool {

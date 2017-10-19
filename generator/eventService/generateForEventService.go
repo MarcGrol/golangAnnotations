@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
@@ -77,6 +78,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           GetEventServiceTopics,
 	"GetEventOperationTopic":          GetEventOperationTopic,
+	"GetEventOperationQueueGroups":    GetEventOperationQueueGroups,
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 	"IsAsyncAsString":                 IsAsyncAsString,
 	"IsEventNotTransient":             IsEventNotTransient,
@@ -106,7 +108,7 @@ func IsAsyncAsString(s model.Struct) string {
 
 func IsEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
 			return !strings.Contains(arg.TypeName, "Discovered")
 		}
@@ -185,9 +187,48 @@ func GetEventOperationTopic(o model.Operation) string {
 	return ""
 }
 
+type queueGroup struct {
+	Process string
+	Events  []string
+}
+
+func GetEventOperationQueueGroups(s model.Struct) []queueGroup {
+	queueGroups := []queueGroup{}
+operations:
+	for _, o := range s.Operations {
+		if IsEventOperation(*o) {
+			process := GetEventOperationProcess(*o)
+			if process != "" {
+				aggregate := GetInputArgPackage(*o)
+				eventType := GetInputArgType(*o)
+				event := fmt.Sprintf("%s.%s", aggregate, eventType)
+				for i, group := range queueGroups {
+					if group.Process == process {
+						queueGroups[i].Events = append(group.Events, event)
+						continue operations
+					}
+				}
+				queueGroups = append(queueGroups, queueGroup{Process: process, Events: []string{event}})
+			}
+		}
+	}
+	return queueGroups
+}
+
+func GetEventOperationProcess(o model.Operation) string {
+	process := ""
+	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+		process = ann.Attributes[eventServiceAnnotation.ParamProcess]
+		if process != "" {
+			return toFirstUpper(process)
+		}
+	}
+	return "Default"
+}
+
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -197,12 +238,37 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if arg.TypeName != "int" && arg.TypeName != "string" && arg.TypeName != "context.Context" && arg.TypeName != "rest.Credentials" {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
 	}
 	return ""
+}
+func IsContextArg(f model.Field) bool {
+	return f.TypeName == "context.Context"
+}
+
+func IsCredentialsArg(f model.Field) bool {
+	return f.TypeName == "rest.Credentials"
+}
+
+func IsPrimitiveArg(f model.Field) bool {
+	return IsNumberArg(f) || IsStringArg(f)
+}
+
+func IsNumberArg(f model.Field) bool {
+	return f.TypeName == "int"
+}
+
+func IsStringArg(f model.Field) bool {
+	return f.TypeName == "string"
+}
+
+func toFirstUpper(in string) string {
+	a := []rune(in)
+	a[0] = unicode.ToUpper(a[0])
+	return string(a)
 }
 
 var handlersTemplate string = `
@@ -232,18 +298,26 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 	{
 		// Subscribe to topic "{{.}}"
 	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
-		{{if IsAsync $service }}
-			router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
-		{{end}}
+		{{if IsAsync $service }}router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST"){{end}}
 	}
 	{{end}}
 }
 
 {{if IsAsync .}}
 
+func (es *{{$structName}}) getProcessTypeFor(env envelope.Envelope) myqueue.ProcessType {
+	switch env.EventTypeName {
+	{{range $queueGroup := (GetEventOperationQueueGroups .)}}
+	case  {{range $idx, $event := $queueGroup.Events}}{{if $idx}},{{end}}{{$event}}EventName{{end}}:
+		return myqueue.ProcessType{{$queueGroup.Process}}
+	{{end}}
+	default: return myqueue.ProcessTypeDefault
+	}
+}
+
 func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, env envelope.Envelope) {
 	switch env.EventTypeName {
-	case{{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}"{{GetInputArgType $oper}}"{{end}}{{end}}:
+	case {{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName{{end}}{{end}}:
 
 		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, env.EventTypeName)
 
@@ -254,7 +328,7 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 			return
 		}
 
-		err = myqueue.AddTask(c, getQueueTypeFor(env), queue.Task{
+		err = myqueue.AddTask(c, es.getProcessTypeFor(env), queue.Task{
 			Method:  "POST",
 			URL:     taskUrl,
 			Payload: asJson,
