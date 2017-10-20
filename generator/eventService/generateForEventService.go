@@ -305,8 +305,8 @@ func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
 
 {{if IsAsync .}}
 
-func (es *{{$structName}}) getProcessTypeFor(env envelope.Envelope) myqueue.ProcessType {
-	switch env.EventTypeName {
+func (es *{{$structName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
+	switch envlp.EventTypeName {
 	{{range $queueGroup := (GetEventOperationQueueGroups .)}}
 	case  {{range $idx, $event := $queueGroup.Events}}{{if $idx}},{{end}}{{$event}}EventName{{end}}:
 		return myqueue.ProcessType{{$queueGroup.Process}}
@@ -315,27 +315,27 @@ func (es *{{$structName}}) getProcessTypeFor(env envelope.Envelope) myqueue.Proc
 	}
 }
 
-func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, env envelope.Envelope) {
-	switch env.EventTypeName {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
+	switch envlp.EventTypeName {
 	case {{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName{{end}}{{end}}:
 
-		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, env.EventTypeName)
+		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
 
-		asJson, err := json.Marshal(env)
+		asJson, err := json.Marshal(envlp)
 		if err != nil {
 			msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-			myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+			myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
 			return
 		}
 
-		err = myqueue.AddTask(c, es.getProcessTypeFor(env), queue.Task{
+		err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), queue.Task{
 			Method:  "POST",
 			URL:     taskUrl,
 			Payload: asJson,
 		})
 		if err != nil {
 			msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-			myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+			myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
 			return
 		}
 		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
@@ -349,38 +349,38 @@ func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
 		credentials := rest.Credentials{RequestURI: r.RequestURI}
 
 		// read and parse request body
-		var env envelope.Envelope
-		err := json.NewDecoder(r.Body).Decode(&env)
+		var envlp envelope.Envelope
+		err := json.NewDecoder(r.Body).Decode(&envlp)
 		if err != nil {
 			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
-		credentials.SessionUID = env.SessionUID
-		es.handleEventAsync(c, credentials, env.AggregateName, env)
+		credentials.SessionUID = envlp.SessionUID
+		es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
 	}
 }
 
-func (es *{{$structName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, env envelope.Envelope) {
+func (es *{{$structName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
 {{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, env envelope.Envelope) {
+func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
 {{end}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 
     {{range $idxOper, $oper := .Operations}}
 	{{if IsEventOperation $oper}}
 	{
-	    evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&env)
+	    evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
 	    if found {
 			mylog.New().Debug(c, "-->> As %s: Start handling '%s' for '%s/%s'",
-				subscriber, env.EventTypeName, env.AggregateName, env.AggregateUID)
+				subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
 		    err := es.{{$oper.Name}}(c, credentials, *evt)
 		    if err != nil {
 				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
-					subscriber, env.EventTypeName, env.AggregateName, env.AggregateUID)
-				myerrorhandling.HandleEventError(c, credentials, topic, env, msg, err)
+					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
 			} else {
 				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
-					subscriber, env.EventTypeName, env.AggregateName, env.AggregateUID)
+					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
 			}
 	    }
 	}
@@ -469,9 +469,9 @@ func verifyAllowed(t *testing.T, allowedNames []string, delta []envelope.Envelop
 	}
 }
 
-func isAllowed(allowedEventNames []string, env envelope.Envelope) bool {
+func isAllowed(allowedEventNames []string, envlp envelope.Envelope) bool {
 	for _, name := range allowedEventNames {
-		if name == fmt.Sprintf("%s.%s", env.AggregateName, env.EventTypeName) {
+		if name == fmt.Sprintf("%s.%s", envlp.AggregateName, envlp.EventTypeName) {
 			return true
 		}
 	}
