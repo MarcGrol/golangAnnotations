@@ -998,9 +998,10 @@ func logOperationEvents(c context.Context, operationName string, allowedEvents [
 func collectBefore(c context.Context) []envelope.Envelope {
 	fmt.Fprintf(logFp, "\tPreConditions: []string{\n")
 	eventsBefore := []envelope.Envelope{}
-	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+	eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
 		eventsBefore = append(eventsBefore, e)
 		fmt.Fprintf(logFp, "\"%s\",\n", fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
+		return nil
 	})
 	fmt.Fprintf(logFp, "\t},\n")
 
@@ -1010,8 +1011,9 @@ func collectBefore(c context.Context) []envelope.Envelope {
 func collectDelta(t *testing.T, c context.Context, operationName string, eventsBefore []envelope.Envelope, allowedEvents []string) []envelope.Envelope {
 
 	after := []envelope.Envelope{}
-	eventStore.New().IterateAll(c, credentials, func(e envelope.Envelope) {
+	eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
 		after = append(after, e)
+		return nil
 	})
 
 	events, found := eventsForOperations[operationName]

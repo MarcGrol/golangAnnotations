@@ -450,8 +450,9 @@ import (
 
 func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
 	eventsBefore := []envelope.Envelope{}
-	eventStore.New().IterateAll(c, creds, func(e envelope.Envelope) {
+	eventStore.Mocked().IterateAll(c, creds, func(e envelope.Envelope) error {
 		eventsBefore = append(eventsBefore, e)
+		return nil
 	})
 	return eventsBefore
 }
