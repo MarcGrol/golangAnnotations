@@ -969,14 +969,12 @@ func TestMain(m *testing.M) {
 var beforeAll = defaultBeforeAll
 func defaultBeforeAll() {
 	mytime.SetMockNow()
-	myerrorhandling.Init()
 }
 
 var afterAll = defaultAfterAll
 func defaultAfterAll() {
     mytime.SetDefaultNow()
 }
-
 
 func testCase(name string, description string) {
 	fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")

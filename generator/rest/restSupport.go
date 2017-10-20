@@ -68,7 +68,7 @@ func ExtractAllCredentials(c context.Context, r *http.Request) Credentials {
 		EndUserAccess: r.Header.Get("X-enduser-access"),
 		EndUserRole:   r.Header.Get("X-enduser-role"),
 		EndUserUID:    r.Header.Get("X-enduser-uid"),
-		AuthUser:      RestSupport.GetAuthUser(c),
+		AuthUser:      GetAuthUser(c),
 	}
 }
 
@@ -76,7 +76,7 @@ func ExtractAdminCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
 		Language:   ExtractLanguage(r),
 		RequestURI: r.RequestURI,
-		AuthUser:   RestSupport.GetAuthUser(c),
+		AuthUser:   GetAuthUser(c),
 	}
 }
 
