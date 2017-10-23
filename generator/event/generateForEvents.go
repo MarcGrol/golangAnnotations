@@ -176,6 +176,7 @@ func ValueForField(field model.Field) string {
 	return ""
 }
 
+
 var aggregateTemplate string = `
 // Generated automatically by golangAnnotations: do not edit manually
 

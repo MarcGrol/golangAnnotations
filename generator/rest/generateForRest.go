@@ -32,8 +32,8 @@ func generate(inputDir string, structs []model.Struct) error {
 	for _, service := range structs {
 		if IsRestService(service) {
 			{
-				target := fmt.Sprintf("%s/$http%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
+				target := fmt.Sprintf("%s/$http%s.go", targetDir, toFirstUpper(service.Name))
+				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "handlers", handlersTemplate, customTemplateFuncs, target)
 				if err != nil {
 					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
 					return err
@@ -41,24 +41,24 @@ func generate(inputDir string, structs []model.Struct) error {
 			}
 			if !IsRestServiceNoTest(service) {
 				{
-					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
+					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, toFirstUpper(service.Name))
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "helpers", helpersTemplate, customTemplateFuncs, target)
 					if err != nil {
 						log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
 						return err
 					}
 				}
 				{
-					target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
+					target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, toFirstUpper(service.Name))
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "testService", testServiceTemplate, customTemplateFuncs, target)
 					if err != nil {
 						log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
 						return err
 					}
 				}
 				{
-					target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
+					target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, toFirstUpper(service.Name))
+					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "httpClient", httpClientTemplate, customTemplateFuncs, target)
 					if err != nil {
 						log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
 						return err
@@ -71,17 +71,17 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":                         IsRestService,
-	"ExtractImports":                        ExtractImports,
-	"GetRestServicePath":                    GetRestServicePath,
-	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
-	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
-	"IsRestOperation":                       IsRestOperation,
-	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
-	"IsRestOperationGenerated":              IsRestOperationGenerated,
-	"HasRestOperationAfter":                 HasRestOperationAfter,
-	"GetRestOperationPath":                  GetRestOperationPath,
-	"GetRestOperationMethod":                GetRestOperationMethod,
+	"IsRestService":               IsRestService,
+	"ExtractImports":              ExtractImports,
+	"GetRestServicePath":          GetRestServicePath,
+	"GetExtractCredentialsMethod": GetExtractCredentialsMethod,
+	"IsRestServiceNoValidation":   IsRestServiceNoValidation,
+	"IsRestOperation":             IsRestOperation,
+	"IsRestOperationNoWrap":       IsRestOperationNoWrap,
+	"IsRestOperationGenerated":    IsRestOperationGenerated,
+	"HasRestOperationAfter":       HasRestOperationAfter,
+	"GetRestOperationPath":        GetRestOperationPath,
+	"GetRestOperationMethod":      GetRestOperationMethod,
 	"IsRestOperationForm":                   IsRestOperationForm,
 	"IsRestOperationJSON":                   IsRestOperationJSON,
 	"IsRestOperationHTML":                   IsRestOperationHTML,
@@ -122,7 +122,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetContextName":                        GetContextName,
 	"WithBackTicks":                         SurroundWithBackTicks,
 	"BackTick":                              BackTick,
-	"ToFirstUpper":                          toFirstUpper,
+	"ToFirstUpper":                			 toFirstUpper,
 }
 
 func BackTick() string {
@@ -143,6 +143,10 @@ func GetRestServicePath(s model.Struct) string {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
+}
+
+func ToFirstUpper(s model.Struct) string {
+	return toFirstUpper(s.Name)
 }
 
 func GetExtractCredentialsMethod(s model.Struct) string {
@@ -1140,7 +1144,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 		fmt.Fprintf(logFp, "\t},\n")
 	}()
 
-	webservice := {{$structName}}{}
+	webservice := NewRest{{ToFirstUpper $structName}}()
 	webservice.HTTPHandler().ServeHTTP(recorder, req)
 
 	{{if IsRestOperationJSON . }}

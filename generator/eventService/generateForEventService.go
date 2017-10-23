@@ -82,6 +82,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 	"IsAsyncAsString":                 IsAsyncAsString,
 	"IsEventNotTransient":             IsEventNotTransient,
+	"ToFirstUpper":                    toFirstUpper,
 }
 
 func IsEventService(s model.Struct) bool {
@@ -415,7 +416,7 @@ import (
    {{range $idxOper, $oper := .Operations}}
 		{{if IsEventOperation $oper}}
 
-		func {{$oper.Name}}In{{$service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+		func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
 			{{if IsEventNotTransient $oper}}
 			{
 				err := store.StoreEvent{{GetInputArgType $oper}}(c, creds, &event)
