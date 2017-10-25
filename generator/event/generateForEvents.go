@@ -213,11 +213,11 @@ type {{$aggr}}Aggregate interface {
 }
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	switch envelope.EventTypeName {
+func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+	switch envlp.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
-		event, err := 	UnWrap{{$eventName}}(&envelope)
+		event, err := UnWrap{{$eventName}}(&envlp)
 		if err != nil {
 			return err
 		}
@@ -225,7 +225,7 @@ func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregat
 		break
 	{{end}}
 	default:
-		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
+		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 	return nil
 }
@@ -233,8 +233,8 @@ func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregat
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
 func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
-	for _, envelope := range envelopes {
-		err = Apply{{$aggr}}Event(c, envelope, aggregateRoot)
+	for _, envlp := range envelopes {
+		err = Apply{{$aggr}}Event(c, envlp, aggregateRoot)
 		if err != nil {
 			break
 		}
@@ -243,26 +243,26 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggr
 }
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelope *envelope.Envelope) (envelope.Event, error) {
-	switch envelope.EventTypeName {
+func UnWrap{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
+	switch envlp.EventTypeName {
 	{{range $aggregName, $eventName := $events}}
 	case {{$eventName}}EventName:
-		event, err := UnWrap{{$eventName}}(envelope)
+		event, err := UnWrap{{$eventName}}(envlp)
 		if err != nil {
 			return nil, err
 		}
 		return event, nil
 	{{end}}
 	default:
-		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
+		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 }
 
 // UnWrap{{$aggr}}Events extracts the events from multiple envelopes
 func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, error) {
 	events := make([]envelope.Event, 0, len(envelopes))
-	for _, envelope := range envelopes {
-		event, err := UnWrap{{$aggr}}Event(&envelope)
+	for _, envlp := range envelopes {
+		event, err := UnWrap{{$aggr}}Event(&envlp)
 		if err != nil {
 			return nil, err
 		}
@@ -304,12 +304,11 @@ var getUID = func() string {
 
 // Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
-    blob, err := json.Marshal(s)
-    if err != nil {
-        log.Printf("Error marshalling {{.Name}} payload %+v", err)
-        return nil, err
+    if blob, err := json.Marshal(s); err != nil {
+		log.Printf("Error marshalling {{.Name}} payload %+v", err)
+		return nil, err
     }
-	envelope := envelope.Envelope{
+	return &envelope.Envelope{
 		UUID: getUID(),
 		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
 		SequenceNumber: int64(0), // Set later by event-store
@@ -320,46 +319,38 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
 		EventTypeName: {{.Name}}EventName,
 		EventTypeVersion: 0,
 		EventData: string(blob),
-    }
-
-    return &envelope, nil
+    }, nil
 }
 
 // Is{{.Name}} detects of envelope carries event of type {{.Name}}
-func Is{{.Name}}(envelope *envelope.Envelope) bool {
-    return envelope.EventTypeName == {{.Name}}EventName
+func Is{{.Name}}(envlp *envelope.Envelope) bool {
+    return envlp.EventTypeName == {{.Name}}EventName
 }
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelope *envelope.Envelope) (*{{.Name}}, bool) {
-    if Is{{.Name}}(envelope) == false {
+func GetIfIs{{.Name}}(envlp *envelope.Envelope) (*{{.Name}}, bool) {
+    if !Is{{.Name}}(envlp) {
         return nil, false
     }
-    event,err := UnWrap{{.Name}}(envelope)
-    if err != nil {
-    	return nil, false
-    }
-    return event, true
+    return UnWrap{{.Name}}(envlp)
 }
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
-    if Is{{.Name}}(envelope) == false {
+func UnWrap{{.Name}}(envlp *envelope.Envelope) (*{{.Name}},error) {
+    if !Is{{.Name}}(envlp) {
         return nil, fmt.Errorf("Not a {{.Name}}")
     }
     var event {{.Name}}
-    err := json.Unmarshal([]byte(envelope.EventData), &event)
+    err := json.Unmarshal([]byte(envlp.EventData), &event)
     if err != nil {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-
     event.Metadata = Metadata{
-		UUID:          envelope.UUID,
-		Timestamp:     envelope.Timestamp.In(mytime.DutchLocation),
-		EventTypeName: envelope.EventTypeName,
+		UUID:          envlp.UUID,
+		Timestamp:     envlp.Timestamp.In(mytime.DutchLocation),
+		EventTypeName: envlp.EventTypeName,
 	}
-
     return &event, nil
 }
 {{end}}
@@ -438,25 +429,21 @@ func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
 func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event *{{.PackageName}}.{{.Name}}) error {
-	envelope, err := event.Wrap(credentials.SessionUID)
+	envlp, err := event.Wrap(credentials.SessionUID)
 	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
+		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
 	}
-
-	err = eventStoreInstance.Put(c, credentials, envelope)
+	err = eventStoreInstance.Put(c, credentials, envlp)
 	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
+		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
 	}
-
     event.Metadata = {{.PackageName}}.Metadata{
-		UUID:          envelope.UUID,
-		Timestamp:     envelope.Timestamp.In(mytime.DutchLocation),
-		EventTypeName: envelope.EventTypeName,
+		UUID:          envlp.UUID,
+		Timestamp:     envlp.Timestamp.In(mytime.DutchLocation),
+		EventTypeName: envlp.EventTypeName,
 	}
-
 	return nil
 }
-
 {{end}}
 {{end}}
 `
