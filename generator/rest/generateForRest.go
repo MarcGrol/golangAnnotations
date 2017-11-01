@@ -30,7 +30,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 	for _, service := range structs {
-		if IsRestService(service) {
+		if isRestService(service) {
 			{
 				target := fmt.Sprintf("%s/$http%s.go", targetDir, toFirstUpper(service.Name))
 				err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "http-handlers", "generator/rest/httpHandlers.go.tmpl", customTemplateFuncs, target)
@@ -71,81 +71,81 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":                         IsRestService,
-	"ExtractImports":                        ExtractImports,
-	"GetRestServicePath":                    GetRestServicePath,
-	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
-	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
-	"IsRestOperation":                       IsRestOperation,
-	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
-	"IsRestOperationGenerated":              IsRestOperationGenerated,
-	"HasRestOperationAfter":                 HasRestOperationAfter,
-	"GetRestOperationPath":                  GetRestOperationPath,
-	"GetRestOperationMethod":                GetRestOperationMethod,
-	"IsRestOperationForm":                   IsRestOperationForm,
-	"IsRestOperationJSON":                   IsRestOperationJSON,
-	"IsRestOperationHTML":                   IsRestOperationHTML,
-	"IsRestOperationCSV":                    IsRestOperationCSV,
-	"IsRestOperationTXT":                    IsRestOperationTXT,
-	"IsRestOperationMD":                     IsRestOperationMD,
-	"IsRestOperationNoContent":              IsRestOperationNoContent,
-	"IsRestOperationCustom":                 IsRestOperationCustom,
-	"HasContentType":                        HasContentType,
-	"GetContentType":                        GetContentType,
-	"GetRestOperationFilename":              GetRestOperationFilename,
-	"GetRestOperationRolesString":           GetRestOperationRolesString,
-	"GetRestOperationProducesEvents":        GetRestOperationProducesEvents,
-	"GetRestOperationProducesEventsAsSlice": GetRestOperationProducesEventsAsSlice,
-	"HasOperationsWithInput":                HasOperationsWithInput,
-	"HasInput":                              HasInput,
-	"GetInputArgType":                       GetInputArgType,
-	"GetOutputArgDeclaration":               GetOutputArgDeclaration,
-	"GetOutputArgName":                      GetOutputArgName,
-	"HasAnyPathParam":                       HasAnyPathParam,
-	"IsSliceParam":                          IsSliceParam,
-	"IsQueryParam":                          IsQueryParam,
-	"GetInputArgName":                       GetInputArgName,
-	"GetInputParamString":                   GetInputParamString,
-	"GetOutputArgType":                      GetOutputArgType,
-	"HasOutput":                             HasOutput,
-	"HasMetaOutput":                         HasMetaOutput,
-	"IsPrimitiveArg":                        IsPrimitiveArg,
-	"IsNumberArg":                           IsNumberArg,
-	"RequiresParamValidation":               RequiresParamValidation,
-	"IsInputArgMandatory":                   IsInputArgMandatory,
-	"HasUpload":                             HasUpload,
-	"IsUploadArg":                           IsUploadArg,
-	"HasCredentials":                        HasCredentials,
-	"HasContext":                            HasContext,
-	"ReturnsError":                          ReturnsError,
-	"NeedsContext":                          NeedsContext,
-	"GetContextName":                        GetContextName,
-	"WithBackTicks":                         SurroundWithBackTicks,
-	"BackTick":                              BackTick,
+	"IsRestService":                         isRestService,
+	"ExtractImports":                        extractImports,
+	"GetRestServicePath":                    getRestServicePath,
+	"GetExtractCredentialsMethod":           getExtractCredentialsMethod,
+	"IsRestServiceNoValidation":             isRestServiceNoValidation,
+	"IsRestOperation":                       isRestOperation,
+	"IsRestOperationNoWrap":                 isRestOperationNoWrap,
+	"IsRestOperationGenerated":              isRestOperationGenerated,
+	"HasRestOperationAfter":                 hasRestOperationAfter,
+	"GetRestOperationPath":                  getRestOperationPath,
+	"GetRestOperationMethod":                getRestOperationMethod,
+	"IsRestOperationForm":                   isRestOperationForm,
+	"IsRestOperationJSON":                   isRestOperationJSON,
+	"IsRestOperationHTML":                   isRestOperationHTML,
+	"IsRestOperationCSV":                    isRestOperationCSV,
+	"IsRestOperationTXT":                    isRestOperationTXT,
+	"IsRestOperationMD":                     isRestOperationMD,
+	"IsRestOperationNoContent":              isRestOperationNoContent,
+	"IsRestOperationCustom":                 isRestOperationCustom,
+	"HasContentType":                        hasContentType,
+	"GetContentType":                        getContentType,
+	"GetRestOperationFilename":              getRestOperationFilename,
+	"GetRestOperationRolesString":           getRestOperationRolesString,
+	"GetRestOperationProducesEvents":        getRestOperationProducesEvents,
+	"GetRestOperationProducesEventsAsSlice": getRestOperationProducesEventsAsSlice,
+	"HasOperationsWithInput":                hasOperationsWithInput,
+	"HasInput":                              hasInput,
+	"GetInputArgType":                       getInputArgType,
+	"GetOutputArgDeclaration":               getOutputArgDeclaration,
+	"GetOutputArgName":                      getOutputArgName,
+	"HasAnyPathParam":                       hasAnyPathParam,
+	"IsSliceParam":                          isSliceParam,
+	"IsQueryParam":                          isQueryParam,
+	"GetInputArgName":                       getInputArgName,
+	"GetInputParamString":                   getInputParamString,
+	"GetOutputArgType":                      getOutputArgType,
+	"HasOutput":                             hasOutput,
+	"HasMetaOutput":                         hasMetaOutput,
+	"IsPrimitiveArg":                        isPrimitiveArg,
+	"IsNumberArg":                           isNumberArg,
+	"RequiresParamValidation":               requiresParamValidation,
+	"IsInputArgMandatory":                   isInputArgMandatory,
+	"HasUpload":                             hasUpload,
+	"IsUploadArg":                           isUploadArg,
+	"HasCredentials":                        hasCredentials,
+	"HasContext":                            hasContext,
+	"ReturnsError":                          returnsError,
+	"NeedsContext":                          needsContext,
+	"GetContextName":                        getContextName,
+	"WithBackTicks":                         surroundWithBackTicks,
+	"BackTick":                              backTick,
 	"ToFirstUpper":                          toFirstUpper,
 }
 
-func BackTick() string {
+func backTick() string {
 	return "`"
 }
 
-func SurroundWithBackTicks(body string) string {
+func surroundWithBackTicks(body string) string {
 	return fmt.Sprintf("`%s'", body)
 }
 
-func IsRestService(s model.Struct) bool {
+func isRestService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
 }
 
-func GetRestServicePath(s model.Struct) string {
+func getRestServicePath(s model.Struct) string {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
-func GetExtractCredentialsMethod(s model.Struct) string {
+func getExtractCredentialsMethod(s model.Struct) string {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
 		case "all":
@@ -159,7 +159,7 @@ func GetExtractCredentialsMethod(s model.Struct) string {
 	return "extractCredentials"
 }
 
-func IsRestServiceNoValidation(s model.Struct) bool {
+func isRestServiceNoValidation(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
 	}
@@ -188,7 +188,7 @@ func isImportToBeIgnored(imp string) bool {
 	return false
 }
 
-func ExtractImports(s model.Struct) []string {
+func extractImports(s model.Struct) []string {
 	importsMap := map[string]string{}
 	for _, o := range s.Operations {
 		for _, ia := range o.InputArgs {
@@ -210,52 +210,52 @@ func ExtractImports(s model.Struct) []string {
 	return importsList
 }
 
-func HasOperationsWithInput(s model.Struct) bool {
+func hasOperationsWithInput(s model.Struct) bool {
 	for _, o := range s.Operations {
-		if HasInput(*o) == true {
+		if hasInput(*o) == true {
 			return true
 		}
 	}
 	return false
 }
 
-func IsRestOperation(o model.Operation) bool {
+func isRestOperation(o model.Operation) bool {
 	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
 
-func IsRestOperationNoWrap(o model.Operation) bool {
+func isRestOperationNoWrap(o model.Operation) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamNoWrap] == "true"
 	}
 	return false
 }
 
-func IsRestOperationGenerated(o model.Operation) bool {
-	return !IsRestOperationNoWrap(o)
+func isRestOperationGenerated(o model.Operation) bool {
+	return !isRestOperationNoWrap(o)
 }
 
-func HasRestOperationAfter(o model.Operation) bool {
+func hasRestOperationAfter(o model.Operation) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamAfter] == "true"
 	}
 	return false
 }
 
-func GetRestOperationPath(o model.Operation) string {
+func getRestOperationPath(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
-func HasAnyPathParam(o model.Operation) bool {
+func hasAnyPathParam(o model.Operation) bool {
 	return len(GetAllPathParams(o)) > 0
 }
 
 func GetAllPathParams(o model.Operation) []string {
 	re, _ := regexp.Compile(`\{\w+\}`)
-	path := GetRestOperationPath(o)
+	path := getRestOperationPath(o)
 	params := re.FindAllString(path, -1)
 	for idx, param := range params {
 		params[idx] = param[1 : len(param)-1]
@@ -263,14 +263,14 @@ func GetAllPathParams(o model.Operation) []string {
 	return params
 }
 
-func GetRestOperationMethod(o model.Operation) string {
+func getRestOperationMethod(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamMethod]
 	}
 	return ""
 }
 
-func IsRestOperationForm(o model.Operation) bool {
+func isRestOperationForm(o model.Operation) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamForm] == "true"
 	}
@@ -284,39 +284,39 @@ func GetRestOperationFormat(o model.Operation) string {
 	return ""
 }
 
-func IsRestOperationJSON(o model.Operation) bool {
+func isRestOperationJSON(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "JSON"
 }
 
-func IsRestOperationHTML(o model.Operation) bool {
+func isRestOperationHTML(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "HTML"
 }
 
-func IsRestOperationCSV(o model.Operation) bool {
+func isRestOperationCSV(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "CSV"
 }
 
-func IsRestOperationTXT(o model.Operation) bool {
+func isRestOperationTXT(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "TXT"
 }
 
-func IsRestOperationMD(o model.Operation) bool {
+func isRestOperationMD(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "MD"
 }
 
-func IsRestOperationNoContent(o model.Operation) bool {
+func isRestOperationNoContent(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "no_content"
 }
 
-func IsRestOperationCustom(o model.Operation) bool {
+func isRestOperationCustom(o model.Operation) bool {
 	return GetRestOperationFormat(o) == "custom"
 }
 
-func HasContentType(operation model.Operation) bool {
-	return GetContentType(operation) != ""
+func hasContentType(operation model.Operation) bool {
+	return getContentType(operation) != ""
 }
 
-func GetContentType(operation model.Operation) string {
+func getContentType(operation model.Operation) string {
 	switch GetRestOperationFormat(operation) {
 	case "JSON":
 		return "application/json"
@@ -333,14 +333,14 @@ func GetContentType(operation model.Operation) string {
 	}
 }
 
-func GetRestOperationFilename(o model.Operation) string {
+func getRestOperationFilename(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFilename]
 	}
 	return ""
 }
 
-func GetRestOperationRolesString(o model.Operation) string {
+func getRestOperationRolesString(o model.Operation) string {
 	roles := GetRestOperationRoles(o)
 	for i, r := range roles {
 		roles[i] = fmt.Sprintf("\"%s\"", r)
@@ -361,11 +361,11 @@ func GetRestOperationRoles(o model.Operation) []string {
 	return []string{}
 }
 
-func GetRestOperationProducesEvents(o model.Operation) string {
-	return asStringSlice(GetRestOperationProducesEventsAsSlice(o))
+func getRestOperationProducesEvents(o model.Operation) string {
+	return asStringSlice(getRestOperationProducesEventsAsSlice(o))
 }
 
-func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
+func getRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
@@ -389,10 +389,10 @@ func asStringSlice(in []string) string {
 	return fmt.Sprintf("[]string{%s}", strings.Join(adjusted, ","))
 }
 
-func HasInput(o model.Operation) bool {
-	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
+func hasInput(o model.Operation) bool {
+	if getRestOperationMethod(o) == "POST" || getRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+			if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 				return true
 			}
 		}
@@ -400,7 +400,7 @@ func HasInput(o model.Operation) bool {
 	return false
 }
 
-func HasCredentials(o model.Operation) bool {
+func hasCredentials(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
 		if IsCredentialsArg(arg) {
 			return true
@@ -409,7 +409,7 @@ func HasCredentials(o model.Operation) bool {
 	return false
 }
 
-func HasContext(o model.Operation) bool {
+func hasContext(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
 		if IsContextArg(arg) {
 			return true
@@ -418,7 +418,7 @@ func HasContext(o model.Operation) bool {
 	return false
 }
 
-func ReturnsError(o model.Operation) bool {
+func returnsError(o model.Operation) bool {
 	for _, arg := range o.OutputArgs {
 		if IsErrorArg(arg) {
 			return true
@@ -427,36 +427,36 @@ func ReturnsError(o model.Operation) bool {
 	return false
 }
 
-func NeedsContext(o model.Operation) bool {
-	return HasContext(o) || ReturnsError(o)
+func needsContext(o model.Operation) bool {
+	return hasContext(o) || returnsError(o)
 }
 
-func GetContextName(o model.Operation) string {
+func getContextName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if IsContextArg(arg) {
 			return arg.Name
 		}
 	}
-	if ReturnsError(o) {
+	if returnsError(o) {
 		return "c"
 	}
 	return ""
 }
 
-func GetInputArgType(o model.Operation) string {
+func getInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.TypeName
 		}
 	}
 	return ""
 }
 
-func IsSliceParam(arg model.Field) bool {
+func isSliceParam(arg model.Field) bool {
 	return arg.IsSlice
 }
 
-func IsQueryParam(o model.Operation, arg model.Field) bool {
+func isQueryParam(o model.Operation, arg model.Field) bool {
 	if IsContextArg(arg) || IsCredentialsArg(arg) {
 		return false
 	}
@@ -468,16 +468,16 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 	return true
 }
 
-func GetInputArgName(o model.Operation) string {
+func getInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.Name
 		}
 	}
 	return ""
 }
 
-func GetInputParamString(o model.Operation) string {
+func getInputParamString(o model.Operation) string {
 	args := []string{}
 	for _, arg := range o.InputArgs {
 		args = append(args, arg.Name)
@@ -485,7 +485,7 @@ func GetInputParamString(o model.Operation) string {
 	return strings.Join(args, ",")
 }
 
-func HasOutput(o model.Operation) bool {
+func hasOutput(o model.Operation) bool {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			return true
@@ -494,7 +494,7 @@ func HasOutput(o model.Operation) bool {
 	return false
 }
 
-func GetOutputArgType(o model.Operation) string {
+func getOutputArgType(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			slice := ""
@@ -511,7 +511,7 @@ func GetOutputArgType(o model.Operation) string {
 	return ""
 }
 
-func HasMetaOutput(o model.Operation) bool {
+func hasMetaOutput(o model.Operation) bool {
 	var count = 0
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
@@ -524,7 +524,7 @@ func HasMetaOutput(o model.Operation) bool {
 	return false
 }
 
-func GetOutputArgDeclaration(o model.Operation) string {
+func getOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			pointer := ""
@@ -545,7 +545,7 @@ func GetOutputArgDeclaration(o model.Operation) string {
 	return ""
 }
 
-func GetOutputArgName(o model.Operation) string {
+func getOutputArgName(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			if !arg.IsPointer || arg.IsSlice {
@@ -567,16 +567,16 @@ func findArgInArray(array []string, toMatch string) bool {
 	return false
 }
 
-func RequiresParamValidation(o model.Operation) bool {
+func requiresParamValidation(o model.Operation) bool {
 	for _, field := range o.InputArgs {
-		if IsNumberArg(field) || IsStringArg(field) && IsInputArgMandatory(o, field) {
+		if isNumberArg(field) || IsStringArg(field) && isInputArgMandatory(o, field) {
 			return true
 		}
 	}
 	return false
 }
 
-func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
+func isInputArgMandatory(o model.Operation, arg model.Field) bool {
 	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if !ok {
 		return false
@@ -589,9 +589,9 @@ func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
 	return !findArgInArray(strings.Split(optionalArgsString, ","), arg.Name)
 }
 
-func HasUpload(o model.Operation) bool {
+func hasUpload(o model.Operation) bool {
 	for _, f := range o.InputArgs {
-		if IsUploadArg(f) {
+		if isUploadArg(f) {
 			return true
 		}
 	}
@@ -602,7 +602,7 @@ func IsErrorArg(f model.Field) bool {
 	return f.TypeName == "error"
 }
 
-func IsUploadArg(f model.Field) bool {
+func isUploadArg(f model.Field) bool {
 	return f.Name == "upload"
 }
 
@@ -614,11 +614,11 @@ func IsCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
 }
 
-func IsPrimitiveArg(f model.Field) bool {
-	return IsNumberArg(f) || IsStringArg(f)
+func isPrimitiveArg(f model.Field) bool {
+	return isNumberArg(f) || IsStringArg(f)
 }
 
-func IsNumberArg(f model.Field) bool {
+func isNumberArg(f model.Field) bool {
 	return f.TypeName == "int"
 }
 

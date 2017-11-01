@@ -11,12 +11,12 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-type AggregateMap struct {
+type aggregateMap struct {
 	PackageName  string
 	AggregateMap map[string]map[string]string
 }
 
-type Structs struct {
+type structures struct {
 	PackageName string
 	Structs     []model.Struct
 }
@@ -35,13 +35,13 @@ func generate(inputDir string, structs []model.Struct) error {
 	aggregates := make(map[string]map[string]string)
 	eventCount := 0
 	for _, s := range structs {
-		if IsEvent(s) {
-			events, ok := aggregates[GetAggregateName(s)]
+		if isEvent(s) {
+			events, ok := aggregates[getAggregateName(s)]
 			if !ok {
 				events = make(map[string]string)
 			}
 			events[s.Name] = s.Name
-			aggregates[GetAggregateName(s)] = events
+			aggregates[getAggregateName(s)] = events
 			eventCount++
 		}
 	}
@@ -54,7 +54,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		{
 			target := fmt.Sprintf("%s/$aggregates.go", targetDir)
 
-			data := AggregateMap{
+			data := aggregateMap{
 				PackageName:  packageName,
 				AggregateMap: aggregates,
 			}
@@ -68,39 +68,39 @@ func generate(inputDir string, structs []model.Struct) error {
 		{
 			target := fmt.Sprintf("%s/$wrappers.go", targetDir)
 
-			data := Structs{
+			data := structures{
 				PackageName: packageName,
 				Structs:     structs,
 			}
 			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers", "generator/event/wrappers.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
-				log.Fatalf("Error generating wrappers for structs (%s)", err)
+				log.Fatalf("Error generating wrappers for structures (%s)", err)
 				return err
 			}
 		}
 		{
 			target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
 
-			data := Structs{
+			data := structures{
 				PackageName: packageName,
 				Structs:     structs,
 			}
 			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "store-events", "generator/event/eventStore.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
-				log.Fatalf("Error generating store-events for structs (%s)", err)
+				log.Fatalf("Error generating store-events for structures (%s)", err)
 				return err
 			}
 		}
 		{
 			target := fmt.Sprintf("%s/$wrappers_test.go", targetDir)
 
-			data := Structs{
+			data := structures{
 				PackageName: packageName,
 				Structs:     structs,
 			}
 			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers-test", "generator/event/wrappers_test.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
-				log.Fatalf("Error generating wrappers-test for structs (%s)", err)
+				log.Fatalf("Error generating wrappers-test for structures (%s)", err)
 				return err
 			}
 		}
@@ -109,53 +109,53 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEvent":          IsEvent,
-	"IsRootEvent":      IsRootEvent,
-	"IsPersistent":     IsPersistent,
-	"IsTransient":      IsTransient,
-	"GetAggregateName": GetAggregateName,
-	"HasValueForField": HasValueForField,
-	"ValueForField":    ValueForField,
+	"IsEvent":          isEvent,
+	"IsRootEvent":      isRootEvent,
+	"IsPersistent":     isPersistent,
+	"IsTransient":      isTransient,
+	"GetAggregateName": getAggregateName,
+	"HasValueForField": hasValueForField,
+	"ValueForField":    valueForField,
 }
 
-func IsEvent(s model.Struct) bool {
+func isEvent(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	return ok
 }
 
-func GetAggregateName(s model.Struct) string {
+func getAggregateName(s model.Struct) string {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
 	}
 	return ""
 }
 
-func IsRootEvent(s model.Struct) bool {
+func isRootEvent(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
 	}
 	return false
 }
 
-func IsPersistent(s model.Struct) bool {
-	return !IsTransient(s)
+func isPersistent(s model.Struct) bool {
+	return !isTransient(s)
 }
 
-func IsTransient(s model.Struct) bool {
+func isTransient(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsTransient] == "true"
 	}
 	return false
 }
 
-func HasValueForField(field model.Field) bool {
+func hasValueForField(field model.Field) bool {
 	if field.TypeName == "int" || field.TypeName == "string" || field.TypeName == "bool" {
 		return true
 	}
 	return false
 }
 
-func ValueForField(field model.Field) string {
+func valueForField(field model.Field) string {
 	if field.TypeName == "int" {
 		if field.IsSlice {
 			return "[]int{1,2}"

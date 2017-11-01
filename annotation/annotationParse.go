@@ -45,7 +45,6 @@ func parseAnnotation(line string) (Annotation, error) {
 		case ')':
 			currentStatus = done
 		case scanner.Ident:
-			//log.Printf("key:%s", s.TokenText())
 			switch currentStatus {
 			case annotationName:
 				annotation.Name = s.TokenText()
@@ -53,7 +52,6 @@ func parseAnnotation(line string) (Annotation, error) {
 				attrName = s.TokenText()
 			}
 		default:
-			//log.Printf("value:%s", s.TokenText())
 			switch currentStatus {
 			case attributeValue:
 				annotation.Attributes[strings.ToLower(attrName)] = strings.Trim(s.TokenText(), "\"")

@@ -62,7 +62,7 @@ func TestIsRestService(t *testing.T) {
 		DocLines: []string{
 			`//@EventService( self = "me")`},
 	}
-	assert.True(t, IsEventService(s))
+	assert.True(t, isEventService(s))
 }
 
 func TestGetEventServiceSelf(t *testing.T) {
@@ -71,19 +71,19 @@ func TestGetEventServiceSelf(t *testing.T) {
 		DocLines: []string{
 			`//@EventService( self = "me" )`},
 	}
-	assert.Equal(t, "me", GetEventServiceSelfName(s))
+	assert.Equal(t, "me", getEventServiceSelfName(s))
 }
 
 func TestIsEventOperation(t *testing.T) {
-	assert.True(t, IsEventOperation(createOper()))
+	assert.True(t, isEventOperation(createOper()))
 }
 
 func TestGetEventName(t *testing.T) {
-	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
 }
 
 func TestGetInputArgTypePerson(t *testing.T) {
-	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
 }
 
 func createOper() model.Operation {

@@ -27,7 +27,7 @@ func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	return packageName, nil
 }
 
-func GetPackageNameForEnums(enums []model.Enum) (string, error) {
+func getPackageNameForEnums(enums []model.Enum) (string, error) {
 	if len(enums) == 0 {
 		return "", fmt.Errorf("Need at least one enum to determine package-name")
 	}
@@ -47,7 +47,7 @@ func GetPackageNameForEnumsOrStructs(enums []model.Enum, structs []model.Struct)
 	var packageNameEnums, packageNameStructs string
 	var err error
 	if len(enums) > 0 {
-		packageNameEnums, err = GetPackageNameForEnums(enums)
+		packageNameEnums, err = getPackageNameForEnums(enums)
 		if err != nil {
 			return "", err
 		}
@@ -104,10 +104,10 @@ func GenerateFileFromTemplateFile(data interface{}, srcName string, templateName
 		log.Printf("Error loading template file from dir %s: %s", cwd, err)
 		return err
 	}
-	return GenerateFileFromTemplate(data, srcName, templateName, string(templateString), funcMap, targetFileName)
+	return generateFileFromTemplate(data, srcName, templateName, string(templateString), funcMap, targetFileName)
 }
 
-func GenerateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
+func generateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
 	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", targetFileName, srcName)
 
 	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)

@@ -8,7 +8,7 @@ import (
 
 func TestParseEnumsInFile(t *testing.T) {
 
-	parsedSources, err := ParseSourceFile("enums/enum.go")
+	parsedSources, err := parseSourceFile("enums/enum.go")
 	assert.Equal(t, nil, err)
 
 	{

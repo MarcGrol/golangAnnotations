@@ -19,7 +19,7 @@ var (
 	debugAstOfSources = false
 )
 
-func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
+func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)
 	}
@@ -49,30 +49,30 @@ func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	return result, nil
 }
 
-type FileEntry struct {
+type fileEntry struct {
 	key  string
 	file ast.File
 }
 
-type FileEntries []FileEntry
+type fileEntries []fileEntry
 
-func (list FileEntries) Len() int {
+func (list fileEntries) Len() int {
 	return len(list)
 }
 
-func (list FileEntries) Less(i, j int) bool {
+func (list fileEntries) Less(i, j int) bool {
 	return list[i].key < list[j].key
 }
 
-func (list FileEntries) Swap(i, j int) {
+func (list fileEntries) Swap(i, j int) {
 	list[i], list[j] = list[j], list[i]
 }
 
-func SortedFileEntries(fileMap map[string]*ast.File) FileEntries {
-	var fileEntries FileEntries = make([]FileEntry, 0, len(fileMap))
+func sortedFileEntries(fileMap map[string]*ast.File) fileEntries {
+	var fileEntries fileEntries = make([]fileEntry, 0, len(fileMap))
 	for key, file := range fileMap {
 		if file != nil {
-			fileEntries = append(fileEntries, FileEntry{
+			fileEntries = append(fileEntries, fileEntry{
 				key:  key,
 				file: *file,
 			})
@@ -96,7 +96,7 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		Imports: map[string]string{},
 	}
 	for _, aPackage := range packages {
-		for _, fileEntry := range SortedFileEntries(aPackage.Files) {
+		for _, fileEntry := range sortedFileEntries(aPackage.Files) {
 			v.CurrentFilename = fileEntry.key
 
 			appEngineOnly := true

@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
@@ -105,6 +104,5 @@ func TestIsJsonStruct(t *testing.T) {
 			`// @JsonStruct()`,
 		},
 	}
-	assert.True(t, event.IsEvent(s))
 	assert.True(t, IsJsonStruct(s))
 }

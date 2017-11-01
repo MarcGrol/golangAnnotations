@@ -44,7 +44,7 @@ format: imports
 
 gen: generate imports format
 
-test:
+test: clean
 	@echo "---------------------"
 	@echo "Running backend tests"
 	@echo "---------------------"

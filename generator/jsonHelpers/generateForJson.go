@@ -13,7 +13,7 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-type JsonContext struct {
+type jsonContext struct {
 	PackageName string
 	Enums       []model.Enum
 	Structs     []model.Struct
@@ -57,7 +57,7 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		targetFilename := strings.Replace(fn, ".", "_json.", 1)
 		target := fmt.Sprintf("%s/$%s", targetDir, targetFilename)
 
-		data := JsonContext{
+		data := jsonContext{
 			PackageName: packageName,
 		}
 
@@ -107,12 +107,12 @@ func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struc
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"HasAlternativeName": HasAlternativeName,
-	"GetAlternativeName": GetAlternativeName,
-	"GetPreferredName":   GetPreferredName,
-	"HasDefaultValue":    HasDefaultValue,
-	"GetDefaultValue":    GetDefaultValue,
-	"HasSlices":          HasSlices,
+	"HasAlternativeName": hasAlternativeName,
+	"GetAlternativeName": getAlternativeName,
+	"GetPreferredName":   getPreferredName,
+	"HasDefaultValue":    hasDefaultValue,
+	"GetDefaultValue":    getDefaultValue,
+	"HasSlices":          hasSlices,
 }
 
 func IsJsonEnum(e model.Enum) bool {
@@ -152,19 +152,19 @@ func GetJsonEnumDefault(e model.Enum) string {
 	return ""
 }
 
-func HasDefaultValue(e model.Enum) bool {
+func hasDefaultValue(e model.Enum) bool {
 	return GetJsonEnumDefault(e) != ""
 }
 
-func GetDefaultValue(e model.Enum) string {
+func getDefaultValue(e model.Enum) string {
 	return GetJsonEnumBase(e) + GetJsonEnumDefault(e)
 }
 
-func HasAlternativeName(e model.Enum) bool {
+func hasAlternativeName(e model.Enum) bool {
 	return HasJsonEnumBase(e) && IsJsonEnumTolerant(e)
 }
 
-func GetAlternativeName(e model.Enum, lit model.EnumLiteral) string {
+func getAlternativeName(e model.Enum, lit model.EnumLiteral) string {
 	if IsJsonEnumStripped(e) {
 		return lowerInitial(lit.Name)
 	} else {
@@ -173,7 +173,7 @@ func GetAlternativeName(e model.Enum, lit model.EnumLiteral) string {
 	}
 }
 
-func GetPreferredName(e model.Enum, lit model.EnumLiteral) string {
+func getPreferredName(e model.Enum, lit model.EnumLiteral) string {
 	if IsJsonEnumStripped(e) {
 		base := GetJsonEnumBase(e)
 		return lowerInitial(strings.TrimPrefix(lit.Name, base))
@@ -193,7 +193,7 @@ func IsJsonStruct(s model.Struct) bool {
 	return ok
 }
 
-func HasSlices(s model.Struct) bool {
+func hasSlices(s model.Struct) bool {
 	for _, f := range s.Fields {
 		if f.IsSlice {
 			return true
