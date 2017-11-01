@@ -63,7 +63,7 @@ func TestIsRestService(t *testing.T) {
 		DocLines: []string{
 			`//@EventService( self = "me")`},
 	}
-	assert.True(t, isEventService(s))
+	assert.True(t, IsEventService(s))
 }
 
 func TestGetEventServiceSelf(t *testing.T) {
@@ -72,7 +72,7 @@ func TestGetEventServiceSelf(t *testing.T) {
 		DocLines: []string{
 			`//@EventService( self = "me" )`},
 	}
-	assert.Equal(t, "me", getEventServiceSelfName(s))
+	assert.Equal(t, "me", GetEventServiceSelfName(s))
 }
 
 func TestIsEventOperation(t *testing.T) {

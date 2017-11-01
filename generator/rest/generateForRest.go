@@ -30,7 +30,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 	for _, service := range structs {
-		if isRestService(service) {
+		if IsRestService(service) {
 			{
 				target := fmt.Sprintf("%s/$http%s.go", targetDir, toFirstUpper(service.Name))
 				err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, toFirstUpper(service.Name)), "http-handlers", "generator/rest/httpHandlers.go.tmpl", customTemplateFuncs, target)
@@ -71,17 +71,17 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":                         isRestService,
-	"ExtractImports":                        extractImports,
-	"GetRestServicePath":                    getRestServicePath,
-	"GetExtractCredentialsMethod":           getExtractCredentialsMethod,
-	"IsRestServiceNoValidation":             isRestServiceNoValidation,
-	"IsRestOperation":                       isRestOperation,
-	"IsRestOperationNoWrap":                 isRestOperationNoWrap,
-	"IsRestOperationGenerated":              isRestOperationGenerated,
-	"HasRestOperationAfter":                 hasRestOperationAfter,
-	"GetRestOperationPath":                  getRestOperationPath,
-	"GetRestOperationMethod":                getRestOperationMethod,
+	"IsRestService":               IsRestService,
+	"ExtractImports":              extractImports,
+	"GetRestServicePath":          GetRestServicePath,
+	"GetExtractCredentialsMethod": getExtractCredentialsMethod,
+	"IsRestServiceNoValidation":   isRestServiceNoValidation,
+	"IsRestOperation":             IsRestOperation,
+	"IsRestOperationNoWrap":       isRestOperationNoWrap,
+	"IsRestOperationGenerated":    isRestOperationGenerated,
+	"HasRestOperationAfter":       hasRestOperationAfter,
+	"GetRestOperationPath":        GetRestOperationPath,
+	"GetRestOperationMethod":                GetRestOperationMethod,
 	"IsRestOperationForm":                   isRestOperationForm,
 	"IsRestOperationJSON":                   isRestOperationJSON,
 	"IsRestOperationHTML":                   isRestOperationHTML,
@@ -91,7 +91,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestOperationNoContent":              isRestOperationNoContent,
 	"IsRestOperationCustom":                 isRestOperationCustom,
 	"HasContentType":                        hasContentType,
-	"GetContentType":                        getContentType,
+	"GetContentType":                        GetContentType,
 	"GetRestOperationFilename":              getRestOperationFilename,
 	"GetRestOperationRolesString":           getRestOperationRolesString,
 	"GetRestOperationProducesEvents":        getRestOperationProducesEvents,
@@ -116,13 +116,13 @@ var customTemplateFuncs = template.FuncMap{
 	"HasUpload":                             hasUpload,
 	"IsUploadArg":                           isUploadArg,
 	"HasCredentials":                        hasCredentials,
-	"HasContext":                            hasContext,
-	"ReturnsError":                          returnsError,
-	"NeedsContext":                          needsContext,
-	"GetContextName":                        getContextName,
-	"WithBackTicks":                         surroundWithBackTicks,
-	"BackTick":                              backTick,
-	"ToFirstUpper":                          toFirstUpper,
+	"HasContext":                  hasContext,
+	"ReturnsError":                returnsError,
+	"NeedsContext":                needsContext,
+	"GetContextName":              getContextName,
+	"WithBackTicks":               surroundWithBackTicks,
+	"BackTick":                    backTick,
+	"ToFirstUpper":                toFirstUpper,
 }
 
 func backTick() string {
@@ -133,12 +133,12 @@ func surroundWithBackTicks(body string) string {
 	return fmt.Sprintf("`%s'", body)
 }
 
-func isRestService(s model.Struct) bool {
+func IsRestService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
 }
 
-func getRestServicePath(s model.Struct) string {
+func GetRestServicePath(s model.Struct) string {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
@@ -219,7 +219,7 @@ func hasOperationsWithInput(s model.Struct) bool {
 	return false
 }
 
-func isRestOperation(o model.Operation) bool {
+func IsRestOperation(o model.Operation) bool {
 	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
@@ -242,7 +242,7 @@ func hasRestOperationAfter(o model.Operation) bool {
 	return false
 }
 
-func getRestOperationPath(o model.Operation) string {
+func GetRestOperationPath(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
@@ -255,7 +255,7 @@ func hasAnyPathParam(o model.Operation) bool {
 
 func GetAllPathParams(o model.Operation) []string {
 	re, _ := regexp.Compile(`\{\w+\}`)
-	path := getRestOperationPath(o)
+	path := GetRestOperationPath(o)
 	params := re.FindAllString(path, -1)
 	for idx, param := range params {
 		params[idx] = param[1 : len(param)-1]
@@ -263,7 +263,7 @@ func GetAllPathParams(o model.Operation) []string {
 	return params
 }
 
-func getRestOperationMethod(o model.Operation) string {
+func GetRestOperationMethod(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamMethod]
 	}
@@ -313,10 +313,10 @@ func isRestOperationCustom(o model.Operation) bool {
 }
 
 func hasContentType(operation model.Operation) bool {
-	return getContentType(operation) != ""
+	return GetContentType(operation) != ""
 }
 
-func getContentType(operation model.Operation) string {
+func GetContentType(operation model.Operation) string {
 	switch GetRestOperationFormat(operation) {
 	case "JSON":
 		return "application/json"
@@ -390,7 +390,7 @@ func asStringSlice(in []string) string {
 }
 
 func hasInput(o model.Operation) bool {
-	if getRestOperationMethod(o) == "POST" || getRestOperationMethod(o) == "PUT" {
+	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
 			if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 				return true

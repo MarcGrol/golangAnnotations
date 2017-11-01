@@ -31,7 +31,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 	eventServices := []model.Struct{}
 	for _, service := range structs {
-		if isEventService(service) {
+		if IsEventService(service) {
 			eventServices = append(eventServices, service)
 		}
 	}
@@ -69,13 +69,13 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":                  isEventService,
+	"IsEventService":                  IsEventService,
 	"IsAsync":                         isAsync,
 	"IsEventServiceNoTest":            isEventServiceNoTest,
 	"IsEventOperation":                isEventOperation,
 	"GetInputArgType":                 getInputArgType,
 	"GetInputArgPackage":              getInputArgPackage,
-	"GetEventServiceSelfName":         getEventServiceSelfName,
+	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           getEventServiceTopics,
 	"GetEventOperationTopic":          getEventOperationTopic,
 	"GetEventOperationQueueGroups":    getEventOperationQueueGroups,
@@ -85,7 +85,7 @@ var customTemplateFuncs = template.FuncMap{
 	"ToFirstUpper":                    toFirstUpper,
 }
 
-func isEventService(s model.Struct) bool {
+func IsEventService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
 }
@@ -124,7 +124,7 @@ func isEventServiceNoTest(s model.Struct) bool {
 	return false
 }
 
-func getEventServiceSelfName(s model.Struct) string {
+func GetEventServiceSelfName(s model.Struct) string {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
