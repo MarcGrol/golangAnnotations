@@ -59,7 +59,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				AggregateMap: aggregates,
 			}
 
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "aggregates", aggregateTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "aggregates", "generator/event/aggregate.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating aggregates (%s)", err)
 				return err
@@ -72,7 +72,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers", wrappersTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers", "generator/event/wrappers.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for structs (%s)", err)
 				return err
@@ -85,7 +85,7 @@ func generate(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", storeEventsTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "store-events", "generator/event/eventStore.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating store-events for structs (%s)", err)
 				return err
@@ -98,13 +98,12 @@ func generate(inputDir string, structs []model.Struct) error {
 				PackageName: packageName,
 				Structs:     structs,
 			}
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers-test", "generator/event/wrappers_test.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers-test for structs (%s)", err)
 				return err
 			}
 		}
-
 	}
 	return nil
 }
@@ -175,289 +174,3 @@ func ValueForField(field model.Field) string {
 	}
 	return ""
 }
-
-
-var aggregateTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"fmt"
-	"golang.org/x/net/context"
-)
-
-const (
-{{range $aggr, $events := .AggregateMap}}
-    // {{$aggr}}AggregateName provides constant for the name of {{$aggr}}
-    {{$aggr}}AggregateName = "{{$aggr}}"
-{{end}}
-)
-
-// AggregateEvents describes all aggregates with their events
-var AggregateEvents = map[string][]string{
-{{range $aggr, $events := .AggregateMap}}
-	{{$aggr}}AggregateName: []string {
-	{{range $aggregName, $eventName := $events}}
-		{{$eventName}}EventName,
-	{{end}}
-	},
-{{end}}
-}
-
-{{range $aggr, $events := .AggregateMap}}
-// {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
-type {{$aggr}}Aggregate interface {
-	{{range $aggregName, $eventName := $events}}
-		Apply{{$eventName}}(c context.Context, event {{$eventName}})
-	{{end}}
-}
-
-// Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	switch envelope.EventTypeName {
-	{{range $aggregName, $eventName := $events}}
-	case {{$eventName}}EventName:
-		event, err := 	UnWrap{{$eventName}}(&envelope)
-		if err != nil {
-			return err
-		}
-		aggregateRoot.Apply{{$eventName}}(c, *event)
-		break
-	{{end}}
-	default:
-		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
-	}
-	return nil
-}
-
-// Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
-func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	var err error
-	for _, envelope := range envelopes {
-		err = Apply{{$aggr}}Event(c, envelope, aggregateRoot)
-		if err != nil {
-			break
-		}
-	}
-	return err
-}
-
-// UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelope *envelope.Envelope) (envelope.Event, error) {
-	switch envelope.EventTypeName {
-	{{range $aggregName, $eventName := $events}}
-	case {{$eventName}}EventName:
-		event, err := UnWrap{{$eventName}}(envelope)
-		if err != nil {
-			return nil, err
-		}
-		return event, nil
-	{{end}}
-	default:
-		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
-	}
-}
-
-// UnWrap{{$aggr}}Events extracts the events from multiple envelopes
-func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, error) {
-	events := make([]envelope.Event, 0, len(envelopes))
-	for _, envelope := range envelopes {
-		event, err := UnWrap{{$aggr}}Event(&envelope)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, event)
-	}
-	return events, nil
-}
-
-{{end}}
-`
-
-var wrappersTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	uuid "github.com/satori/go.uuid"
-)
-
-const (
-{{range .Structs}}
-{{if IsEvent . }}
-    // {{.Name}}EventName provides a constant symbol for {{.Name}}
-	{{.Name}}EventName = "{{.Name}}"
-{{end}}
-{{end}}
-)
-
-var getUID = func() string {
-	return uuid.NewV1().String()
-}
-
-{{range .Structs}}
-{{if IsEvent . }}
-
-// Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
-    blob, err := json.Marshal(s)
-    if err != nil {
-        log.Printf("Error marshalling {{.Name}} payload %+v", err)
-        return nil, err
-    }
-	envelope := envelope.Envelope{
-		UUID: getUID(),
-		IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
-		SequenceNumber: int64(0), // Set later by event-store
-		SessionUID: sessionUID,
-		Timestamp: mytime.Now(),
-		AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
-		AggregateUID:  s.GetUID(),
-		EventTypeName: {{.Name}}EventName,
-		EventTypeVersion: 0,
-		EventData: string(blob),
-    }
-
-    return &envelope, nil
-}
-
-// Is{{.Name}} detects of envelope carries event of type {{.Name}}
-func Is{{.Name}}(envelope *envelope.Envelope) bool {
-    return envelope.EventTypeName == {{.Name}}EventName
-}
-
-// GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelope *envelope.Envelope) (*{{.Name}}, bool) {
-    if Is{{.Name}}(envelope) == false {
-        return nil, false
-    }
-    event,err := UnWrap{{.Name}}(envelope)
-    if err != nil {
-    	return nil, false
-    }
-    return event, true
-}
-
-// UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
-    if Is{{.Name}}(envelope) == false {
-        return nil, fmt.Errorf("Not a {{.Name}}")
-    }
-    var event {{.Name}}
-    err := json.Unmarshal([]byte(envelope.EventData), &event)
-    if err != nil {
-        log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
-        return nil, err
-    }
-
-    event.Metadata = Metadata{
-		UUID:          envelope.UUID,
-		Timestamp:     envelope.Timestamp.In(mytime.DutchLocation),
-		EventTypeName: envelope.EventTypeName,
-	}
-
-    return &event, nil
-}
-{{end}}
-{{end}}
-`
-var wrappersTestTemplate string = `
-// +build !appengine
-
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"reflect"
-	"testing"
-	"time"
-	"github.com/stretchr/testify/assert"
-)
-
-func testGetUID() string {
-	return "1234321"
-}
-
-{{range .Structs}}
-{{if IsEvent . }}
-
-func Test{{.Name}}Wrapper(t *testing.T) {
-	mytime.SetMockNow()
-	defer mytime.SetDefaultNow()
-	getUID = testGetUID
-
-	event := {{.Name}}{
-	   {{range .Fields}}
-	   {{if HasValueForField .}} {{.Name}}: {{ValueForField .}}, {{end}} {{end}}
-	}
-	wrapped, err := event.Wrap("test_session")
-	assert.NoError(t, err)
-	assert.True(t, Is{{.Name}}(wrapped))
-    assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
-    assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
-	//	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
-	assert.Equal(t, "test_session", wrapped.SessionUID)
-	assert.Equal(t, "1234321", wrapped.UUID)
-    assert.Equal(t, "2016-02-27T00:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
-	assert.Equal(t, int64(0), wrapped.SequenceNumber)
-	again, ok := GetIfIs{{.Name}}(wrapped)
-	assert.True(t, ok)
-	assert.NotNil(t,again)
-	reflect.DeepEqual(event, *again)
-}
-{{end}}
-{{end}}
-`
-
-var storeEventsTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package store
-
-import (
-	"golang.org/x/net/context"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-)
-
-{{range .Structs}}
-{{if and (IsEvent .) (IsPersistent .) }}
-
-func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
-	err := StoreEvent{{.Name}}(c, credentials, &event)
-	if err == nil {
-		aggregateRoot.Apply{{.Name}}(c, event)
-	}
-	return err
-}
-
-// StoreEvent{{.Name}} is used to store event of type {{.Name}}
-func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event *{{.PackageName}}.{{.Name}}) error {
-	envelope, err := event.Wrap(credentials.SessionUID)
-	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
-	}
-
-	err = eventStoreInstance.Put(c, credentials, envelope)
-	if err != nil {
-		return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
-	}
-
-    event.Metadata = {{.PackageName}}.Metadata{
-		UUID:          envelope.UUID,
-		Timestamp:     envelope.Timestamp.In(mytime.DutchLocation),
-		EventTypeName: envelope.EventTypeName,
-	}
-
-	return nil
-}
-
-{{end}}
-{{end}}
-`

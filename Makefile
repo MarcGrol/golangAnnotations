@@ -36,7 +36,7 @@ imports:
 	@echo "------------------"
 	find . -name '*.go' -exec goimports -l -w -local github.com/ {} \;
 
-format:
+format: imports
 	@echo "----------------------"
 	@echo "Formatting source-code"
 	@echo "----------------------"
@@ -67,7 +67,7 @@ coverage:
 	@echo "----------------"
 	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
 
-install:
+install: clean
 	@echo "----------------------------"
 	@echo "Installing for $(GO_VERSION)"
 	@echo "----------------------------"

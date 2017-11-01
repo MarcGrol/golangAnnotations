@@ -2,11 +2,14 @@ package generationUtil
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"io/ioutil"
 
 	"github.com/MarcGrol/golangAnnotations/model"
 )
@@ -89,6 +92,19 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	} else {
 		return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 	}
+}
+
+func GenerateFileFromTemplateFile(data interface{}, srcName string, templateName string, templateFilePath string, funcMap template.FuncMap, targetFileName string) error {
+	goPath := os.Getenv("GOPATH")
+	appPath := goPath + "/src/github.com/MarcGrol/golangAnnotations/"
+
+	cwd, _ := os.Getwd()
+	templateString, err := ioutil.ReadFile(appPath + templateFilePath)
+	if err != nil {
+		log.Printf("Error loading template file from dir %s: %s", cwd, err)
+		return err
+	}
+	return GenerateFileFromTemplate(data, srcName, templateName, string(templateString), funcMap, targetFileName)
 }
 
 func GenerateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
