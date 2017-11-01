@@ -7,12 +7,12 @@ type Annotation struct {
 	Attributes map[string]string
 }
 
-type ValidationFunc func(annot Annotation) bool
+type validationFunc func(annot Annotation) bool
 
 type annotationDescriptor struct {
 	name       string
 	paramNames []string
-	validator  ValidationFunc
+	validator  validationFunc
 }
 
 var annotationRegistry []annotationDescriptor = []annotationDescriptor{}
@@ -21,7 +21,7 @@ func ClearRegisteredAnnotations() {
 	annotationRegistry = []annotationDescriptor{}
 }
 
-func RegisterAnnotation(name string, paramNames []string, validator ValidationFunc) {
+func RegisterAnnotation(name string, paramNames []string, validator validationFunc) {
 	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
 }
 

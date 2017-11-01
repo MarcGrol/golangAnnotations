@@ -109,7 +109,7 @@ func isAsyncAsString(s model.Struct) string {
 
 func isEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
 			return !strings.Contains(arg.TypeName, "Discovered")
 		}
@@ -131,7 +131,7 @@ func getEventServiceSelfName(s model.Struct) string {
 	return ""
 }
 
-func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
+func getEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
@@ -148,7 +148,7 @@ func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 }
 
 func getEventOperationProducesEvents(o model.Operation) string {
-	return asStringSlice(GetEventOperationProducesEventsAsSlice(o))
+	return asStringSlice(getEventOperationProducesEventsAsSlice(o))
 }
 
 func asStringSlice(in []string) string {
@@ -229,7 +229,7 @@ func GetEventOperationProcess(o model.Operation) string {
 
 func getInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -239,30 +239,30 @@ func getInputArgType(o model.Operation) string {
 
 func getInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
 	}
 	return ""
 }
-func IsContextArg(f model.Field) bool {
+func isContextArg(f model.Field) bool {
 	return f.TypeName == "context.Context"
 }
 
-func IsCredentialsArg(f model.Field) bool {
+func isCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
 }
 
-func IsPrimitiveArg(f model.Field) bool {
-	return IsNumberArg(f) || IsStringArg(f)
+func isPrimitiveArg(f model.Field) bool {
+	return isNumberArg(f) || isStringArg(f)
 }
 
-func IsNumberArg(f model.Field) bool {
+func isNumberArg(f model.Field) bool {
 	return f.TypeName == "int"
 }
 
-func IsStringArg(f model.Field) bool {
+func isStringArg(f model.Field) bool {
 	return f.TypeName == "string"
 }
 

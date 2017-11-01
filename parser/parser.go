@@ -19,6 +19,54 @@ var (
 	debugAstOfSources = false
 )
 
+func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
+	if debugAstOfSources {
+		dumpFilesInDir(dirName)
+	}
+	packages, err := parseDir(dirName, filenameRegex)
+	if err != nil {
+		log.Printf("error parsing dir %s: %s", dirName, err.Error())
+		return model.ParsedSources{}, err
+	}
+
+	v := &astVisitor{
+		Imports: map[string]string{},
+	}
+	for _, aPackage := range packages {
+		for _, fileEntry := range sortedFileEntries(aPackage.Files) {
+			v.CurrentFilename = fileEntry.key
+
+			appEngineOnly := true
+			for _, commentGroup := range fileEntry.file.Comments {
+				if commentGroup != nil {
+					for _, comment := range commentGroup.List {
+						if comment != nil && comment.Text == "// +build !appengine" {
+							appEngineOnly = false
+						}
+					}
+				}
+			}
+			if appEngineOnly {
+				ast.Walk(v, &fileEntry.file)
+			}
+		}
+	}
+
+	embedOperationsInStructs(v)
+
+	embedTypedefDocLinesInEnum(v)
+
+	result := model.ParsedSources{
+		Structs:    v.Structs,
+		Operations: v.Operations,
+		Interfaces: v.Interfaces,
+		Typedefs:   v.Typedefs,
+		Enums:      v.Enums,
+	}
+
+	return result, nil
+}
+
 func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)
@@ -80,54 +128,6 @@ func sortedFileEntries(fileMap map[string]*ast.File) fileEntries {
 	}
 	sort.Sort(fileEntries)
 	return fileEntries
-}
-
-func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
-	if debugAstOfSources {
-		dumpFilesInDir(dirName)
-	}
-	packages, err := parseDir(dirName, filenameRegex)
-	if err != nil {
-		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return model.ParsedSources{}, err
-	}
-
-	v := &astVisitor{
-		Imports: map[string]string{},
-	}
-	for _, aPackage := range packages {
-		for _, fileEntry := range sortedFileEntries(aPackage.Files) {
-			v.CurrentFilename = fileEntry.key
-
-			appEngineOnly := true
-			for _, commentGroup := range fileEntry.file.Comments {
-				if commentGroup != nil {
-					for _, comment := range commentGroup.List {
-						if comment != nil && comment.Text == "// +build !appengine" {
-							appEngineOnly = false
-						}
-					}
-				}
-			}
-			if appEngineOnly {
-				ast.Walk(v, &fileEntry.file)
-			}
-		}
-	}
-
-	embedOperationsInStructs(v)
-
-	embedTypedefDocLinesInEnum(v)
-
-	result := model.ParsedSources{
-		Structs:    v.Structs,
-		Operations: v.Operations,
-		Interfaces: v.Interfaces,
-		Typedefs:   v.Typedefs,
-		Enums:      v.Enums,
-	}
-
-	return result, nil
 }
 
 func embedOperationsInStructs(visitor *astVisitor) {
