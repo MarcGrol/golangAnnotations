@@ -76,15 +76,15 @@ func TestGetEventServiceSelf(t *testing.T) {
 }
 
 func TestIsEventOperation(t *testing.T) {
-	assert.True(t, isEventOperation(createOper()))
+	assert.True(t, IsEventOperation(createOper()))
 }
 
 func TestGetEventName(t *testing.T) {
-	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
 }
 
 func TestGetInputArgTypePerson(t *testing.T) {
-	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
 }
 
 func createOper() model.Operation {

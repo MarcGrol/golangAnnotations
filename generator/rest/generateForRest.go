@@ -95,7 +95,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetRestOperationFilename":              getRestOperationFilename,
 	"GetRestOperationRolesString":           getRestOperationRolesString,
 	"GetRestOperationProducesEvents":        getRestOperationProducesEvents,
-	"GetRestOperationProducesEventsAsSlice": getRestOperationProducesEventsAsSlice,
+	"GetRestOperationProducesEventsAsSlice": GetRestOperationProducesEventsAsSlice,
 	"HasOperationsWithInput":                hasOperationsWithInput,
 	"HasInput":                              hasInput,
 	"GetInputArgType":                       getInputArgType,
@@ -362,10 +362,10 @@ func GetRestOperationRoles(o model.Operation) []string {
 }
 
 func getRestOperationProducesEvents(o model.Operation) string {
-	return asStringSlice(getRestOperationProducesEventsAsSlice(o))
+	return asStringSlice(GetRestOperationProducesEventsAsSlice(o))
 }
 
-func getRestOperationProducesEventsAsSlice(o model.Operation) []string {
+func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}

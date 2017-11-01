@@ -70,14 +70,14 @@ func generate(inputDir string, structs []model.Struct) error {
 
 var customTemplateFuncs = template.FuncMap{
 	"IsEventService":                  IsEventService,
-	"IsAsync":                         isAsync,
+	"IsAsync":                         IsAsync,
 	"IsEventServiceNoTest":            isEventServiceNoTest,
-	"IsEventOperation":                isEventOperation,
-	"GetInputArgType":                 getInputArgType,
+	"IsEventOperation":                IsEventOperation,
+	"GetInputArgType":                 GetInputArgType,
 	"GetInputArgPackage":              getInputArgPackage,
 	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           getEventServiceTopics,
-	"GetEventOperationTopic":          getEventOperationTopic,
+	"GetEventOperationTopic":          GetEventOperationTopic,
 	"GetEventOperationQueueGroups":    getEventOperationQueueGroups,
 	"GetEventOperationProducesEvents": getEventOperationProducesEvents,
 	"IsAsyncAsString":                 isAsyncAsString,
@@ -90,7 +90,7 @@ func IsEventService(s model.Struct) bool {
 	return ok
 }
 
-func isAsync(s model.Struct) bool {
+func IsAsync(s model.Struct) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
@@ -101,7 +101,7 @@ func isAsync(s model.Struct) bool {
 }
 
 func isAsyncAsString(s model.Struct) string {
-	if isAsync(s) {
+	if IsAsync(s) {
 		return "Async"
 	}
 	return ""
@@ -109,7 +109,7 @@ func isAsyncAsString(s model.Struct) string {
 
 func isEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
 			return !strings.Contains(arg.TypeName, "Discovered")
 		}
@@ -163,8 +163,8 @@ func getEventServiceTopics(s model.Struct) []string {
 	topics := []string{}
 operations:
 	for _, o := range s.Operations {
-		if isEventOperation(*o) {
-			topic := getEventOperationTopic(*o)
+		if IsEventOperation(*o) {
+			topic := GetEventOperationTopic(*o)
 			for _, t := range topics {
 				if t == topic {
 					continue operations
@@ -176,12 +176,12 @@ operations:
 	return topics
 }
 
-func isEventOperation(o model.Operation) bool {
+func IsEventOperation(o model.Operation) bool {
 	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	return ok
 }
 
-func getEventOperationTopic(o model.Operation) string {
+func GetEventOperationTopic(o model.Operation) string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
@@ -197,11 +197,11 @@ func getEventOperationQueueGroups(s model.Struct) []queueGroup {
 	queueGroups := []queueGroup{}
 operations:
 	for _, o := range s.Operations {
-		if isEventOperation(*o) {
+		if IsEventOperation(*o) {
 			process := GetEventOperationProcess(*o)
 			if process != "" {
 				aggregate := getInputArgPackage(*o)
-				eventType := getInputArgType(*o)
+				eventType := GetInputArgType(*o)
 				event := fmt.Sprintf("%s.%s", aggregate, eventType)
 				for i, group := range queueGroups {
 					if group.Process == process {
@@ -227,9 +227,9 @@ func GetEventOperationProcess(o model.Operation) string {
 	return "Default"
 }
 
-func getInputArgType(o model.Operation) string {
+func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -239,7 +239,7 @@ func getInputArgType(o model.Operation) string {
 
 func getInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !isPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
@@ -254,7 +254,7 @@ func isCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
 }
 
-func isPrimitiveArg(f model.Field) bool {
+func IsPrimitiveArg(f model.Field) bool {
 	return isNumberArg(f) || isStringArg(f)
 }
 
