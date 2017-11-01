@@ -139,8 +139,8 @@ func IsRestService(s model.Struct) bool {
 }
 
 func IsRestServiceUnprotected(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.ParamProtected)
-	return ok
+	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	return ok && ann.Attributes[restAnnotation.ParamProtected] != "true"
 }
 
 func GetRestServicePath(s model.Struct) string {
