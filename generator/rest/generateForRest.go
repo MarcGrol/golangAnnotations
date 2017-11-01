@@ -100,26 +100,26 @@ var customTemplateFuncs = template.FuncMap{
 	"HasInput":                              hasInput,
 	"GetInputArgType":                       getInputArgType,
 	"GetOutputArgDeclaration":               getOutputArgDeclaration,
-	"GetOutputArgName":                      getOutputArgName,
-	"HasAnyPathParam":                       hasAnyPathParam,
-	"IsSliceParam":                          isSliceParam,
-	"IsQueryParam":                          isQueryParam,
-	"GetInputArgName":                       getInputArgName,
-	"GetInputParamString":                   getInputParamString,
-	"GetOutputArgType":                      getOutputArgType,
-	"HasOutput":                             hasOutput,
-	"HasMetaOutput":                         hasMetaOutput,
-	"IsPrimitiveArg":                        isPrimitiveArg,
-	"IsNumberArg":                           isNumberArg,
-	"RequiresParamValidation":               requiresParamValidation,
-	"IsInputArgMandatory":                   isInputArgMandatory,
-	"HasUpload":                             hasUpload,
-	"IsUploadArg":                           isUploadArg,
-	"HasCredentials":                        hasCredentials,
-	"HasContext":                  hasContext,
-	"ReturnsError":                returnsError,
-	"NeedsContext":                needsContext,
-	"GetContextName":              getContextName,
+	"GetOutputArgName":        getOutputArgName,
+	"HasAnyPathParam":         hasAnyPathParam,
+	"IsSliceParam":            isSliceParam,
+	"IsQueryParam":            isQueryParam,
+	"GetInputArgName":         getInputArgName,
+	"GetInputParamString":     getInputParamString,
+	"GetOutputArgType":        getOutputArgType,
+	"HasOutput":               hasOutput,
+	"HasMetaOutput":           hasMetaOutput,
+	"IsPrimitiveArg":          IsPrimitiveArg,
+	"IsNumberArg":             isNumberArg,
+	"RequiresParamValidation": requiresParamValidation,
+	"IsInputArgMandatory":     isInputArgMandatory,
+	"HasUpload":               hasUpload,
+	"IsUploadArg":             isUploadArg,
+	"HasCredentials":          hasCredentials,
+	"HasContext":              hasContext,
+	"ReturnsError":            returnsError,
+	"NeedsContext":            needsContext,
+	"GetContextName":          getContextName,
 	"WithBackTicks":               surroundWithBackTicks,
 	"BackTick":                    backTick,
 	"ToFirstUpper":                toFirstUpper,
@@ -392,7 +392,7 @@ func asStringSlice(in []string) string {
 func hasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 				return true
 			}
 		}
@@ -445,7 +445,7 @@ func getContextName(o model.Operation) string {
 
 func getInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.TypeName
 		}
 	}
@@ -470,7 +470,7 @@ func isQueryParam(o model.Operation, arg model.Field) bool {
 
 func getInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !isPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
 			return arg.Name
 		}
 	}
@@ -614,7 +614,7 @@ func IsCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
 }
 
-func isPrimitiveArg(f model.Field) bool {
+func IsPrimitiveArg(f model.Field) bool {
 	return isNumberArg(f) || IsStringArg(f)
 }
 

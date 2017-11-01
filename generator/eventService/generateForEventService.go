@@ -131,7 +131,7 @@ func GetEventServiceSelfName(s model.Struct) string {
 	return ""
 }
 
-func getEventOperationProducesEventsAsSlice(o model.Operation) []string {
+func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
@@ -148,7 +148,7 @@ func getEventOperationProducesEventsAsSlice(o model.Operation) []string {
 }
 
 func getEventOperationProducesEvents(o model.Operation) string {
-	return asStringSlice(getEventOperationProducesEventsAsSlice(o))
+	return asStringSlice(GetEventOperationProducesEventsAsSlice(o))
 }
 
 func asStringSlice(in []string) string {
