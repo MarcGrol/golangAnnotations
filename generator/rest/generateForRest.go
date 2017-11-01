@@ -71,16 +71,16 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsRestService":               IsRestService,
-	"ExtractImports":              extractImports,
-	"GetRestServicePath":          GetRestServicePath,
-	"GetExtractCredentialsMethod": getExtractCredentialsMethod,
-	"IsRestServiceNoValidation":   isRestServiceNoValidation,
-	"IsRestOperation":             IsRestOperation,
-	"IsRestOperationNoWrap":       isRestOperationNoWrap,
-	"IsRestOperationGenerated":    isRestOperationGenerated,
-	"HasRestOperationAfter":       hasRestOperationAfter,
-	"GetRestOperationPath":        GetRestOperationPath,
+	"IsRestService":                         IsRestService,
+	"ExtractImports":                        extractImports,
+	"GetRestServicePath":                    GetRestServicePath,
+	"GetExtractCredentialsMethod":           getExtractCredentialsMethod,
+	"IsRestServiceNoValidation":             isRestServiceNoValidation,
+	"IsRestOperation":                       IsRestOperation,
+	"IsRestOperationNoWrap":                 isRestOperationNoWrap,
+	"IsRestOperationGenerated":              isRestOperationGenerated,
+	"HasRestOperationAfter":                 hasRestOperationAfter,
+	"GetRestOperationPath":                  GetRestOperationPath,
 	"GetRestOperationMethod":                GetRestOperationMethod,
 	"IsRestOperationForm":                   isRestOperationForm,
 	"IsRestOperationJSON":                   isRestOperationJSON,
@@ -100,29 +100,29 @@ var customTemplateFuncs = template.FuncMap{
 	"HasInput":                              hasInput,
 	"GetInputArgType":                       getInputArgType,
 	"GetOutputArgDeclaration":               getOutputArgDeclaration,
-	"GetOutputArgName":        getOutputArgName,
-	"HasAnyPathParam":         hasAnyPathParam,
-	"IsSliceParam":            isSliceParam,
-	"IsQueryParam":            isQueryParam,
-	"GetInputArgName":         getInputArgName,
-	"GetInputParamString":     getInputParamString,
-	"GetOutputArgType":        getOutputArgType,
-	"HasOutput":               hasOutput,
-	"HasMetaOutput":           hasMetaOutput,
-	"IsPrimitiveArg":          IsPrimitiveArg,
-	"IsNumberArg":             isNumberArg,
-	"RequiresParamValidation": requiresParamValidation,
-	"IsInputArgMandatory":     isInputArgMandatory,
-	"HasUpload":               hasUpload,
-	"IsUploadArg":             isUploadArg,
-	"HasCredentials":          hasCredentials,
-	"HasContext":              hasContext,
-	"ReturnsError":            returnsError,
-	"NeedsContext":            needsContext,
-	"GetContextName":          getContextName,
-	"WithBackTicks":               surroundWithBackTicks,
-	"BackTick":                    backTick,
-	"ToFirstUpper":                toFirstUpper,
+	"GetOutputArgName":                      getOutputArgName,
+	"HasAnyPathParam":                       hasAnyPathParam,
+	"IsSliceParam":                          isSliceParam,
+	"IsQueryParam":                          isQueryParam,
+	"GetInputArgName":                       getInputArgName,
+	"GetInputParamString":                   getInputParamString,
+	"GetOutputArgType":                      getOutputArgType,
+	"HasOutput":                             hasOutput,
+	"HasMetaOutput":                         hasMetaOutput,
+	"IsPrimitiveArg":                        IsPrimitiveArg,
+	"IsNumberArg":                           isNumberArg,
+	"RequiresParamValidation":               requiresParamValidation,
+	"IsInputArgMandatory":                   isInputArgMandatory,
+	"HasUpload":                             hasUpload,
+	"IsUploadArg":                           isUploadArg,
+	"HasCredentials":                        hasCredentials,
+	"HasContext":                            hasContext,
+	"ReturnsError":                          returnsError,
+	"NeedsContext":                          needsContext,
+	"GetContextName":                        getContextName,
+	"WithBackTicks":                         surroundWithBackTicks,
+	"BackTick":                              backTick,
+	"ToFirstUpper":                          toFirstUpper,
 }
 
 func backTick() string {
@@ -135,6 +135,11 @@ func surroundWithBackTicks(body string) string {
 
 func IsRestService(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	return ok
+}
+
+func IsRestServiceUnprotected(s model.Struct) bool {
+	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.ParamProtected)
 	return ok
 }
 
