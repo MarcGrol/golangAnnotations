@@ -51,6 +51,15 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		return nil
 	}
 
+	err = doGenerate(packageName, jsonEnums, jsonStructs, targetDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func doGenerate(packageName string, jsonEnums []model.Enum, jsonStructs []model.Struct, targetDir string) error {
 	filenameMap := getFilenamesWithTypeNames(jsonEnums, jsonStructs)
 
 	for fn := range filenameMap {
@@ -74,7 +83,7 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		}
 
 		if len(data.Enums) > 0 || len(data.Structs) > 0 {
-			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "json-enums", "generator/jsonHelpers/enum.go.tmpl", customTemplateFuncs, target)
+			err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "json-enums", "generator/jsonHelpers/enum.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for enums (%s)", err)
 				return err
