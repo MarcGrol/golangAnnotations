@@ -13,20 +13,17 @@ import (
 	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/parser/parserUtil"
 )
 
 var (
 	debugAstOfSources = false
 )
 
-type Parser interface {
-	ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error)
-}
-
 type golangParser struct {
 }
 
-func New() Parser {
+func New() parserUtil.Parser {
 	return &golangParser{}
 }
 
