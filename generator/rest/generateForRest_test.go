@@ -98,7 +98,7 @@ func TestIsRestService(t *testing.T) {
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
 	}
-	assert.True(t, IsRestService(s))
+	assert.True(t, isRestService(s))
 }
 
 func TestGetRestServicePath(t *testing.T) {
@@ -107,19 +107,19 @@ func TestGetRestServicePath(t *testing.T) {
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
 	}
-	assert.Equal(t, "/api", GetRestServicePath(s))
+	assert.Equal(t, "/api", getRestServicePath(s))
 }
 
 func TestIsRestOperation(t *testing.T) {
-	assert.True(t, IsRestOperation(createOper("GET")))
+	assert.True(t, isRestOperation(createOper("GET")))
 }
 
 func TestGetRestOperationMethod(t *testing.T) {
-	assert.Equal(t, "GET", GetRestOperationMethod(createOper("GET")))
+	assert.Equal(t, "GET", getRestOperationMethod(createOper("GET")))
 }
 
 func TestGetRestOperationPath(t *testing.T) {
-	assert.Equal(t, "/api/person", GetRestOperationPath(createOper("DONTCARE")))
+	assert.Equal(t, "/api/person", getRestOperationPath(createOper("DONTCARE")))
 }
 
 func TestHasInputGet(t *testing.T) {
@@ -170,12 +170,12 @@ func TestGetOutputArgType(t *testing.T) {
 
 func TestIsPrimitiveTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.True(t, IsPrimitiveArg(f))
+	assert.True(t, isPrimitiveArg(f))
 }
 
 func TestIsPrimitiveFalse(t *testing.T) {
 	f := model.Field{Name: "person", TypeName: "Person"}
-	assert.False(t, IsPrimitiveArg(f))
+	assert.False(t, isPrimitiveArg(f))
 }
 
 func TestIsNumberTrue(t *testing.T) {
