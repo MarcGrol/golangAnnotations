@@ -9,7 +9,7 @@ import (
 
 func TestStructOperationsInDir(t *testing.T) {
 	dumpFilesInDir("./operations")
-	parsedSources, err := ParseSourceDir("./operations", ".*")
+	parsedSources, err := New().ParseSourceDir("./operations", ".*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 4, len(parsedSources.Operations))
 

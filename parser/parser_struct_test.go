@@ -61,7 +61,7 @@ func TestParseStructsInFile(t *testing.T) {
 }
 
 func TestParseStructsInDir(t *testing.T) {
-	parsedSources, err := ParseSourceDir("structs", ".*xample.*")
+	parsedSources, err := New().ParseSourceDir("structs", ".*xample.*")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 3, len(parsedSources.Structs))
 

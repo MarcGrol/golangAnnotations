@@ -22,7 +22,7 @@ var (
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
