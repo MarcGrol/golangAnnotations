@@ -1,5 +1,5 @@
 package substruct
 
-type SubstructA struct {
+type StructSub struct {
 	Name string
 }

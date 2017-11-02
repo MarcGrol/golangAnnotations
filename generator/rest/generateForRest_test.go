@@ -44,42 +44,51 @@ func TestGenerateForWeb(t *testing.T) {
 				{TypeName: "error"},
 			},
 		})
-
-	err := NewGenerator().Generate("testData", model.ParsedSources{Structs: s})
-	assert.Nil(t, err)
-
 	{
-		// check that generated files exists
-		_, err = os.Stat("./testData/$httpMyService.go")
-		assert.NoError(t, err)
-
-		// check that generate code has 4 helper functions for MyStruct
-		data, err := ioutil.ReadFile("./testData/$httpMyService.go")
-		assert.NoError(t, err)
-		assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
-		assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
-
-	}
-	{
-		// check that generated files exists
-		_, err = os.Stat("./testData/$httpMyService.go")
-		assert.NoError(t, err)
-
-		// check that generate code has 4 helper functions for MyStruct
-		data, err := ioutil.ReadFile("./testData/$httpMyServiceHelpers_test.go")
-		assert.NoError(t, err)
-		assert.Contains(t, string(data), "func doitTestHelper")
+		err := NewGenerator().Generate("testData", model.ParsedSources{Structs: s})
+		assert.Nil(t, err)
 	}
 
 	{
-		// check that generated files exists
-		_, err = os.Stat("./testData/$httpClientForMyService.go")
-		assert.NoError(t, err)
+		{
+			// check that generated files exists
+			_, err := os.Stat("./testData/$httpMyService.go")
+			assert.NoError(t, err)
+		}
+		{
+			// check that generate code has 4 helper functions for MyStruct
+			data, err := ioutil.ReadFile("./testData/$httpMyService.go")
+			assert.NoError(t, err)
+			assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
+			assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
+		}
+	}
+	{
+		{
+			// check that generated files exists
+			_, err := os.Stat("./testData/$httpMyService.go")
+			assert.NoError(t, err)
+		}
+		{
+			// check that generate code has 4 helper functions for MyStruct
+			data, err := ioutil.ReadFile("./testData/$httpMyServiceHelpers_test.go")
+			assert.NoError(t, err)
+			assert.Contains(t, string(data), "func doitTestHelper")
+		}
+	}
 
-		// check that generate code has 4 helper functions for MyStruct
-		data, err := ioutil.ReadFile("./testData/$httpClientForMyService.go")
-		assert.NoError(t, err)
-		assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie, requestUID string, timeout time.Duration)  (int ,*errorh.Error,error) {")
+	{
+		{
+			// check that generated files exists
+			_, err := os.Stat("./testData/$httpClientForMyService.go")
+			assert.NoError(t, err)
+		}
+		{
+			// check that generate code has 4 helper functions for MyStruct
+			data, err := ioutil.ReadFile("./testData/$httpClientForMyService.go")
+			assert.NoError(t, err)
+			assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie, requestUID string, timeout time.Duration)  (int ,*errorh.Error,error) {")
+		}
 	}
 
 }

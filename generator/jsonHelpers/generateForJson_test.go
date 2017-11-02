@@ -92,7 +92,7 @@ func TestIsJsonEnum(t *testing.T) {
 			`// @JsonEnum()`,
 		},
 	}
-	assert.True(t, IsJsonEnum(e))
+	assert.True(t, IsJSONEnum(e))
 }
 
 func TestIsJsonStruct(t *testing.T) {
@@ -104,5 +104,5 @@ func TestIsJsonStruct(t *testing.T) {
 			`// @JsonStruct()`,
 		},
 	}
-	assert.True(t, IsJsonStruct(s))
+	assert.True(t, IsJSONStruct(s))
 }

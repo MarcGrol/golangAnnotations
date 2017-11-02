@@ -142,8 +142,8 @@ func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
-			for _, evt := range strings.Split(attrs, ",") {
-				evt := strings.TrimSpace(evt)
+			for _, e := range strings.Split(attrs, ",") {
+				evt := strings.TrimSpace(e)
 				if evt != "" {
 					eventsProduced = append(eventsProduced, evt)
 				}

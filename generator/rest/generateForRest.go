@@ -381,8 +381,8 @@ func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
-			for _, evt := range strings.Split(attrs, ",") {
-				evt := strings.TrimSpace(evt)
+			for _, e := range strings.Split(attrs, ",") {
+				evt := strings.TrimSpace(e)
 				if evt != "" {
 					eventsProduced = append(eventsProduced, evt)
 				}
@@ -527,7 +527,7 @@ func hasMetaOutput(o model.Operation) bool {
 	var count = 0
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			count += 1
+			count++
 			if count == 2 {
 				return true
 			}
@@ -549,9 +549,8 @@ func getOutputArgDeclaration(o model.Operation) string {
 			if arg.IsSlice {
 				return fmt.Sprintf("[]%s%s{}", pointer, arg.TypeName)
 
-			} else {
-				return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
 			}
+			return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
 		}
 	}
 	return ""

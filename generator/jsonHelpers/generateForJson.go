@@ -44,13 +44,13 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 
 	jsonEnums := make([]model.Enum, 0, len(enums))
 	for _, anEnum := range enums {
-		if IsJsonEnum(anEnum) {
+		if IsJSONEnum(anEnum) {
 			jsonEnums = append(jsonEnums, anEnum)
 		}
 	}
 	jsonStructs := make([]model.Struct, 0, len(structs))
 	for _, aStruct := range structs {
-		if IsJsonStruct(aStruct) {
+		if IsJSONStruct(aStruct) {
 			jsonStructs = append(jsonStructs, aStruct)
 		}
 	}
@@ -131,37 +131,37 @@ var customTemplateFuncs = template.FuncMap{
 	"HasSlices":          hasSlices,
 }
 
-func IsJsonEnum(e model.Enum) bool {
+func IsJSONEnum(e model.Enum) bool {
 	_, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
 	return ok
 }
 
-func IsJsonEnumStripped(e model.Enum) bool {
+func IsJSONEnumStripped(e model.Enum) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
 	}
 	return false
 }
 
-func IsJsonEnumTolerant(e model.Enum) bool {
+func IsJSONEnumTolerant(e model.Enum) bool {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamTolerant] == "true"
 	}
 	return false
 }
 
-func GetJsonEnumBase(e model.Enum) string {
+func GetJSONEnumBase(e model.Enum) string {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamBase]
 	}
 	return ""
 }
 
-func HasJsonEnumBase(e model.Enum) bool {
-	return GetJsonEnumBase(e) != ""
+func HasJSONEnumBase(e model.Enum) bool {
+	return GetJSONEnumBase(e) != ""
 }
 
-func GetJsonEnumDefault(e model.Enum) string {
+func GetJSONEnumDefault(e model.Enum) string {
 	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamDefault]
 	}
@@ -169,33 +169,31 @@ func GetJsonEnumDefault(e model.Enum) string {
 }
 
 func hasDefaultValue(e model.Enum) bool {
-	return GetJsonEnumDefault(e) != ""
+	return GetJSONEnumDefault(e) != ""
 }
 
 func getDefaultValue(e model.Enum) string {
-	return GetJsonEnumBase(e) + GetJsonEnumDefault(e)
+	return GetJSONEnumBase(e) + GetJSONEnumDefault(e)
 }
 
 func hasAlternativeName(e model.Enum) bool {
-	return HasJsonEnumBase(e) && IsJsonEnumTolerant(e)
+	return HasJSONEnumBase(e) && IsJSONEnumTolerant(e)
 }
 
 func getAlternativeName(e model.Enum, lit model.EnumLiteral) string {
-	if IsJsonEnumStripped(e) {
+	if IsJSONEnumStripped(e) {
 		return lowerInitial(lit.Name)
-	} else {
-		base := GetJsonEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(lit.Name, base))
 	}
+	base := GetJSONEnumBase(e)
+	return lowerInitial(strings.TrimPrefix(lit.Name, base))
 }
 
 func getPreferredName(e model.Enum, lit model.EnumLiteral) string {
-	if IsJsonEnumStripped(e) {
-		base := GetJsonEnumBase(e)
+	if IsJSONEnumStripped(e) {
+		base := GetJSONEnumBase(e)
 		return lowerInitial(strings.TrimPrefix(lit.Name, base))
-	} else {
-		return lowerInitial(lit.Name)
 	}
+	return lowerInitial(lit.Name)
 }
 
 func lowerInitial(s string) string {
@@ -204,7 +202,7 @@ func lowerInitial(s string) string {
 	return string(a)
 }
 
-func IsJsonStruct(s model.Struct) bool {
+func IsJSONStruct(s model.Struct) bool {
 	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
 }

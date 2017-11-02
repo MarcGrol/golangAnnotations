@@ -31,7 +31,7 @@ func (t TourCreated) GetUID() string {
 // @Event(aggregate = "Tour")
 type CyclistCreated struct {
 	Year        int      `json:"year"`
-	CyclistUid  string   `json:"cyclistUid"`
+	CyclistUID  string   `json:"cyclistUid"`
 	CyclistName string   `json:"cyclistName"`
 	CyclistTeam string   `json:"cyclistTeam"`
 	Metadata    Metadata `json:"-"`
@@ -44,7 +44,7 @@ func (t CyclistCreated) GetUID() string {
 // @Event(aggregate = "Tour")
 type EtappeCreated struct {
 	Year                 int       `json:"year"`
-	EtappeUid            string    `json:"etappeUid"`
+	EtappeUID            string    `json:"etappeUid"`
 	EtappeDate           time.Time `json:"etappeDate"`
 	EtappeStartLocation  string    `json:"etappeStartLocation"`
 	EtappeFinishLocation string    `json:"etappeFinishLocation"`
@@ -60,7 +60,7 @@ func (t EtappeCreated) GetUID() string {
 // @Event(aggregate = "Tour")
 type EtappeResultsCreated struct {
 	Year                     int      `json:"year"`
-	EtappeUid                string   `json:"EtappeUid"`
+	EtappeUID                string   `json:"EtappeUid"`
 	BestDayCyclistIds        []string `json:"bestDayCyclistIds"`
 	BestAllrounderCyclistIds []string `json:"bestAllrounderCyclistIds"`
 	BestSprinterCyclistIds   []string `json:"bestSprinterCyclistIds"`
@@ -74,7 +74,7 @@ func (t EtappeResultsCreated) GetUID() string {
 
 // @Event(aggregate = "Gambler")
 type GamblerCreated struct {
-	GamblerUid       string   `json:"gamblerUid"`
+	GamblerUID       string   `json:"gamblerUid"`
 	GamblerName      string   `json:"gamblerName"`
 	GamblerEmail     string   `json:"gamblerEmail"`
 	GamblerImageIUrl string   `json:"gamblerImageIUrl"`
@@ -82,19 +82,19 @@ type GamblerCreated struct {
 }
 
 func (t GamblerCreated) GetUID() string {
-	return t.GamblerUid
+	return t.GamblerUID
 }
 
 // @Event(aggregate = "Gambler")
 type GamblerTeamCreated struct {
-	GamblerUid      string   `json:"gamblerUid"`
+	GamblerUID      string   `json:"gamblerUid"`
 	Year            int      `json:"year"`
 	GamblerCyclists []string `json:"gamblerCyclists"`
 	Metadata        Metadata `json:"-"`
 }
 
 func (t GamblerTeamCreated) GetUID() string {
-	return t.GamblerUid
+	return t.GamblerUID
 }
 
 // @Event(aggregate = "News")
@@ -102,8 +102,8 @@ type NewsItemCreated struct {
 	Year              int      `json:"year"`
 	Message           string   `json:"message"`
 	Sender            string   `json:"sender"`
-	RelatedCyclistUid string   `json:"relatedCyclistUid"`
-	RelatedEtappeUid  string   `json:"relatedEtappeUid"`
+	RelatedCyclistUID string   `json:"relatedCyclistUid"`
+	RelatedEtappeUID  string   `json:"relatedEtappeUid"`
 	Metadata          Metadata `json:"-"`
 }
 

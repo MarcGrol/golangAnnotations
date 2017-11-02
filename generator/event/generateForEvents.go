@@ -166,17 +166,19 @@ func valueForField(field model.Field) string {
 	if field.TypeName == "int" {
 		if field.IsSlice {
 			return "[]int{1,2}"
-		} else {
-			return "42"
 		}
-	} else if field.TypeName == "string" {
+		return "42"
+	}
+
+	if field.TypeName == "string" {
 		if field.IsSlice {
 			return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
 				fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
-		} else {
-			return fmt.Sprintf("\"Example3%s\"", field.Name)
 		}
-	} else if field.TypeName == "bool" {
+		return fmt.Sprintf("\"Example3%s\"", field.Name)
+	}
+
+	if field.TypeName == "bool" {
 		return "true"
 	}
 	return ""

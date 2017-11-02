@@ -28,7 +28,7 @@ func parseAnnotation(line string) (Annotation, error) {
 	s.Init(strings.NewReader(withoutComment))
 
 	var tok rune
-	var currentStatus status = initial
+	currentStatus := initial
 	var attrName string
 
 	for tok != scanner.EOF && currentStatus < done {

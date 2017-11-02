@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	VERSION = "0.7"
+	version = "0.7"
 )
 
 var (
@@ -53,7 +53,7 @@ func printUsage() {
 }
 
 func printVersion() {
-	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", VERSION)
+	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", version)
 	os.Exit(1)
 }
 

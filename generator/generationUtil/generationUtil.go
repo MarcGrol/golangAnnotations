@@ -93,9 +93,8 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	baseDir := path.Base(inputDir)
 	if baseDir == "." || baseDir == packageName {
 		return inputDir, nil
-	} else {
-		return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 	}
+	return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 }
 
 func GenerateFileFromTemplateFile(data interface{}, srcName string, templateName string, templateFilePath string, funcMap template.FuncMap, targetFileName string) error {
@@ -128,10 +127,7 @@ func generateFileFromTemplate(data interface{}, srcName string, templateName str
 	if err != nil {
 		return err
 	}
-
 	defer w.Close()
-	if err := t.Execute(w, data); err != nil {
-		return err
-	}
-	return nil
+
+	return t.Execute(w, data)
 }
