@@ -14,7 +14,14 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
 	return generate(inputDir, parsedSource.Structs)
 }
 

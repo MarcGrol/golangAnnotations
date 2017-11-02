@@ -559,27 +559,22 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 	}
 
 	if extractSliceField(field, &mField, imports) {
-		//log.Printf("Extracted slice field %+v from %+v", mField, field.Type)
 		return mField, true
 	}
 
 	if extractMapField(field, &mField, imports) {
-		//log.Printf("Extracted map field %+v from %+v", mField, field.Type)
 		return mField, true
 	}
 
 	if extractPointerField(field, &mField, imports) {
-		//log.Printf("Extracted pointer field %+v from %+v", mField, field.Type)
 		return mField, true
 	}
 
 	if extractIdentField(field, &mField, imports) {
-		//log.Printf("Extracted ident field %+v from %+v", mField, field.Type)
 		return mField, true
 	}
 
 	if extractSelectorField(field, &mField, imports) {
-		//log.Printf("Extracted selector field %+v from %+v", mField, field.Type)
 		return mField, true
 	}
 

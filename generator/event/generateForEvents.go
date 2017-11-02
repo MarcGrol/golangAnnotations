@@ -21,7 +21,14 @@ type structures struct {
 	Structs     []model.Struct
 }
 
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
 	return generate(inputDir, parsedSource.Structs)
 }
 

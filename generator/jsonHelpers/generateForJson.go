@@ -13,14 +13,21 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
+}
+
 type jsonContext struct {
 	PackageName string
 	Enums       []model.Enum
 	Structs     []model.Struct
-}
-
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
-	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
 }
 
 func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {

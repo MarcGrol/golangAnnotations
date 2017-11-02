@@ -14,6 +14,10 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
+type Generator interface {
+	Generate(inputDir string, parsedSources model.ParsedSources) error
+}
+
 func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	if len(structs) == 0 {
 		return "", fmt.Errorf("Need at least one struct to determine package-name")
