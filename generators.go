@@ -1,4 +1,4 @@
-package generator
+package main
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func register(name string, generateFunc generationUtil.Generator) error {
 	return nil
 }
 
-func RunAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
+func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
 	for name, generator := range registeredGenerators {
 		err := generator.Generate(inputDir, parsedSources)
 		if err != nil {

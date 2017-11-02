@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
@@ -39,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	generator.RunAllGenerators(*inputDir, parsedSources)
+	runAllGenerators(*inputDir, parsedSources)
 
 	os.Exit(0)
 }
