@@ -149,7 +149,7 @@ func IsRestService(s model.Struct) bool {
 	return ok
 }
 
-func isRestServiceUnprotected(s model.Struct) bool {
+func IsRestServiceUnprotected(s model.Struct) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok && ann.Attributes[restAnnotation.ParamProtected] != "true"
