@@ -1,9 +1,3 @@
-exclude:
-- /generator/rest/testcase/testcase.go
-- /parser/enums/enum.go
-- /parser/interfaces/interf.go
-- /parser/operations/oper.go
-- /parser/structs/.*
 component_depth: 1
 languages:
 - go
