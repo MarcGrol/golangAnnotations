@@ -60,8 +60,7 @@ func parseAnnotation(line string) (Annotation, error) {
 	}
 
 	if currentStatus != done {
-		return annotation, fmt.Errorf("Invalid completion-status %v for annotation:%s",
-			currentStatus, line)
+		return annotation, fmt.Errorf("Invalid completion-status %v for annotation:%s", currentStatus, line)
 	}
 	return annotation, nil
 }

@@ -28,6 +28,11 @@ func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources)
 	return generate(inputDir, parsedSource.Structs)
 }
 
+type templateData struct {
+	PackageName string
+	Services    []model.Struct
+}
+
 func generate(inputDir string, structs []model.Struct) error {
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
@@ -46,35 +51,38 @@ func generate(inputDir string, structs []model.Struct) error {
 		}
 	}
 
-	templateData := struct {
-		PackageName string
-		Services    []model.Struct
-	}{
+	if len(eventServices) == 0 {
+		return nil
+	}
+
+	data := templateData{
 		PackageName: packageName,
 		Services:    eventServices,
 	}
+	return dogenerate(targetDir, packageName, eventServices, data)
+}
 
-	if len(eventServices) > 0 {
-		target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
-		err = generationUtil.GenerateFileFromTemplateFile(templateData, packageName, "event-handlers", "generator/eventService/handlers.go.tmpl", customTemplateFuncs, target)
-		if err != nil {
-			log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
-			return err
-		}
+func dogenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
 
-		for _, eventService := range eventServices {
-			if !IsEventServiceNoTest(eventService) {
-				target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
-				err = generationUtil.GenerateFileFromTemplateFile(templateData, packageName, "test-handlers", "generator/eventService/testHandlers.go.tmpl", customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
-					return err
-				}
-				break
-			}
-		}
-
+	target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
+	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "event-handlers", "generator/eventService/handlers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
+		return err
 	}
+
+	for _, eventService := range eventServices {
+		if !IsEventServiceNoTest(eventService) {
+			target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "test-handlers", "generator/eventService/testHandlers.go.tmpl", customTemplateFuncs, target)
+			if err != nil {
+				log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
+				return err
+			}
+			break
+		}
+	}
+
 	return nil
 }
 
