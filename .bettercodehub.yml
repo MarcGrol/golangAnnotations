@@ -1,0 +1,7 @@
+exclude:
+- /examples/.*
+- /scripts/coverage.sh
+component_depth: 1
+languages:
+- go
+- script
