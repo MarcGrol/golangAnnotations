@@ -24,14 +24,7 @@ func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
 	return eventServiceAnnotation.Get()
 }
 
-var annotations annotation.AnnotationRegister
-
-func registerAnnotations() {
-	annotations = annotation.NewRegistry(eventServiceAnnotation.Get())
-}
-
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
-	registerAnnotations()
 	return generate(inputDir, parsedSource.Structs)
 }
 
@@ -48,7 +41,7 @@ func generate(inputDir string, structs []model.Struct) error {
 
 	eventServices := []model.Struct{}
 	for _, service := range structs {
-		if isEventService(service) {
+		if IsEventService(service) {
 			eventServices = append(eventServices, service)
 		}
 	}
@@ -70,7 +63,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		}
 
 		for _, eventService := range eventServices {
-			if !isEventServiceNoTest(eventService) {
+			if !IsEventServiceNoTest(eventService) {
 				target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
 				err = generationUtil.GenerateFileFromTemplateFile(templateData, packageName, "test-handlers", "generator/eventService/testHandlers.go.tmpl", customTemplateFuncs, target)
 				if err != nil {
@@ -86,28 +79,30 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEventService":                  isEventService,
-	"IsAsync":                         isAsync,
-	"IsEventServiceNoTest":            isEventServiceNoTest,
+	"IsEventService":                  IsEventService,
+	"IsAsync":                         IsAsync,
+	"IsEventServiceNoTest":            IsEventServiceNoTest,
 	"IsEventOperation":                IsEventOperation,
-	"GetInputArgType":                 getInputArgType,
-	"GetInputArgPackage":              getInputArgPackage,
-	"GetEventServiceSelfName":         getEventServiceSelfName,
-	"GetEventServiceTopics":           getEventServiceTopics,
-	"GetEventOperationTopic":          getEventOperationTopic,
-	"GetEventOperationQueueGroups":    getEventOperationQueueGroups,
-	"GetEventOperationProducesEvents": getEventOperationProducesEvents,
-	"IsAsyncAsString":                 isAsyncAsString,
-	"IsEventNotTransient":             isEventNotTransient,
-	"ToFirstUpper":                    toFirstUpper,
+	"GetInputArgType":                 GetInputArgType,
+	"GetInputArgPackage":              GetInputArgPackage,
+	"GetEventServiceSelfName":         GetEventServiceSelfName,
+	"GetEventServiceTopics":           GetEventServiceTopics,
+	"GetEventOperationTopic":          GetEventOperationTopic,
+	"GetEventOperationQueueGroups":    GetEventOperationQueueGroups,
+	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
+	"IsAsyncAsString":                 IsAsyncAsString,
+	"IsEventNotTransient":             IsEventNotTransient,
+	"ToFirstUpper":                    ToFirstUpper,
 }
 
-func isEventService(s model.Struct) bool {
+func IsEventService(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
 }
 
-func isAsync(s model.Struct) bool {
+func IsAsync(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
@@ -117,14 +112,14 @@ func isAsync(s model.Struct) bool {
 	return false
 }
 
-func isAsyncAsString(s model.Struct) string {
-	if isAsync(s) {
+func IsAsyncAsString(s model.Struct) string {
+	if IsAsync(s) {
 		return "Async"
 	}
 	return ""
 }
 
-func isEventNotTransient(o model.Operation) bool {
+func IsEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
@@ -134,14 +129,16 @@ func isEventNotTransient(o model.Operation) bool {
 	return false
 }
 
-func isEventServiceNoTest(s model.Struct) bool {
+func IsEventServiceNoTest(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamNoTest] == "true"
 	}
 	return false
 }
 
-func getEventServiceSelfName(s model.Struct) string {
+func GetEventServiceSelfName(s model.Struct) string {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
@@ -149,6 +146,7 @@ func getEventServiceSelfName(s model.Struct) string {
 }
 
 func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
@@ -164,7 +162,7 @@ func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	return []string{}
 }
 
-func getEventOperationProducesEvents(o model.Operation) string {
+func GetEventOperationProducesEvents(o model.Operation) string {
 	return asStringSlice(GetEventOperationProducesEventsAsSlice(o))
 }
 
@@ -176,12 +174,12 @@ func asStringSlice(in []string) string {
 	return fmt.Sprintf("[]string{%s}", strings.Join(adjusted, ","))
 }
 
-func getEventServiceTopics(s model.Struct) []string {
+func GetEventServiceTopics(s model.Struct) []string {
 	topics := []string{}
 operations:
 	for _, o := range s.Operations {
 		if IsEventOperation(*o) {
-			topic := getEventOperationTopic(*o)
+			topic := GetEventOperationTopic(*o)
 			for _, t := range topics {
 				if t == topic {
 					continue operations
@@ -194,11 +192,13 @@ operations:
 }
 
 func IsEventOperation(o model.Operation) bool {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	return ok
 }
 
-func getEventOperationTopic(o model.Operation) string {
+func GetEventOperationTopic(o model.Operation) string {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
@@ -210,15 +210,15 @@ type queueGroup struct {
 	Events  []string
 }
 
-func getEventOperationQueueGroups(s model.Struct) []queueGroup {
+func GetEventOperationQueueGroups(s model.Struct) []queueGroup {
 	queueGroups := []queueGroup{}
 operations:
 	for _, o := range s.Operations {
 		if IsEventOperation(*o) {
 			process := GetEventOperationProcess(*o)
 			if process != "" {
-				aggregate := getInputArgPackage(*o)
-				eventType := getInputArgType(*o)
+				aggregate := GetInputArgPackage(*o)
+				eventType := GetInputArgType(*o)
 				event := fmt.Sprintf("%s.%s", aggregate, eventType)
 				for i, group := range queueGroups {
 					if group.Process == process {
@@ -235,16 +235,17 @@ operations:
 
 func GetEventOperationProcess(o model.Operation) string {
 	process := ""
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		process = ann.Attributes[eventServiceAnnotation.ParamProcess]
 		if process != "" {
-			return toFirstUpper(process)
+			return ToFirstUpper(process)
 		}
 	}
 	return "Default"
 }
 
-func getInputArgType(o model.Operation) string {
+func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
@@ -254,7 +255,7 @@ func getInputArgType(o model.Operation) string {
 	return ""
 }
 
-func getInputArgPackage(o model.Operation) string {
+func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
@@ -283,7 +284,7 @@ func isStringArg(f model.Field) bool {
 	return f.TypeName == "string"
 }
 
-func toFirstUpper(in string) string {
+func ToFirstUpper(in string) string {
 	a := []rune(in)
 	a[0] = unicode.ToUpper(a[0])
 	return string(a)

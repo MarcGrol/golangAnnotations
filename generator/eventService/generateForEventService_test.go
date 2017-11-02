@@ -57,21 +57,19 @@ func TestGenerateForWeb(t *testing.T) {
 }
 
 func TestIsRestService(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me")`},
 	}
-	assert.True(t, isEventService(s))
+	assert.True(t, IsEventService(s))
 }
 
 func TestGetEventServiceSelf(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me" )`},
 	}
-	assert.Equal(t, "me", getEventServiceSelfName(s))
+	assert.Equal(t, "me", GetEventServiceSelfName(s))
 }
 
 func TestIsEventOperation(t *testing.T) {
@@ -79,15 +77,14 @@ func TestIsEventOperation(t *testing.T) {
 }
 
 func TestGetEventName(t *testing.T) {
-	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
 }
 
 func TestGetInputArgTypePerson(t *testing.T) {
-	assert.Equal(t, "OrderCreated", getInputArgType(createOper()))
+	assert.Equal(t, "OrderCreated", GetInputArgType(createOper()))
 }
 
 func createOper() model.Operation {
-	registerAnnotations()
 	o := model.Operation{
 		DocLines: []string{
 			fmt.Sprintf("//@EventOperation( topic = \"other1\" )"),

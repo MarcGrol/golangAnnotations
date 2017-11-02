@@ -93,103 +93,99 @@ func TestGenerateForWeb(t *testing.T) {
 }
 
 func TestIsRestService(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
 	}
-	assert.True(t, isRestService(s))
+	assert.True(t, IsRestService(s))
 }
 
 func TestGetRestServicePath(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
 	}
-	assert.Equal(t, "/api", getRestServicePath(s))
+	assert.Equal(t, "/api", GetRestServicePath(s))
 }
 
 func TestIsRestOperation(t *testing.T) {
-	assert.True(t, isRestOperation(createOper("GET")))
+	assert.True(t, IsRestOperation(createOper("GET")))
 }
 
 func TestGetRestOperationMethod(t *testing.T) {
-	assert.Equal(t, "GET", getRestOperationMethod(createOper("GET")))
+	assert.Equal(t, "GET", GetRestOperationMethod(createOper("GET")))
 }
 
 func TestGetRestOperationPath(t *testing.T) {
-	assert.Equal(t, "/api/person", getRestOperationPath(createOper("DONTCARE")))
+	assert.Equal(t, "/api/person", GetRestOperationPath(createOper("DONTCARE")))
 }
 
 func TestHasInputGet(t *testing.T) {
-	assert.False(t, hasInput(createOper("GET")))
+	assert.False(t, HasInput(createOper("GET")))
 }
 
 func TestHasInputDelete(t *testing.T) {
-	assert.False(t, hasInput(createOper("DELETE")))
+	assert.False(t, HasInput(createOper("DELETE")))
 }
 
 func TestHasInputPost(t *testing.T) {
-	assert.True(t, hasInput(createOper("POST")))
+	assert.True(t, HasInput(createOper("POST")))
 }
 
 func TestHasInputPut(t *testing.T) {
-	assert.True(t, hasInput(createOper("PUT")))
+	assert.True(t, HasInput(createOper("PUT")))
 }
 
 func TestGetInputArgTypeString(t *testing.T) {
-	registerAnnotations()
 	o := model.Operation{
 		InputArgs: []model.Field{
 			{TypeName: "string"},
 		},
 	}
-	assert.Equal(t, "", getInputArgType(o))
+	assert.Equal(t, "", GetInputArgType(o))
 }
 
 func TestGetInputArgTypePerson(t *testing.T) {
-	assert.Equal(t, "Person", getInputArgType(createOper("DONTCARE")))
+	assert.Equal(t, "Person", GetInputArgType(createOper("DONTCARE")))
 }
 
 func TestGetInputArgName(t *testing.T) {
-	assert.Equal(t, "person", getInputArgName(createOper("DONTCARE")))
+	assert.Equal(t, "person", GetInputArgName(createOper("DONTCARE")))
 }
 
 func TestGetInputParamString(t *testing.T) {
-	assert.Equal(t, "ctx,uid,person", getInputParamString(createOper("DONTCARE")))
+	assert.Equal(t, "ctx,uid,person", GetInputParamString(createOper("DONTCARE")))
 }
 
 func TestHasOutput(t *testing.T) {
-	assert.True(t, hasOutput(createOper("DONTCARE")))
+	assert.True(t, HasOutput(createOper("DONTCARE")))
 }
 
 func TestGetOutputArgType(t *testing.T) {
-	assert.Equal(t, "Person", getOutputArgType(createOper("DONTCARE")))
+	assert.Equal(t, "Person", GetOutputArgType(createOper("DONTCARE")))
 }
 
 func TestIsPrimitiveTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.True(t, isPrimitiveArg(f))
+	assert.True(t, IsPrimitiveArg(f))
 }
 
 func TestIsPrimitiveFalse(t *testing.T) {
 	f := model.Field{Name: "person", TypeName: "Person"}
-	assert.False(t, isPrimitiveArg(f))
+	assert.False(t, IsPrimitiveArg(f))
 }
 
 func TestIsNumberTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "int"}
-	assert.True(t, isNumberArg(f))
+	assert.True(t, IsNumberArg(f))
 }
 
 func TestIsNumberFalse(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.False(t, isNumberArg(f))
+	assert.False(t, IsNumberArg(f))
 }
 
 func createOper(method string) model.Operation {
-	registerAnnotations()
 	o := model.Operation{
 		DocLines: []string{
 			fmt.Sprintf("//@RestOperation( method = \"%s\", path = \"/api/person\")", method),
