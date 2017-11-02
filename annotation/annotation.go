@@ -15,7 +15,7 @@ type annotationDescriptor struct {
 	validator  validationFunc
 }
 
-var annotationRegistry []annotationDescriptor = []annotationDescriptor{}
+var annotationRegistry = []annotationDescriptor{}
 
 func ClearRegisteredAnnotations() {
 	annotationRegistry = []annotationDescriptor{}

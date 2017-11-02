@@ -45,7 +45,7 @@ func TestGenerateForWeb(t *testing.T) {
 			},
 		})
 
-	err := Generate("testData", model.ParsedSources{Structs: s})
+	err := NewGenerator().Generate("testData", model.ParsedSources{Structs: s})
 	assert.Nil(t, err)
 
 	{

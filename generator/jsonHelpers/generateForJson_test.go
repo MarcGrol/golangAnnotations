@@ -66,7 +66,7 @@ func TestGenerateForJson(t *testing.T) {
 		Enums:   e,
 		Structs: s,
 	}
-	err := Generate("./testData/", ps)
+	err := NewGenerator().Generate("./testData/", ps)
 	assert.Nil(t, err)
 
 	// check that generated files exisst

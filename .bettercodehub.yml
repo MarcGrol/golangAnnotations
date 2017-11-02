@@ -1,7 +1,10 @@
 exclude:
 - /examples/.*
+- /parser/enums/enum.go
+- /parser/interfaces/interf.go
+- /parser/operations/oper.go
+- /parser/structs/.*
 - /scripts/coverage.sh
 component_depth: 1
 languages:
 - go
-- script
