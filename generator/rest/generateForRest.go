@@ -370,14 +370,14 @@ func GetRestOperationFilename(o model.Operation) string {
 }
 
 func GetRestOperationRolesString(o model.Operation) string {
-	roles := getRestOperationRoles(o)
+	roles := GetRestOperationRoles(o)
 	for i, r := range roles {
 		roles[i] = fmt.Sprintf("\"%s\"", r)
 	}
 	return fmt.Sprintf("[]string{%s}", strings.Join(roles, ","))
 }
 
-func getRestOperationRoles(o model.Operation) []string {
+func GetRestOperationRoles(o model.Operation) []string {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]; ok {
