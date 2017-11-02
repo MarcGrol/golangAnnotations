@@ -11,10 +11,18 @@ const (
 	ParamDefault  = "default"
 )
 
-// Register makes the annotation-registry aware of this annotation
-func Register() {
-	annotation.RegisterAnnotation(TypeEnum, []string{ParamStripped, ParamTolerant, ParamBase, ParamDefault}, validateEnumAnnotation)
-	annotation.RegisterAnnotation(TypeStruct, []string{}, validateStructAnnotation)
+func Get() []annotation.AnnotationDescriptor {
+	return []annotation.AnnotationDescriptor{
+		{
+			Name:       TypeEnum,
+			ParamNames: []string{ParamStripped, ParamTolerant, ParamBase, ParamDefault},
+			Validator:  validateEnumAnnotation,
+		},
+		{
+			Name:       TypeStruct,
+			ParamNames: []string{},
+			Validator:  validateStructAnnotation,
+		}}
 }
 
 func validateEnumAnnotation(annot annotation.Annotation) bool {

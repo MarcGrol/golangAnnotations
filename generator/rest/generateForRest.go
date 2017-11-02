@@ -21,12 +21,22 @@ func NewGenerator() generationUtil.Generator {
 	return &Generator{}
 }
 
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return restAnnotation.Get()
+}
+
+var annotations annotation.AnnotationRegister
+
+func registerAnnotations() {
+	annotations = annotation.NewRegistry(restAnnotation.Get())
+}
+
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	registerAnnotations()
 	return generate(inputDir, parsedSource.Structs)
 }
 
 func generate(inputDir string, structs []model.Struct) error {
-	restAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
@@ -141,24 +151,24 @@ func surroundWithBackTicks(body string) string {
 }
 
 func IsRestService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
 }
 
 func IsRestServiceUnprotected(s model.Struct) bool {
-	ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok && ann.Attributes[restAnnotation.ParamProtected] != "true"
 }
 
 func GetRestServicePath(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
 func getExtractCredentialsMethod(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
 		case "all":
 			return "rest.ExtractAllCredentials"
@@ -172,14 +182,14 @@ func getExtractCredentialsMethod(s model.Struct) string {
 }
 
 func isRestServiceNoValidation(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
 	}
 	return false
 }
 
 func IsRestServiceNoTest(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
 	}
 	return false
@@ -232,12 +242,12 @@ func hasOperationsWithInput(s model.Struct) bool {
 }
 
 func IsRestOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	_, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
 
 func isRestOperationNoWrap(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamNoWrap] == "true"
 	}
 	return false
@@ -248,14 +258,14 @@ func isRestOperationGenerated(o model.Operation) bool {
 }
 
 func hasRestOperationAfter(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamAfter] == "true"
 	}
 	return false
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
@@ -276,21 +286,21 @@ func GetAllPathParams(o model.Operation) []string {
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamMethod]
 	}
 	return ""
 }
 
 func isRestOperationForm(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamForm] == "true"
 	}
 	return false
 }
 
 func GetRestOperationFormat(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFormat]
 	}
 	return ""
@@ -346,7 +356,7 @@ func GetContentType(operation model.Operation) string {
 }
 
 func getRestOperationFilename(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFilename]
 	}
 	return ""
@@ -361,7 +371,7 @@ func getRestOperationRolesString(o model.Operation) string {
 }
 
 func GetRestOperationRoles(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]; ok {
 			roles := strings.Split(rolesAttr, ",")
 			for i, r := range roles {
@@ -378,7 +388,7 @@ func getRestOperationProducesEvents(o model.Operation) string {
 }
 
 func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
 			for _, e := range strings.Split(attrs, ",") {
@@ -588,7 +598,7 @@ func requiresParamValidation(o model.Operation) bool {
 }
 
 func isInputArgMandatory(o model.Operation, arg model.Field) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if !ok {
 		return false
 	}

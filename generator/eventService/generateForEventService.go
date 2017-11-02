@@ -20,12 +20,22 @@ func NewGenerator() generationUtil.Generator {
 	return &Generator{}
 }
 
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return eventServiceAnnotation.Get()
+}
+
+var annotations annotation.AnnotationRegister
+
+func registerAnnotations() {
+	annotations = annotation.NewRegistry(eventServiceAnnotation.Get())
+}
+
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	registerAnnotations()
 	return generate(inputDir, parsedSource.Structs)
 }
 
 func generate(inputDir string, structs []model.Struct) error {
-	eventServiceAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
@@ -93,12 +103,12 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsEventService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
 }
 
 func IsAsync(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
 			return true
@@ -125,21 +135,21 @@ func isEventNotTransient(o model.Operation) bool {
 }
 
 func isEventServiceNoTest(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamNoTest] == "true"
 	}
 	return false
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
 }
 
 func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
 			for _, e := range strings.Split(attrs, ",") {
@@ -184,12 +194,12 @@ operations:
 }
 
 func IsEventOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
+	_, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	return ok
 }
 
 func GetEventOperationTopic(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
 	return ""
@@ -225,7 +235,7 @@ operations:
 
 func GetEventOperationProcess(o model.Operation) string {
 	process := ""
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		process = ann.Attributes[eventServiceAnnotation.ParamProcess]
 		if process != "" {
 			return toFirstUpper(process)

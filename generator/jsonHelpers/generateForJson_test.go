@@ -5,8 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
-	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,7 +83,7 @@ func TestGenerateForJson(t *testing.T) {
 }
 
 func TestIsJsonEnum(t *testing.T) {
-	jsonAnnotation.Register()
+	registerAnnotations()
 	e := model.Enum{
 		DocLines: []string{
 			`// @JsonStruct()`,
@@ -96,8 +94,7 @@ func TestIsJsonEnum(t *testing.T) {
 }
 
 func TestIsJsonStruct(t *testing.T) {
-	eventAnnotation.Register()
-	jsonAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`// @Event(aggregate = "Test")`,

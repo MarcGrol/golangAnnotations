@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -94,7 +93,7 @@ func TestGenerateForWeb(t *testing.T) {
 }
 
 func TestIsRestService(t *testing.T) {
-	restAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
@@ -103,7 +102,7 @@ func TestIsRestService(t *testing.T) {
 }
 
 func TestGetRestServicePath(t *testing.T) {
-	restAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@RestService( path = "/api")`},
@@ -140,7 +139,7 @@ func TestHasInputPut(t *testing.T) {
 }
 
 func TestGetInputArgTypeString(t *testing.T) {
-	restAnnotation.Register()
+	registerAnnotations()
 	o := model.Operation{
 		InputArgs: []model.Field{
 			{TypeName: "string"},
@@ -190,7 +189,7 @@ func TestIsNumberFalse(t *testing.T) {
 }
 
 func createOper(method string) model.Operation {
-	restAnnotation.Register()
+	registerAnnotations()
 	o := model.Operation{
 		DocLines: []string{
 			fmt.Sprintf("//@RestOperation( method = \"%s\", path = \"/api/person\")", method),

@@ -8,29 +8,25 @@ import (
 )
 
 func TestCorrectEnumAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @JsonEnum( )`}))
+	assert.NotEmpty(t, registry.ResolveAnnotations([]string{`// @JsonEnum( )`}))
 }
 
 func TestEmptyEnumAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.Empty(t, annotation.ResolveAnnotations([]string{``}))
+	assert.Empty(t, registry.ResolveAnnotations([]string{``}))
 }
 
 func TestCorrectStructAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @JsonStruct( )`}))
+	assert.NotEmpty(t, registry.ResolveAnnotations([]string{`// @JsonStruct( )`}))
 }
 
 func TestEmptyStructAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.Empty(t, annotation.ResolveAnnotations([]string{``}))
+	assert.Empty(t, registry.ResolveAnnotations([]string{``}))
 }

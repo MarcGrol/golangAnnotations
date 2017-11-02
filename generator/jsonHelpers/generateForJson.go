@@ -20,7 +20,18 @@ func NewGenerator() generationUtil.Generator {
 	return &Generator{}
 }
 
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return jsonAnnotation.Get()
+}
+
+var annotations annotation.AnnotationRegister
+
+func registerAnnotations() {
+	annotations = annotation.NewRegistry(jsonAnnotation.Get())
+}
+
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	registerAnnotations()
 	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
 }
 
@@ -31,7 +42,6 @@ type jsonContext struct {
 }
 
 func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {
-	jsonAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForEnumsOrStructs(enums, structs)
 	if err != nil {
@@ -132,26 +142,26 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsJSONEnum(e model.Enum) bool {
-	_, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
+	_, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
 	return ok
 }
 
 func IsJSONEnumStripped(e model.Enum) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
 	}
 	return false
 }
 
 func IsJSONEnumTolerant(e model.Enum) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamTolerant] == "true"
 	}
 	return false
 }
 
 func GetJSONEnumBase(e model.Enum) string {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamBase]
 	}
 	return ""
@@ -162,7 +172,7 @@ func HasJSONEnumBase(e model.Enum) bool {
 }
 
 func GetJSONEnumDefault(e model.Enum) string {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamDefault]
 	}
 	return ""
@@ -203,7 +213,7 @@ func lowerInitial(s string) string {
 }
 
 func IsJSONStruct(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
 }
 

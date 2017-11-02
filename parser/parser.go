@@ -20,14 +20,14 @@ var (
 	debugAstOfSources = false
 )
 
-type golangParser struct {
+type myParser struct {
 }
 
 func New() parserUtil.Parser {
-	return &golangParser{}
+	return &myParser{}
 }
 
-func (p *golangParser) ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
+func (p *myParser) ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
 	}
@@ -75,6 +75,9 @@ func (p *golangParser) ParseSourceDir(dirName string, filenameRegex string) (mod
 	return result, nil
 }
 
+func visit() {
+
+}
 func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)

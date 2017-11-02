@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -68,7 +67,7 @@ func TestGenerateForEvents(t *testing.T) {
 }
 
 func TestIsEvent(t *testing.T) {
-	eventAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
@@ -77,7 +76,7 @@ func TestIsEvent(t *testing.T) {
 }
 
 func TestGetAggregateName(t *testing.T) {
-	eventAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},

@@ -8,6 +8,12 @@ import (
 	"log"
 	"os"
 
+	"github.com/MarcGrol/golangAnnotations/generator/event"
+	"github.com/MarcGrol/golangAnnotations/generator/eventService"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
@@ -72,4 +78,19 @@ func processArgs() {
 	if inputDir == nil || *inputDir == "" {
 		printUsage()
 	}
+}
+
+func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
+	for name, g := range map[string]generationUtil.Generator{
+		"event":         event.NewGenerator(),
+		"event-service": eventService.NewGenerator(),
+		"json-helpers":  jsonHelpers.NewGenerator(),
+		"rest":          rest.NewGenerator(),
+	} {
+		err := g.Generate(inputDir, parsedSources)
+		if err != nil {
+			return fmt.Errorf("Error generating module %s: %s", name, err)
+		}
+	}
+	return nil
 }

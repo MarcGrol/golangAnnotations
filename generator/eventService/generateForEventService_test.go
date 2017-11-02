@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,7 +57,7 @@ func TestGenerateForWeb(t *testing.T) {
 }
 
 func TestIsRestService(t *testing.T) {
-	restAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me")`},
@@ -67,7 +66,7 @@ func TestIsRestService(t *testing.T) {
 }
 
 func TestGetEventServiceSelf(t *testing.T) {
-	restAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me" )`},
@@ -88,7 +87,7 @@ func TestGetInputArgTypePerson(t *testing.T) {
 }
 
 func createOper() model.Operation {
-	restAnnotation.Register()
+	registerAnnotations()
 	o := model.Operation{
 		DocLines: []string{
 			fmt.Sprintf("//@EventOperation( topic = \"other1\" )"),

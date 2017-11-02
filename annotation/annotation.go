@@ -2,6 +2,22 @@ package annotation
 
 import "strings"
 
+type AnnotationRegister interface {
+	ResolveAnnotations(annotationDocline []string) []Annotation
+	ResolveAnnotationByName(annotationDocline []string, name string) (Annotation, bool)
+	ResolveAnnotation(annotationDocline string) (Annotation, bool)
+}
+
+type annotationRegistry struct {
+	descriptors []AnnotationDescriptor
+}
+
+func NewRegistry(descriptors []AnnotationDescriptor) AnnotationRegister {
+	return &annotationRegistry{
+		descriptors: descriptors,
+	}
+}
+
 type Annotation struct {
 	Name       string
 	Attributes map[string]string
@@ -9,26 +25,16 @@ type Annotation struct {
 
 type validationFunc func(annot Annotation) bool
 
-type annotationDescriptor struct {
-	name       string
-	paramNames []string
-	validator  validationFunc
+type AnnotationDescriptor struct {
+	Name       string
+	ParamNames []string
+	Validator  validationFunc
 }
 
-var annotationRegistry = []annotationDescriptor{}
-
-func ClearRegisteredAnnotations() {
-	annotationRegistry = []annotationDescriptor{}
-}
-
-func RegisterAnnotation(name string, paramNames []string, validator validationFunc) {
-	annotationRegistry = append(annotationRegistry, annotationDescriptor{name: name, paramNames: paramNames, validator: validator})
-}
-
-func ResolveAnnotations(annotationDocline []string) []Annotation {
+func (ar *annotationRegistry) ResolveAnnotations(annotationDocline []string) []Annotation {
 	annotations := []Annotation{}
 	for _, line := range annotationDocline {
-		ann, ok := ResolveAnnotation(strings.TrimSpace(line))
+		ann, ok := ar.ResolveAnnotation(strings.TrimSpace(line))
 		if ok {
 			annotations = append(annotations, ann)
 		}
@@ -36,9 +42,9 @@ func ResolveAnnotations(annotationDocline []string) []Annotation {
 	return annotations
 }
 
-func ResolveAnnotationByName(annotationDocline []string, name string) (Annotation, bool) {
+func (ar *annotationRegistry) ResolveAnnotationByName(annotationDocline []string, name string) (Annotation, bool) {
 	for _, line := range annotationDocline {
-		ann, ok := ResolveAnnotation(strings.TrimSpace(line))
+		ann, ok := ar.ResolveAnnotation(strings.TrimSpace(line))
 		if ok && ann.Name == name {
 			return ann, true
 		}
@@ -46,18 +52,18 @@ func ResolveAnnotationByName(annotationDocline []string, name string) (Annotatio
 	return Annotation{}, false
 }
 
-func ResolveAnnotation(annotationDocline string) (Annotation, bool) {
-	for _, descriptor := range annotationRegistry {
+func (ar *annotationRegistry) ResolveAnnotation(annotationDocline string) (Annotation, bool) {
+	for _, descriptor := range ar.descriptors {
 		ann, err := parseAnnotation(annotationDocline)
 		if err != nil {
 			continue
 		}
 
-		if ann.Name != descriptor.name {
+		if ann.Name != descriptor.Name {
 			continue
 		}
 
-		ok := descriptor.validator(ann)
+		ok := descriptor.Validator(ann)
 		if !ok {
 			continue
 		}

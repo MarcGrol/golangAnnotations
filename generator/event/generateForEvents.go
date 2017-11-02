@@ -28,13 +28,22 @@ func NewGenerator() generationUtil.Generator {
 	return &Generator{}
 }
 
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return eventAnnotation.Get()
+}
+
+var annotations annotation.AnnotationRegister
+
+func registerAnnotations() {
+	annotations = annotation.NewRegistry(eventAnnotation.Get())
+}
+
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	registerAnnotations()
 	return generate(inputDir, parsedSource.Structs)
 }
 
 func generate(inputDir string, structs []model.Struct) error {
-	eventAnnotation.Register()
-
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
 		return err
@@ -126,19 +135,19 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func isEvent(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	return ok
 }
 
 func getAggregateName(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
 	}
 	return ""
 }
 
 func isRootEvent(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
 	}
 	return false
@@ -149,7 +158,7 @@ func isPersistent(s model.Struct) bool {
 }
 
 func isTransient(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsTransient] == "true"
 	}
 	return false
