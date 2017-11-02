@@ -39,43 +39,69 @@ func generate(inputDir string, structs []model.Struct) error {
 	if err != nil {
 		return err
 	}
+
 	for _, service := range structs {
 		if IsRestService(service) {
-			{
-				target := fmt.Sprintf("%s/$http%s.go", targetDir, ToFirstUpper(service.Name))
-				err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-handlers", "generator/rest/httpHandlers.go.tmpl", customTemplateFuncs, target)
+			err = generateHttpService(targetDir, packageName, service)
+			if err != nil {
+				return err
+			}
+
+			if !IsRestServiceNoTest(service) {
+				err = generateHttpTestHelpers(targetDir, packageName, service)
 				if err != nil {
-					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
+					return err
+				}
+				err = generateHttpTestService(targetDir, packageName, service)
+				if err != nil {
+					return err
+				}
+				err = generateHttpClient(targetDir, packageName, service)
+				if err != nil {
 					return err
 				}
 			}
-			if !IsRestServiceNoTest(service) {
-				{
-					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, ToFirstUpper(service.Name))
-					err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "test-helpers", "generator/rest/testHelpers.go.tmpl", customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-				{
-					target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, ToFirstUpper(service.Name))
-					err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "testService", "generator/rest/testService.go.tmpl", customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-				{
-					target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, ToFirstUpper(service.Name))
-					err = generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-client", "generator/rest/httpClient.go.tmpl", customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-			}
 		}
+	}
+	return nil
+}
+
+func generateHttpService(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$http%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-handlers", "generator/rest/httpHandlers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpTestHelpers(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "test-helpers", "generator/rest/testHelpers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpTestService(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "testService", "generator/rest/testService.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpClient(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-client", "generator/rest/httpClient.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
+		return err
 	}
 	return nil
 }

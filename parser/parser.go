@@ -75,9 +75,6 @@ func (p *myParser) ParseSourceDir(dirName string, filenameRegex string) (model.P
 	return result, nil
 }
 
-func visit() {
-
-}
 func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)
@@ -241,51 +238,12 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		// extract all imports into a map
 		v.extractGenDeclImports(node)
 
-		{
-			// if struct, get its fields
-			mStruct := extractGenDeclForStruct(node, v.Imports)
-			if mStruct != nil {
-				mStruct.PackageName = v.PackageName
-				mStruct.Filename = v.CurrentFilename
-				v.Structs = append(v.Structs, *mStruct)
-			}
-		}
-		{
-			// if struct, get its fields
-			mTypedef := extractGenDeclForTypedef(node)
-			if mTypedef != nil {
-				mTypedef.PackageName = v.PackageName
-				mTypedef.Filename = v.CurrentFilename
-				v.Typedefs = append(v.Typedefs, *mTypedef)
-			}
-		}
-		{
-			// if struct, get its fields
-			mEnum := extractGenDeclForEnum(node)
-			if mEnum != nil {
-				mEnum.PackageName = v.PackageName
-				mEnum.Filename = v.CurrentFilename
-				v.Enums = append(v.Enums, *mEnum)
-			}
-		}
-		{
-			// if interfaces, get its methods
-			mInterface := extractGenDecForInterface(node, v.Imports)
-			if mInterface != nil {
-				mInterface.PackageName = v.PackageName
-				mInterface.Filename = v.CurrentFilename
-				v.Interfaces = append(v.Interfaces, *mInterface)
-			}
-		}
-		{
-			// if mOperation, get its signature
-			mOperation := extractOperation(node, v.Imports)
-			if mOperation != nil {
-				mOperation.PackageName = v.PackageName
-				mOperation.Filename = v.CurrentFilename
-				v.Operations = append(v.Operations, *mOperation)
-			}
-		}
+		v.parseAsStruct(node)
+		v.parseAsTypedef(node)
+		v.parseAsEnum(node)
+		v.parseAsInterFace(node)
+		v.parseAsOperation(node)
+
 	}
 	return v
 }
@@ -305,6 +263,53 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 				v.Imports[last] = unquotedImport
 			}
 		}
+	}
+}
+
+func (v *astVisitor) parseAsStruct(node ast.Node) {
+	mStruct := extractGenDeclForStruct(node, v.Imports)
+	if mStruct != nil {
+		mStruct.PackageName = v.PackageName
+		mStruct.Filename = v.CurrentFilename
+		v.Structs = append(v.Structs, *mStruct)
+	}
+}
+
+func (v *astVisitor) parseAsTypedef(node ast.Node) {
+	mTypedef := extractGenDeclForTypedef(node)
+	if mTypedef != nil {
+		mTypedef.PackageName = v.PackageName
+		mTypedef.Filename = v.CurrentFilename
+		v.Typedefs = append(v.Typedefs, *mTypedef)
+	}
+}
+
+func (v *astVisitor) parseAsEnum(node ast.Node) {
+	mEnum := extractGenDeclForEnum(node)
+	if mEnum != nil {
+		mEnum.PackageName = v.PackageName
+		mEnum.Filename = v.CurrentFilename
+		v.Enums = append(v.Enums, *mEnum)
+	}
+}
+
+func (v *astVisitor) parseAsInterFace(node ast.Node) {
+	// if interfaces, get its methods
+	mInterface := extractGenDecForInterface(node, v.Imports)
+	if mInterface != nil {
+		mInterface.PackageName = v.PackageName
+		mInterface.Filename = v.CurrentFilename
+		v.Interfaces = append(v.Interfaces, *mInterface)
+	}
+}
+
+func (v *astVisitor) parseAsOperation(node ast.Node) {
+	// if mOperation, get its signature
+	mOperation := extractOperation(node, v.Imports)
+	if mOperation != nil {
+		mOperation.PackageName = v.PackageName
+		mOperation.Filename = v.CurrentFilename
+		v.Operations = append(v.Operations, *mOperation)
 	}
 }
 
