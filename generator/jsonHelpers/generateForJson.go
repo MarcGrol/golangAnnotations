@@ -24,14 +24,7 @@ func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
 	return jsonAnnotation.Get()
 }
 
-var annotations annotation.AnnotationRegister
-
-func registerAnnotations() {
-	annotations = annotation.NewRegistry(jsonAnnotation.Get())
-}
-
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
-	registerAnnotations()
 	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
 }
 
@@ -142,11 +135,13 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func IsJSONEnum(e model.Enum) bool {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
 	return ok
 }
 
 func IsJSONEnumStripped(e model.Enum) bool {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
 	}
@@ -154,6 +149,7 @@ func IsJSONEnumStripped(e model.Enum) bool {
 }
 
 func IsJSONEnumTolerant(e model.Enum) bool {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamTolerant] == "true"
 	}
@@ -161,6 +157,7 @@ func IsJSONEnumTolerant(e model.Enum) bool {
 }
 
 func GetJSONEnumBase(e model.Enum) string {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamBase]
 	}
@@ -172,6 +169,7 @@ func HasJSONEnumBase(e model.Enum) bool {
 }
 
 func GetJSONEnumDefault(e model.Enum) string {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamDefault]
 	}
@@ -213,6 +211,7 @@ func lowerInitial(s string) string {
 }
 
 func IsJSONStruct(s model.Struct) bool {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
 }
