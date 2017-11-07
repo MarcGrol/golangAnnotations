@@ -62,7 +62,7 @@ func TestGenerateForEvents(t *testing.T) {
 	os.Remove("./testData/$aggregates.go")
 	os.Remove("./testData/$wrappers.go")
 	os.Remove("./testData/$wrappers_test.go")
-	os.Remove("./repo/$storeEvents.go")
+	os.Remove("./repository/$storeEvents.go")
 
 }
 
