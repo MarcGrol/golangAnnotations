@@ -13,76 +13,21 @@ import (
 	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/parser/parserUtil"
 )
 
 var (
 	debugAstOfSources = false
 )
 
-func ParseSourceFile(srcFilename string) (model.ParsedSources, error) {
-	if debugAstOfSources {
-		dumpFile(srcFilename)
-	}
-	fileSet := token.NewFileSet()
-	file, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
-	if err != nil {
-		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
-		return model.ParsedSources{}, err
-	}
-	v := &astVisitor{
-		Imports: map[string]string{},
-	}
-	v.CurrentFilename = srcFilename
-	ast.Walk(v, file)
-
-	embedOperationsInStructs(v)
-
-	embedTypedefDocLinesInEnum(v)
-
-	result := model.ParsedSources{
-		Structs:    v.Structs,
-		Operations: v.Operations,
-		Interfaces: v.Interfaces,
-		Typedefs:   v.Typedefs,
-		Enums:      v.Enums,
-	}
-	return result, nil
+type myParser struct {
 }
 
-type FileEntry struct {
-	key  string
-	file ast.File
+func New() parserUtil.Parser {
+	return &myParser{}
 }
 
-type FileEntries []FileEntry
-
-func (list FileEntries) Len() int {
-	return len(list)
-}
-
-func (list FileEntries) Less(i, j int) bool {
-	return list[i].key < list[j].key
-}
-
-func (list FileEntries) Swap(i, j int) {
-	list[i], list[j] = list[j], list[i]
-}
-
-func SortedFileEntries(fileMap map[string]*ast.File) FileEntries {
-	var fileEntries FileEntries = make([]FileEntry, 0, len(fileMap))
-	for key, file := range fileMap {
-		if file != nil {
-			fileEntries = append(fileEntries, FileEntry{
-				key:  key,
-				file: *file,
-			})
-		}
-	}
-	sort.Sort(fileEntries)
-	return fileEntries
-}
-
-func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
+func (p *myParser) ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
 	}
@@ -96,7 +41,7 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 		Imports: map[string]string{},
 	}
 	for _, aPackage := range packages {
-		for _, fileEntry := range SortedFileEntries(aPackage.Files) {
+		for _, fileEntry := range sortedFileEntries(aPackage.Files) {
 			v.CurrentFilename = fileEntry.key
 
 			appEngineOnly := true
@@ -128,6 +73,69 @@ func ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, 
 	}
 
 	return result, nil
+}
+
+func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
+	if debugAstOfSources {
+		dumpFile(srcFilename)
+	}
+	fileSet := token.NewFileSet()
+	file, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
+	if err != nil {
+		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
+		return model.ParsedSources{}, err
+	}
+	v := &astVisitor{
+		Imports: map[string]string{},
+	}
+	v.CurrentFilename = srcFilename
+	ast.Walk(v, file)
+
+	embedOperationsInStructs(v)
+
+	embedTypedefDocLinesInEnum(v)
+
+	result := model.ParsedSources{
+		Structs:    v.Structs,
+		Operations: v.Operations,
+		Interfaces: v.Interfaces,
+		Typedefs:   v.Typedefs,
+		Enums:      v.Enums,
+	}
+	return result, nil
+}
+
+type fileEntry struct {
+	key  string
+	file ast.File
+}
+
+type fileEntries []fileEntry
+
+func (list fileEntries) Len() int {
+	return len(list)
+}
+
+func (list fileEntries) Less(i, j int) bool {
+	return list[i].key < list[j].key
+}
+
+func (list fileEntries) Swap(i, j int) {
+	list[i], list[j] = list[j], list[i]
+}
+
+func sortedFileEntries(fileMap map[string]*ast.File) fileEntries {
+	var fileEntries fileEntries = make([]fileEntry, 0, len(fileMap))
+	for key, file := range fileMap {
+		if file != nil {
+			fileEntries = append(fileEntries, fileEntry{
+				key:  key,
+				file: *file,
+			})
+		}
+	}
+	sort.Sort(fileEntries)
+	return fileEntries
 }
 
 func embedOperationsInStructs(visitor *astVisitor) {
@@ -230,51 +238,12 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 		// extract all imports into a map
 		v.extractGenDeclImports(node)
 
-		{
-			// if struct, get its fields
-			mStruct := extractGenDeclForStruct(node, v.Imports)
-			if mStruct != nil {
-				mStruct.PackageName = v.PackageName
-				mStruct.Filename = v.CurrentFilename
-				v.Structs = append(v.Structs, *mStruct)
-			}
-		}
-		{
-			// if struct, get its fields
-			mTypedef := extractGenDeclForTypedef(node)
-			if mTypedef != nil {
-				mTypedef.PackageName = v.PackageName
-				mTypedef.Filename = v.CurrentFilename
-				v.Typedefs = append(v.Typedefs, *mTypedef)
-			}
-		}
-		{
-			// if struct, get its fields
-			mEnum := extractGenDeclForEnum(node)
-			if mEnum != nil {
-				mEnum.PackageName = v.PackageName
-				mEnum.Filename = v.CurrentFilename
-				v.Enums = append(v.Enums, *mEnum)
-			}
-		}
-		{
-			// if interfaces, get its methods
-			mInterface := extractGenDecForInterface(node, v.Imports)
-			if mInterface != nil {
-				mInterface.PackageName = v.PackageName
-				mInterface.Filename = v.CurrentFilename
-				v.Interfaces = append(v.Interfaces, *mInterface)
-			}
-		}
-		{
-			// if mOperation, get its signature
-			mOperation := extractOperation(node, v.Imports)
-			if mOperation != nil {
-				mOperation.PackageName = v.PackageName
-				mOperation.Filename = v.CurrentFilename
-				v.Operations = append(v.Operations, *mOperation)
-			}
-		}
+		v.parseAsStruct(node)
+		v.parseAsTypedef(node)
+		v.parseAsEnum(node)
+		v.parseAsInterFace(node)
+		v.parseAsOperation(node)
+
 	}
 	return v
 }
@@ -294,6 +263,53 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 				v.Imports[last] = unquotedImport
 			}
 		}
+	}
+}
+
+func (v *astVisitor) parseAsStruct(node ast.Node) {
+	mStruct := extractGenDeclForStruct(node, v.Imports)
+	if mStruct != nil {
+		mStruct.PackageName = v.PackageName
+		mStruct.Filename = v.CurrentFilename
+		v.Structs = append(v.Structs, *mStruct)
+	}
+}
+
+func (v *astVisitor) parseAsTypedef(node ast.Node) {
+	mTypedef := extractGenDeclForTypedef(node)
+	if mTypedef != nil {
+		mTypedef.PackageName = v.PackageName
+		mTypedef.Filename = v.CurrentFilename
+		v.Typedefs = append(v.Typedefs, *mTypedef)
+	}
+}
+
+func (v *astVisitor) parseAsEnum(node ast.Node) {
+	mEnum := extractGenDeclForEnum(node)
+	if mEnum != nil {
+		mEnum.PackageName = v.PackageName
+		mEnum.Filename = v.CurrentFilename
+		v.Enums = append(v.Enums, *mEnum)
+	}
+}
+
+func (v *astVisitor) parseAsInterFace(node ast.Node) {
+	// if interfaces, get its methods
+	mInterface := extractGenDecForInterface(node, v.Imports)
+	if mInterface != nil {
+		mInterface.PackageName = v.PackageName
+		mInterface.Filename = v.CurrentFilename
+		v.Interfaces = append(v.Interfaces, *mInterface)
+	}
+}
+
+func (v *astVisitor) parseAsOperation(node ast.Node) {
+	// if mOperation, get its signature
+	mOperation := extractOperation(node, v.Imports)
+	if mOperation != nil {
+		mOperation.PackageName = v.PackageName
+		mOperation.Filename = v.CurrentFilename
+		v.Operations = append(v.Operations, *mOperation)
 	}
 }
 
@@ -533,94 +549,143 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 	mFields := []model.Field{}
 	if field != nil {
 		if len(field.Names) == 0 {
-			mFields = append(mFields, _extractField(field, imports))
+			f, ok := extractField(field, imports)
+			if ok {
+				mFields = append(mFields, f)
+			}
 		} else {
 			// A single field can refer to multiple: example: x,y int -> x int, y int
 			for _, name := range field.Names {
-				field := _extractField(field, imports)
-				field.Name = name.Name
-				mFields = append(mFields, field)
+				field, ok := extractField(field, imports)
+				if ok {
+					field.Name = name.Name
+					mFields = append(mFields, field)
+				}
 			}
 		}
 	}
 	return mFields
 }
 
-func _extractField(field *ast.Field, imports map[string]string) model.Field {
+func extractField(field *ast.Field, imports map[string]string) (model.Field, bool) {
 	mField := model.Field{
 		DocLines:     extractComments(field.Doc),
 		CommentLines: extractComments(field.Comment),
 		Tag:          extractTag(field.Tag),
 	}
-	{
-		arrayType, ok := field.Type.(*ast.ArrayType)
+
+	if extractSliceField(field, &mField, imports) {
+		return mField, true
+	}
+
+	if extractMapField(field, &mField, imports) {
+		return mField, true
+	}
+
+	if extractPointerField(field, &mField, imports) {
+		return mField, true
+	}
+
+	if extractIdentField(field, &mField, imports) {
+		return mField, true
+	}
+
+	if extractSelectorField(field, &mField, imports) {
+		return mField, true
+	}
+
+	log.Printf("*** Could not understand field '%+v'", field.Type)
+
+	return mField, false
+}
+
+func extractSliceField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+	arrayType, ok := field.Type.(*ast.ArrayType)
+	if ok {
+		mField.IsSlice = true
+		if extractSliceSelectorField(arrayType, mField, imports) {
+			return true
+		}
+		if extractSlicePointerField(arrayType, mField, imports) {
+			return true
+		}
+	}
+	return false
+}
+
+func extractSliceSelectorField(arrayType *ast.ArrayType, mField *model.Field, imports map[string]string) bool {
+	ident, ok := arrayType.Elt.(*ast.Ident)
+	if ok {
+		mField.TypeName = ident.Name
+		return true
+	}
+
+	selectorExpr, ok := arrayType.Elt.(*ast.SelectorExpr)
+	if ok {
+		ident, ok = selectorExpr.X.(*ast.Ident)
 		if ok {
-			mField.IsSlice = true
-			{
-				ident, ok := arrayType.Elt.(*ast.Ident)
-				if ok {
-					mField.TypeName = ident.Name
-				}
-				selectorExpr, ok := arrayType.Elt.(*ast.SelectorExpr)
-				if ok {
-					ident, ok = selectorExpr.X.(*ast.Ident)
-					if ok {
-						mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-						mField.PackageName = imports[ident.Name]
-					}
-				}
+			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+			mField.PackageName = imports[ident.Name]
+			return true
+		}
+	}
+	return false
+}
+
+func extractSlicePointerField(arrayType *ast.ArrayType, mField *model.Field, imports map[string]string) bool {
+	starExpr, ok := arrayType.Elt.(*ast.StarExpr)
+	if ok {
+		if ok {
+			ident, ok := starExpr.X.(*ast.Ident)
+			if ok {
+				mField.TypeName = ident.Name
+				mField.IsPointer = true
+				return true
 			}
+		}
 
-			{
-				starExpr, ok := arrayType.Elt.(*ast.StarExpr)
-				if ok {
-					if ok {
-						ident, ok := starExpr.X.(*ast.Ident)
-						if ok {
-							mField.TypeName = ident.Name
-							mField.IsPointer = true
-						}
-					}
-
-					selectorExpr, ok := starExpr.X.(*ast.SelectorExpr)
-					if ok {
-						ident, ok := selectorExpr.X.(*ast.Ident)
-						if ok {
-							mField.PackageName = imports[ident.Name]
-							mField.IsPointer = true
-							mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-						}
-					}
-				}
+		selectorExpr, ok := starExpr.X.(*ast.SelectorExpr)
+		if ok {
+			ident, ok := selectorExpr.X.(*ast.Ident)
+			if ok {
+				mField.PackageName = imports[ident.Name]
+				mField.IsPointer = true
+				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+				return true
 			}
 		}
 	}
+	return false
+}
 
-	{
-		var mapKey string = ""
-		var mapValue string = ""
+func extractMapField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+	mapKey := ""
+	mapValue := ""
 
-		mapType, ok := field.Type.(*ast.MapType)
-		if ok {
-			{
-				key, ok := mapType.Key.(*ast.Ident)
-				if ok {
-					mapKey = key.Name
-				}
-			}
-			{
-				value, ok := mapType.Value.(*ast.Ident)
-				if ok {
-					mapValue = value.Name
-				}
+	mapType, ok := field.Type.(*ast.MapType)
+	if ok {
+		{
+			key, ok := mapType.Key.(*ast.Ident)
+			if ok {
+				mapKey = key.Name
 			}
 		}
-		if mapKey != "" && mapValue != "" {
-			mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+		{
+			value, ok := mapType.Value.(*ast.Ident)
+			if ok {
+				mapValue = value.Name
+			}
 		}
-
+	}
+	if mapKey != "" && mapValue != "" {
+		mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+		return true
 	}
 
+	return false
+}
+
+func extractPointerField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
 	{
 		starExpr, ok := field.Type.(*ast.StarExpr)
 		if ok {
@@ -628,7 +693,9 @@ func _extractField(field *ast.Field, imports map[string]string) model.Field {
 			if ok {
 				mField.TypeName = ident.Name
 				mField.IsPointer = true
+				return true
 			}
+
 			selectorExpr, ok := starExpr.X.(*ast.SelectorExpr)
 			if ok {
 				ident, ok = selectorExpr.X.(*ast.Ident)
@@ -636,27 +703,33 @@ func _extractField(field *ast.Field, imports map[string]string) model.Field {
 					mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 					mField.IsPointer = true
 					mField.PackageName = imports[ident.Name]
+					return true
 				}
 			}
 		}
 	}
-	{
-		ident, ok := field.Type.(*ast.Ident)
-		if ok {
-			mField.TypeName = ident.Name
-		}
-	}
-	{
-		selectorExpr, ok := field.Type.(*ast.SelectorExpr)
-		if ok {
-			ident, ok := selectorExpr.X.(*ast.Ident)
-			if ok {
-				mField.Name = ident.Name
-				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-				mField.PackageName = imports[ident.Name]
-			}
-		}
-	}
+	return false
+}
 
-	return mField
+func extractIdentField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+	ident, ok := field.Type.(*ast.Ident)
+	if ok {
+		mField.TypeName = ident.Name
+		return true
+	}
+	return false
+}
+
+func extractSelectorField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+	selectorExpr, ok := field.Type.(*ast.SelectorExpr)
+	if ok {
+		ident, ok := selectorExpr.X.(*ast.Ident)
+		if ok {
+			mField.Name = ident.Name
+			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+			mField.PackageName = imports[ident.Name]
+			return true
+		}
+	}
+	return false
 }

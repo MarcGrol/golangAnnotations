@@ -13,10 +13,18 @@ const (
 	ParamProducesEvents = "producesevents"
 )
 
-// Register makes the annotation-registry aware of these annotation
-func Register() {
-	annotation.RegisterAnnotation(TypeEventService, []string{ParamSelf, ParamAsync, ParamNoTest}, validateEventServiceAnnotation)
-	annotation.RegisterAnnotation(TypeEventOperation, []string{ParamTopic, ParamProcess}, validateEventOperationAnnotation)
+func Get() []annotation.AnnotationDescriptor {
+	return []annotation.AnnotationDescriptor{
+		{
+			Name:       TypeEventService,
+			ParamNames: []string{ParamSelf, ParamAsync, ParamNoTest},
+			Validator:  validateEventServiceAnnotation,
+		},
+		{
+			Name:       TypeEventOperation,
+			ParamNames: []string{ParamTopic, ParamProcess},
+			Validator:  validateEventOperationAnnotation,
+		}}
 }
 
 func validateEventServiceAnnotation(annot annotation.Annotation) bool {

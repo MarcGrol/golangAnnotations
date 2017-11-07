@@ -8,10 +8,9 @@ import (
 )
 
 func TestCorrectEventServiceAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	ann, ok := annotation.ResolveAnnotationByName([]string{`// @EventService( Self = "caregiverService", async="true", admin="true", producesEvents="x,y" )`}, "EventService")
+	ann, ok := registry.ResolveAnnotationByName([]string{`// @EventService( Self = "caregiverService", process = "myprocess", async="true", admin="true", producesEvents="x,y" )`}, "EventService")
 	assert.True(t, ok)
 	{
 		self, ok := ann.Attributes[ParamSelf]
@@ -26,7 +25,7 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 	{
 		process, ok := ann.Attributes[ParamProcess]
 		assert.True(t, ok)
-		assert.Equal(t, "default", process)
+		assert.Equal(t, "myprocess", process)
 	}
 	{
 		producesEvents, ok := ann.Attributes[ParamProducesEvents]
@@ -36,9 +35,8 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 }
 
 func TestCorrectEventOperationAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	_, ok := annotation.ResolveAnnotation(`// @EventOperation( topic = "order" )`)
+	_, ok := registry.ResolveAnnotation(`// @EventOperation( topic = "order" )`)
 	assert.True(t, ok)
 }

@@ -4,8 +4,8 @@ package errorh
 
 // @JsonStruct()
 type Error struct {
-	message      string       `json:"-"`
-	httpCode     int          `json:"-"`
+	message      string
+	httpCode     int
 	ErrorMessage string       `json:"errorMessage"`
 	ErrorCode    int          `json:"errorCode"`
 	FieldErrors  []FieldError `json:"fieldErrors"` // only applicable for invalidInput

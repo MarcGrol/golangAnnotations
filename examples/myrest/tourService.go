@@ -43,7 +43,7 @@ type TourService struct {
 }
 
 // @RestOperation( method = "GET", path = "/{year}", format = "JSON" )
-func (ts TourService) getTourOnUid(c context.Context, year int) (*Tour, error) {
+func (ts TourService) getTourOnUID(c context.Context, year int) (*Tour, error) {
 	return &Tour{
 		Year:     2016,
 		Cyclists: []Cyclist{},
@@ -53,8 +53,9 @@ func (ts TourService) getTourOnUid(c context.Context, year int) (*Tour, error) {
 
 // @RestOperation( method = "POST", path = "/{year}/etappe", format = "JSON" )
 func (ts *TourService) createEtappe(c context.Context, year int, etappe Etappe) (*Etappe, error) {
+	layout := "2006-01-02"
 	dateString := "2016-07-14"
-	day, _ := time.Parse(dateString, dateString)
+	day, _ := time.Parse(layout, dateString)
 	return &Etappe{
 		UID:            "14",
 		Day:            day,
@@ -63,8 +64,8 @@ func (ts *TourService) createEtappe(c context.Context, year int, etappe Etappe) 
 	}, nil
 }
 
-// @RestOperation( method = "PUT", path = "/{year}/etappe/{etappeUid}", format = "JSON" )
-func (ts *TourService) addEtappeResults(c context.Context, year int, etappeUid string, results EtappeResult) error {
+// @RestOperation( method = "PUT", path = "/{year}/etappe/{etappeUID}", format = "JSON" )
+func (ts *TourService) addEtappeResults(c context.Context, year int, etappeUID string, results EtappeResult) error {
 	return nil
 }
 
@@ -77,7 +78,7 @@ func (ts *TourService) createCyclist(c context.Context, year int, cyclist Cyclis
 	}, nil
 }
 
-// @RestOperation( method = "DELETE", path = "/{year}/cyclist/{cyclistUid}", format = "JSON" )
-func (ts *TourService) markCyclistAbondoned(c context.Context, year int, cyclistUid string) error {
+// @RestOperation( method = "DELETE", path = "/{year}/cyclist/{cyclistUID}", format = "JSON" )
+func (ts *TourService) markCyclistAbondoned(c context.Context, year int, cyclistUID string) error {
 	return nil
 }

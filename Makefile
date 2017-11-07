@@ -1,6 +1,6 @@
 GO := $(shell which go)
 GO_VERSION := $(shell $(GO) version)
-
+ 
 GOLANG_ANNOT_ROOT := $(shell echo "${GOPATH}/src/github.com/MarcGrol/golangAnnotations")
 
 all: gen test install
@@ -15,14 +15,8 @@ deps:
 	@echo "Performing dependency check"
 	@echo "---------------------------"
 	go get -u golang.org/x/tools/cmd/goimports
+	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u -t ./...                                  # get the application with all its deps
-
-verify:
-	@echo "----------------------------------"
-	@echo "Run static analysis on source-code"
-	@echo "----------------------------------"
-	$(GO) vet ./...
-	golint ./...
 
 generate:
 	@echo "----------------------"
@@ -36,7 +30,7 @@ imports:
 	@echo "------------------"
 	find . -name '*.go' -exec goimports -l -w -local github.com/ {} \;
 
-format:
+format: imports
 	@echo "----------------------"
 	@echo "Formatting source-code"
 	@echo "----------------------"
@@ -44,7 +38,15 @@ format:
 
 gen: generate imports format
 
-test:
+check:
+	@echo "---------------------"
+	@echo "Perform static analysis"
+	@echo "---------------------"
+	$(GO) vet ./...
+	$(GO) vet --shadow ./...
+	staticcheck ./...
+
+test: clean check
 	@echo "---------------------"
 	@echo "Running backend tests"
 	@echo "---------------------"
@@ -67,16 +69,16 @@ coverage:
 	@echo "----------------"
 	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
 
-install:
-	@echo "----------------------------"
-	@echo "Installing for $(GO_VERSION)"
-	@echo "----------------------------"
-	$(GO) install ./...
-
 clean:
 	find . -name '\$$*.go' -exec rm -rfv {} +
 	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
 	$(GO) clean ./...
 
+install: clean
+	@echo "----------------------------"
+	@echo "Installing for $(GO_VERSION)"
+	@echo "----------------------------"
+	$(GO) install ./...
+
 .PHONY:
-	help deps gen test citest coverage install clean all
+	help deps gen check test citest coverage install clean all

@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/MarcGrol/golangAnnotations.svg?branch=master)](https://travis-ci.org/MarcGrol/golangAnnotations)
 [![Coverage Status](https://coveralls.io/repos/github/MarcGrol/golangAnnotations/badge.svg)](https://coveralls.io/github/MarcGrol/golangAnnotations)
+[![BCH compliance](https://bettercodehub.com/edge/badge/MarcGrol/golangAnnotations?branch=master)](https://bettercodehub.com/)
 # Golang annotations
 
 [Detailed explanation](https://github.com/MarcGrol/golangAnnotations/wiki)

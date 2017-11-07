@@ -2,14 +2,23 @@ package generationUtil
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
 
+	"io/ioutil"
+
+	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
+
+type Generator interface {
+	GetAnnotations() []annotation.AnnotationDescriptor
+	Generate(inputDir string, parsedSources model.ParsedSources) error
+}
 
 func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	if len(structs) == 0 {
@@ -24,7 +33,7 @@ func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	return packageName, nil
 }
 
-func GetPackageNameForEnums(enums []model.Enum) (string, error) {
+func getPackageNameForEnums(enums []model.Enum) (string, error) {
 	if len(enums) == 0 {
 		return "", fmt.Errorf("Need at least one enum to determine package-name")
 	}
@@ -44,7 +53,7 @@ func GetPackageNameForEnumsOrStructs(enums []model.Enum, structs []model.Struct)
 	var packageNameEnums, packageNameStructs string
 	var err error
 	if len(enums) > 0 {
-		packageNameEnums, err = GetPackageNameForEnums(enums)
+		packageNameEnums, err = getPackageNameForEnums(enums)
 		if err != nil {
 			return "", err
 		}
@@ -86,12 +95,24 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	baseDir := path.Base(inputDir)
 	if baseDir == "." || baseDir == packageName {
 		return inputDir, nil
-	} else {
-		return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 	}
+	return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 }
 
-func GenerateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
+func GenerateFileFromTemplateFile(data interface{}, srcName string, templateName string, templateFilePath string, funcMap template.FuncMap, targetFileName string) error {
+	goPath := os.Getenv("GOPATH")
+	appPath := goPath + "/src/github.com/MarcGrol/golangAnnotations/"
+
+	cwd, _ := os.Getwd()
+	templateString, err := ioutil.ReadFile(appPath + templateFilePath)
+	if err != nil {
+		log.Printf("Error loading template file from dir %s: %s", cwd, err)
+		return err
+	}
+	return generateFileFromTemplate(data, srcName, templateName, string(templateString), funcMap, targetFileName)
+}
+
+func generateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
 	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", targetFileName, srcName)
 
 	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)
@@ -108,10 +129,7 @@ func GenerateFileFromTemplate(data interface{}, srcName string, templateName str
 	if err != nil {
 		return err
 	}
-
 	defer w.Close()
-	if err := t.Execute(w, data); err != nil {
-		return err
-	}
-	return nil
+
+	return t.Execute(w, data)
 }

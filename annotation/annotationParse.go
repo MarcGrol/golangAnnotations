@@ -28,7 +28,7 @@ func parseAnnotation(line string) (Annotation, error) {
 	s.Init(strings.NewReader(withoutComment))
 
 	var tok rune
-	var currentStatus status = initial
+	currentStatus := initial
 	var attrName string
 
 	for tok != scanner.EOF && currentStatus < done {
@@ -45,7 +45,6 @@ func parseAnnotation(line string) (Annotation, error) {
 		case ')':
 			currentStatus = done
 		case scanner.Ident:
-			//log.Printf("key:%s", s.TokenText())
 			switch currentStatus {
 			case annotationName:
 				annotation.Name = s.TokenText()
@@ -53,7 +52,6 @@ func parseAnnotation(line string) (Annotation, error) {
 				attrName = s.TokenText()
 			}
 		default:
-			//log.Printf("value:%s", s.TokenText())
 			switch currentStatus {
 			case attributeValue:
 				annotation.Attributes[strings.ToLower(attrName)] = strings.Trim(s.TokenText(), "\"")
@@ -62,8 +60,7 @@ func parseAnnotation(line string) (Annotation, error) {
 	}
 
 	if currentStatus != done {
-		return annotation, fmt.Errorf("Invalid completion-status %v for annotation:%s",
-			currentStatus, line)
+		return annotation, fmt.Errorf("Invalid completion-status %v for annotation:%s", currentStatus, line)
 	}
 	return annotation, nil
 }

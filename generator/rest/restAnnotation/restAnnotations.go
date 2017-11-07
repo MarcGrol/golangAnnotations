@@ -21,10 +21,18 @@ const (
 	ParamProducesEvents = "producesevents"
 )
 
-// Register makes the annotation-registry aware of these annotation
-func Register() {
-	annotation.RegisterAnnotation(TypeRestService, []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath}, validateRestServiceAnnotation)
-	annotation.RegisterAnnotation(TypeRestOperation, []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents}, validateRestOperationAnnotation)
+func Get() []annotation.AnnotationDescriptor {
+	return []annotation.AnnotationDescriptor{
+		{
+			Name:       TypeRestService,
+			ParamNames: []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath},
+			Validator:  validateRestServiceAnnotation,
+		},
+		{
+			Name:       TypeRestOperation,
+			ParamNames: []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents},
+			Validator:  validateRestOperationAnnotation,
+		}}
 }
 
 func validateRestOperationAnnotation(annot annotation.Annotation) bool {

@@ -10,8 +10,14 @@ const (
 )
 
 // Register makes the annotation-registry aware of this annotation
-func Register() {
-	annotation.RegisterAnnotation(TypeEvent, []string{ParamAggregate, ParamIsRootEvent, ParamIsTransient}, validateEventAnnotation)
+func Get() []annotation.AnnotationDescriptor {
+	return []annotation.AnnotationDescriptor{
+		{
+			Name:       TypeEvent,
+			ParamNames: []string{ParamAggregate, ParamIsRootEvent, ParamIsTransient},
+			Validator:  validateEventAnnotation,
+		},
+	}
 }
 
 func validateEventAnnotation(annot annotation.Annotation) bool {

@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/rest/restAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -14,6 +13,7 @@ import (
 func cleanup() {
 	os.Remove("./testData/$httpMyEventService.go")
 	os.Remove("./testData/$eventHandler.go")
+	os.Remove("./testData/$eventHandlerHelpers_test.go")
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -42,7 +42,7 @@ func TestGenerateForWeb(t *testing.T) {
 		},
 	}
 
-	err := Generate("testData", model.ParsedSources{Structs: s})
+	err := NewGenerator().Generate("testData", model.ParsedSources{Structs: s})
 	assert.Nil(t, err)
 
 	// check that generated files exisst
@@ -53,11 +53,10 @@ func TestGenerateForWeb(t *testing.T) {
 	data, err := ioutil.ReadFile("./testData/$eventHandler.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, es.handleEvent)`)
-	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, credentials rest.Credentials, topic string, envelope envelope.Envelope) {`)
+	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {`)
 }
 
 func TestIsRestService(t *testing.T) {
-	restAnnotation.Register()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me")`},
@@ -66,7 +65,6 @@ func TestIsRestService(t *testing.T) {
 }
 
 func TestGetEventServiceSelf(t *testing.T) {
-	restAnnotation.Register()
 	s := model.Struct{
 		DocLines: []string{
 			`//@EventService( self = "me" )`},
@@ -87,7 +85,6 @@ func TestGetInputArgTypePerson(t *testing.T) {
 }
 
 func createOper() model.Operation {
-	restAnnotation.Register()
 	o := model.Operation{
 		DocLines: []string{
 			fmt.Sprintf("//@EventOperation( topic = \"other1\" )"),

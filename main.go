@@ -8,12 +8,17 @@ import (
 	"log"
 	"os"
 
-	"github.com/MarcGrol/golangAnnotations/generator"
+	"github.com/MarcGrol/golangAnnotations/generator/event"
+	"github.com/MarcGrol/golangAnnotations/generator/eventService"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
 const (
-	VERSION = "0.7"
+	version = "0.7"
 )
 
 var (
@@ -23,7 +28,7 @@ var (
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
@@ -39,7 +44,7 @@ func main() {
 		panic(err)
 	}
 
-	generator.RunAllGenerators(*inputDir, parsedSources)
+	runAllGenerators(*inputDir, parsedSources)
 
 	os.Exit(0)
 }
@@ -53,7 +58,7 @@ func printUsage() {
 }
 
 func printVersion() {
-	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", VERSION)
+	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", version)
 	os.Exit(1)
 }
 
@@ -73,4 +78,19 @@ func processArgs() {
 	if inputDir == nil || *inputDir == "" {
 		printUsage()
 	}
+}
+
+func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
+	for name, g := range map[string]generationUtil.Generator{
+		"event":         event.NewGenerator(),
+		"event-service": eventService.NewGenerator(),
+		"json-helpers":  jsonHelpers.NewGenerator(),
+		"rest":          rest.NewGenerator(),
+	} {
+		err := g.Generate(inputDir, parsedSources)
+		if err != nil {
+			return fmt.Errorf("Error generating module %s: %s", name, err)
+		}
+	}
+	return nil
 }

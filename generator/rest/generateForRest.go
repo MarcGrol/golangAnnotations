@@ -14,12 +14,22 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return restAnnotation.Get()
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
 	return generate(inputDir, parsedSource.Structs)
 }
 
 func generate(inputDir string, structs []model.Struct) error {
-	restAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
@@ -29,43 +39,69 @@ func generate(inputDir string, structs []model.Struct) error {
 	if err != nil {
 		return err
 	}
+
 	for _, service := range structs {
 		if IsRestService(service) {
-			{
-				target := fmt.Sprintf("%s/$http%s.go", targetDir, service.Name)
-				err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "handlers", handlersTemplate, customTemplateFuncs, target)
+			err = generateHttpService(targetDir, packageName, service)
+			if err != nil {
+				return err
+			}
+
+			if !IsRestServiceNoTest(service) {
+				err = generateHttpTestHelpers(targetDir, packageName, service)
 				if err != nil {
-					log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
+					return err
+				}
+				err = generateHttpTestService(targetDir, packageName, service)
+				if err != nil {
+					return err
+				}
+				err = generateHttpClient(targetDir, packageName, service)
+				if err != nil {
 					return err
 				}
 			}
-			if !IsRestServiceNoTest(service) {
-				{
-					target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "helpers", helpersTemplate, customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-				{
-					target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "testService", testServiceTemplate, customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-				{
-					target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, service.Name)
-					err = generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, service.Name), "httpClient", httpClientTemplate, customTemplateFuncs, target)
-					if err != nil {
-						log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
-						return err
-					}
-				}
-			}
 		}
+	}
+	return nil
+}
+
+func generateHttpService(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$http%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-handlers", "generator/rest/httpHandlers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating handlers for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpTestHelpers(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$http%sHelpers_test.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "test-helpers", "generator/rest/testHelpers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating helpers for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpTestService(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "testService", "generator/rest/testService.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)
+		return err
+	}
+	return nil
+}
+
+func generateHttpClient(targetDir, packageName string, service model.Struct) error {
+	target := fmt.Sprintf("%s/$httpClientFor%s.go", targetDir, ToFirstUpper(service.Name))
+	err := generationUtil.GenerateFileFromTemplateFile(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "http-client", "generator/rest/httpClient.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating httpClient for service %s: %s", service.Name, err)
+		return err
 	}
 	return nil
 }
@@ -122,7 +158,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetContextName":                        GetContextName,
 	"WithBackTicks":                         SurroundWithBackTicks,
 	"BackTick":                              BackTick,
-	"ToFirstUpper":                          toFirstUpper,
+	"ToFirstUpper":                          ToFirstUpper,
 }
 
 func BackTick() string {
@@ -134,19 +170,28 @@ func SurroundWithBackTicks(body string) string {
 }
 
 func IsRestService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
 }
 
+func IsRestServiceUnprotected(s model.Struct) bool {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
+	return ok && ann.Attributes[restAnnotation.ParamProtected] != "true"
+}
+
 func GetRestServicePath(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
 func GetExtractCredentialsMethod(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
 		case "all":
 			return "rest.ExtractAllCredentials"
@@ -160,21 +205,16 @@ func GetExtractCredentialsMethod(s model.Struct) string {
 }
 
 func IsRestServiceNoValidation(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
 	}
 	return false
 }
 
-func IsRestServiceUnprotected(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
-		return ann.Attributes[restAnnotation.ParamProtected] == "false"
-	}
-	return false
-}
-
 func IsRestServiceNoTest(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		return ann.Attributes[restAnnotation.ParamNoTest] == "true"
 	}
 	return false
@@ -227,12 +267,14 @@ func HasOperationsWithInput(s model.Struct) bool {
 }
 
 func IsRestOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	_, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
 
 func IsRestOperationNoWrap(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamNoWrap] == "true"
 	}
 	return false
@@ -243,24 +285,26 @@ func IsRestOperationGenerated(o model.Operation) bool {
 }
 
 func HasRestOperationAfter(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamAfter] == "true"
 	}
 	return false
 }
 
 func GetRestOperationPath(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamPath]
 	}
 	return ""
 }
 
 func HasAnyPathParam(o model.Operation) bool {
-	return len(GetAllPathParams(o)) > 0
+	return len(getAllPathParams(o)) > 0
 }
 
-func GetAllPathParams(o model.Operation) []string {
+func getAllPathParams(o model.Operation) []string {
 	re, _ := regexp.Compile(`\{\w+\}`)
 	path := GetRestOperationPath(o)
 	params := re.FindAllString(path, -1)
@@ -271,21 +315,24 @@ func GetAllPathParams(o model.Operation) []string {
 }
 
 func GetRestOperationMethod(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamMethod]
 	}
 	return ""
 }
 
 func IsRestOperationForm(o model.Operation) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamForm] == "true"
 	}
 	return false
 }
 
 func GetRestOperationFormat(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFormat]
 	}
 	return ""
@@ -341,7 +388,8 @@ func GetContentType(operation model.Operation) string {
 }
 
 func GetRestOperationFilename(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		return ann.Attributes[restAnnotation.ParamFilename]
 	}
 	return ""
@@ -356,7 +404,8 @@ func GetRestOperationRolesString(o model.Operation) string {
 }
 
 func GetRestOperationRoles(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if rolesAttr, ok := ann.Attributes[restAnnotation.ParamRoles]; ok {
 			roles := strings.Split(rolesAttr, ",")
 			for i, r := range roles {
@@ -373,11 +422,12 @@ func GetRestOperationProducesEvents(o model.Operation) string {
 }
 
 func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
-			for _, evt := range strings.Split(attrs, ",") {
-				evt := strings.TrimSpace(evt)
+			for _, e := range strings.Split(attrs, ",") {
+				evt := strings.TrimSpace(e)
 				if evt != "" {
 					eventsProduced = append(eventsProduced, evt)
 				}
@@ -467,7 +517,7 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 	if IsContextArg(arg) || IsCredentialsArg(arg) {
 		return false
 	}
-	for _, pathParam := range GetAllPathParams(o) {
+	for _, pathParam := range getAllPathParams(o) {
 		if pathParam == arg.Name {
 			return false
 		}
@@ -522,7 +572,7 @@ func HasMetaOutput(o model.Operation) bool {
 	var count = 0
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			count += 1
+			count++
 			if count == 2 {
 				return true
 			}
@@ -544,9 +594,8 @@ func GetOutputArgDeclaration(o model.Operation) string {
 			if arg.IsSlice {
 				return fmt.Sprintf("[]%s%s{}", pointer, arg.TypeName)
 
-			} else {
-				return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
 			}
+			return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
 		}
 	}
 	return ""
@@ -584,7 +633,8 @@ func RequiresParamValidation(o model.Operation) bool {
 }
 
 func IsInputArgMandatory(o model.Operation, arg model.Field) bool {
-	ann, ok := annotation.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	if !ok {
 		return false
 	}
@@ -633,708 +683,8 @@ func IsStringArg(f model.Field) bool {
 	return f.TypeName == "string"
 }
 
-func toFirstUpper(in string) string {
+func ToFirstUpper(in string) string {
 	a := []rune(in)
 	a[0] = unicode.ToUpper(a[0])
 	return string(a)
 }
-
-var handlersTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"log"
-	"net/http"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
-)
-
-{{ $structName := .Name }}
-
-var (
-	preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
-	postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, credentials rest.Credentials) {}
-)
-
-// HTTPHandler registers endpoint in new router
-func (ts *{{.Name}}) HTTPHandler() http.Handler {
-	router := mux.NewRouter().StrictSlash(true)
-	return ts.HTTPHandlerWithRouter(router)
-}
-
-// HTTPHandlerWithRouter registers endpoint in existing router
-func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
-	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
-
-	{{range .Operations}}
-		{{if IsRestOperation . }}
-			subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
-		{{end}}
-	{{end}}
-
-	return router
-}
-
-{{ $extractCredentialsMethod := GetExtractCredentialsMethod . }}
-{{ $noValidation := IsRestServiceNoValidation . }}
-
-{{range $idxOper, $oper := .Operations}}
-
-{{if IsRestOperation $oper}}
-{{if IsRestOperationGenerated . }}
-// {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var err error
-
-		{{if NeedsContext $oper }}
-			{{GetContextName $oper}} := ctx.New.CreateContext(r)
-
-			preLogicHook( c, w, r )
-		{{else}}
-			preLogicHook( nil, w, r )
-		{{end}}
-
-		credentials := {{ $extractCredentialsMethod }}(c, r)
-		{{if (not $noValidation) and (HasCredentials $oper) }}
-			err = validateCredentials(c, credentials, {{GetRestOperationRolesString $oper}})
-			if err != nil {
-				rest.HandleHttpError(c, credentials, err, w, r)
-				return
-			}
-		{{end}}
-
-		{{if HasAnyPathParam $oper }}
-			pathParams := mux.Vars(r)
-			if len(pathParams) > 0 {
-				log.Printf("pathParams:%+v", pathParams)
-			}
-		{{end}}
-
-		{{if RequiresParamValidation .}}
-		// extract url-params
-	    validationErrors := []errorh.FieldError{}
-	    {{end}}
-		{{range .InputArgs}}
-			{{if IsPrimitiveArg . }}
-				{{if IsNumberArg . }}
-					{{.Name}} := 0
-					{{if IsRestOperationForm $oper }}
-						{{.Name}}String := r.FormValue("{{.Name}}")
-						if {{.Name}}String == "" {
-					{{else if IsQueryParam $oper . }}
-						{{if IsSliceParam . }}
-							{{.Name}}String, ok := r.URL.Query()["{{.Name}}"]
-							if !ok {
-						{{else}}
-							{{.Name}}String := r.URL.Query().Get("{{.Name}}")
-							if {{.Name}}String == "" {
-						{{end}}
-					{{else}}
-						{{.Name}}String, exists := pathParams["{{.Name}}"]
-						if !exists {
-					{{end}}
-					{{if IsInputArgMandatory $oper .}}
-						validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
-					{{else}}
-						// optional parameter
-					{{end}}
-					} else {
-						{{.Name}}, err = strconv.Atoi({{.Name}}String)
-						if err != nil {
-							validationErrors = append(validationErrors, errorh.FieldErrorForInvalidParameter("{{.Name}}"))
-						}
-					 }
-				{{else}}
-					{{if IsRestOperationForm $oper }}
-						{{.Name}} := r.FormValue("{{.Name}}")
-						if {{.Name}} == "" {
-					{{else if IsQueryParam $oper . }}
-						{{if IsSliceParam . }}
-							{{.Name}} := r.URL.Query()["{{.Name}}"]
-							if len({{.Name}}) == 0 {
-						{{else}}
-							{{.Name}} := r.URL.Query().Get("{{.Name}}")
-							if {{.Name}} == "" {
-						{{end}}
-					{{else}}
-						{{.Name}}, exists := pathParams["{{.Name}}"]
-						if !exists {
-					{{end}}
-						{{if IsInputArgMandatory $oper .}}
-							validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
-					  	{{else}}
-					  		// optional parameter
-						 {{end}}
-						}
-					{{end}}
-				{{end}}
-
-		{{end}}
-
-		{{if RequiresParamValidation .}}
-        if len(validationErrors) > 0 {
-            rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
-            return
-        }
-        {{end}}
-
-		{{if HasUpload . }}
-			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
-			if err != nil {
-				rest.HandleHttpError(c, credentials, err, w, r)
-				return
-			}
-		{{else if HasInput . }}
-			// read and parse request body
-			var {{GetInputArgName . }} {{GetInputArgType . }}
-			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
-			if err != nil {
-				rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
-				return
-			}
-		{{end}}
-
-		// call business logic
-		{{if HasMetaOutput . }}
-			result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
-		{{else if HasOutput . }}
-			result, err := service.{{$oper.Name}}({{GetInputParamString . }})
-		{{else}}
-			err = service.{{$oper.Name}}({{GetInputParamString . }})
-		{{end}}
-		if err != nil {
-			rest.HandleHttpError(c, credentials, err, w, r)
-			return
-		}
-		{{if HasMetaOutput . }}
-			if meta != nil {
-				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
-				if err != nil {
-					rest.HandleHttpError(c, credentials, err, w, r)
-					return
-				}
-			}
-		{{end}}
-
-		{{if HasRestOperationAfter . }}
-			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
-			if err != nil {
-				rest.HandleHttpError(c, credentials, err, w, r)
-				return
-			}
-		{{end}}
-
-		{{if NeedsContext $oper }}
-			postLogicHook( c, w, r, credentials )
-		{{else}}
-			postLogicHook( nil, w, r, credentials )
-		{{end}}
-
-		// write OK response body
-		{{if HasContentType .}}
-			w.Header().Set("Content-Type", "{{GetContentType .}}")
-		{{end}}
-		{{if IsRestOperationJSON .}}
-			{{if HasOutput . }}
-				err = json.NewEncoder(w).Encode(result)
-				if err != nil {
-					log.Printf("Error encoding response payload %+v", err)
-				}
-			{{end}}
-		{{else if IsRestOperationHTML .}}
-			{{if HasOutput . }}err = service.{{$oper.Name}}WriteHTML(w, result){{else}}err = service.{{$oper.Name}}WriteHTML(w){{end}}
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
-		{{else if IsRestOperationCSV .}}
-			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
-			{{if HasOutput . }}err = service.{{$oper.Name}}WriteCSV(w, result){{else}}err = {{$oper.Name}}WriteCSV(w){{end}}
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
-		{{else if IsRestOperationTXT .}}
-			_, err = fmt.Fprint(w, result)
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
-		{{else if IsRestOperationMD .}}
-			_, err = fmt.Fprint(w, result)
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
-		{{else if IsRestOperationNoContent .}}
-			w.WriteHeader(http.StatusNoContent)
-		{{else if IsRestOperationCustom .}}
-			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
-		{{else}}
-			errorh.NewInternalErrorf(0, "Not implemented")
-		{{end}}
-      }
- }
-{{else}}
- // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		{{if NeedsContext $oper }}{{GetContextName $oper}} := ctx.New.CreateContext(r){{end}}
-		service.{{$oper.Name}}({{GetInputParamString . }})
-	}
-}
-{{end}}
-{{end}}
-{{end}}
-
-`
-
-var helpersTemplate string = `
-// +build !appengine
-
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"os"
-	"sort"
-	"strings"
-	"testing"
-
-	"golang.org/x/net/context"
-
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-)
-
-{{ $structName := .Name }}
-
-var (
-    logFp *os.File
-    setCookieHook = func(r *http.Request, headers map[string]string) {}
-	eventsForOperations = map[string]map[string]bool{}
-)
-
-func openfile( filename string) *os.File {
-	fp, err := os.Create(filename)
-	if err != nil {
-		log.Fatalf("Error opening rest-dump-file %s: %s", filename, err.Error())
-	}
-	return fp
-}
-
-func TestMain(m *testing.M) {
-
-	dirname := "{{.PackageName}}TestLog"
-	if _, err := os.Stat(dirname); os.IsNotExist(err) {
-    	os.Mkdir(dirname, os.ModePerm)
-	}
-	logFp = openfile(dirname + "/$testResults.go")
-	defer func() {
-		logFp.Close()
-	}()
-	fmt.Fprintf(logFp, "package %s\n\n", dirname )
-	fmt.Fprintf(logFp, "// Generated automatically based on running of api-tests\n\n" )
-	fmt.Fprintf(logFp, "import \"github.com/MarcGrol/golangAnnotations/generator/rest/testcase\"\n")
-
-	fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
-	fmt.Fprintf(logFp, "\tPackage: \"{{.PackageName}}\",\n")
-	fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
-
-	beforeAll()
-
-	code := m.Run()
-
-    afterAll()
-
-	fmt.Fprintf(logFp, "},\n" )
-	fmt.Fprintf(logFp, "}\n" )
-
-	log.Printf("events-for-operations")
-	for operationName, events := range eventsForOperations {
-		log.Printf("operation: %s -> \"%s\"", operationName, mapToList(events))
-	}
-
-	os.Exit(code)
-}
-
-var beforeAll = defaultBeforeAll
-func defaultBeforeAll() {
-	mytime.SetMockNow()
-}
-
-var afterAll = defaultAfterAll
-func defaultAfterAll() {
-    mytime.SetDefaultNow()
-}
-
-func testCase(name string, description string) {
-	fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")
-	fmt.Fprintf(logFp, "\t\tName:\"%s\",\n", name)
-	fmt.Fprintf(logFp, "\t\tDescription:\"%s\",\n", description)
-}
-
-func testCaseDone() {
-	fmt.Fprintf(logFp, "},\n")
-}
-
-func logOperationEvents(c context.Context, operationName string, allowedEvents []string) func(t *testing.T,c context.Context) {
-	eventsBeforeTest := collectBefore(c)
-	return func(t *testing.T, c context.Context) {
-		collectDelta(t, c, operationName, eventsBeforeTest, allowedEvents)
-	}
-}
-
-func collectBefore(c context.Context) []envelope.Envelope {
-	fmt.Fprintf(logFp, "\tPreConditions: []string{\n")
-	eventsBefore := []envelope.Envelope{}
-	eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
-		eventsBefore = append(eventsBefore, e)
-		fmt.Fprintf(logFp, "\"%s\",\n", fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
-		return nil
-	})
-	fmt.Fprintf(logFp, "\t},\n")
-
-	return eventsBefore
-}
-
-func collectDelta(t *testing.T, c context.Context, operationName string, eventsBefore []envelope.Envelope, allowedEvents []string) []envelope.Envelope {
-
-	after := []envelope.Envelope{}
-	eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
-		after = append(after, e)
-		return nil
-	})
-
-	events, found := eventsForOperations[operationName]
-	if !found {
-		events = map[string]bool{}
-	}
-
-	fmt.Fprintf(logFp, "\tPostConditions: []string{\n")
-
-	createdDuringTest := after[len(eventsBefore):]
-	for _, e := range createdDuringTest {
-		eventName := fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)
-		events[eventName] = true
-		if !isEventAllowed(allowedEvents, eventName) {
-			t.Fatalf("Event '%s' is NOT allowed as result of operation '%s' (allowed: %+v)", eventName, operationName, allowedEvents)
-		}
-		fmt.Fprintf(logFp, "\"%s\",\n", eventName)
-	}
-	fmt.Fprintf(logFp, "\t},\n")
-
-	eventsForOperations[operationName] = events
-
-	return createdDuringTest
-}
-
-func mapToList(in map[string]bool) string {
-	out := []string{}
-	for e, _ := range in {
-		out = append(out, e)
-	}
-	return strings.Join(out, ",")
-}
-
-func isEventAllowed(allowedEventNames []string, anEventName string) bool {
-	for _, e := range allowedEventNames {
-		if anEventName == e {
-			return true
-		}
-	}
-	return false
-}
-
-
-{{range .Operations}}
-
-{{if IsRestOperation . }}
-func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-	return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
-}
-
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-	fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
-	defer func() {
-		fmt.Fprintf(logFp, "\t},\n")
-	}()
-
-	testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
-	defer testcaseCompletion(t, c)
-
-
-	recorder := httptest.NewRecorder()
-
-	{{if HasUpload . }}
-		{{.Name}}SetUpload(input)
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
-	{{else if IsRestOperationForm . }}
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	{{else if HasInput . }}
-		rb, _ := json.Marshal(input)
-		// indent for readability
-		var requestBody bytes.Buffer
-		json.Indent(&requestBody, rb, "", "\t")
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
-	{{else}}
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
-	{{end}}
-	if err != nil {
-		{{if IsRestOperationJSON . }}
-			{{if HasOutput . }} return 0, nil, nil, err{{else}}return 0, nil, err{{end}}
-		{{else}}return nil, err{{end}}
-	}
-	req.RequestURI = url
-	{{if HasUpload . }}
-	{{else if HasInput . }}
-		req.Header.Set("Content-type", "application/json")
-	{{end}}
-	{{if HasOutput . }}
-		req.Header.Set("Accept", "application/json")
-	{{end}}
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-	setCookieHook(req, headers)
-
-	headersToBeSorted := []string{}
-	for key, values := range req.Header {
-		for _, value := range values {
-			headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
-		}
-	}
-	sort.Strings(headersToBeSorted)
-
-	fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
-	fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
-	fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", url)
-	fmt.Fprintf(logFp, "\tHeaders: []string{\n")
-	for _, h := range headersToBeSorted {
-		fmt.Fprintf(logFp, "\"%s\",\n", h)
-	}
-	fmt.Fprintf(logFp, "\t},\n")
-
-	{{if HasUpload . }}
-	{{else if HasInput . }}
-		fmt.Fprintf(logFp, "\tBody:\n" )
-		fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
-		fmt.Fprintf(logFp, ",\n" )
-	{{end}}
-	fmt.Fprintf(logFp, "},\n")
-
-	// dump readable request
-	//payload, err := httputil.DumpRequest(req, true)
-
-	fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
-	defer func() {
-		fmt.Fprintf(logFp, "\t},\n")
-	}()
-
-	webservice := {{$structName}}{}
-	webservice.HTTPHandler().ServeHTTP(recorder, req)
-
-	{{if IsRestOperationJSON . }}
-		// dump readable response
-		var responseBody bytes.Buffer
-		json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
-	{{end}}
-
-	fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
-
-	headersToBeSorted = []string{}
-	for key, values := range recorder.Header() {
-		for _, value := range values {
-			headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
-		}
-	}
-	sort.Strings(headersToBeSorted)
-
-	fmt.Fprintf(logFp, "\tHeaders:[]string{\n")
-	for _, h := range headersToBeSorted {
-		fmt.Fprintf(logFp, "\"%s\",\n", h)
-	}
-	fmt.Fprintf(logFp, "\t},\n")
-	fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
-
-	{{if IsRestOperationJSON . }}
-		{{if HasOutput . }}
-			if recorder.Code != http.StatusOK {
-				// return error response
-				var errorResp errorh.Error
-				dec := json.NewDecoder(recorder.Body)
-				err = dec.Decode(&errorResp)
-				if err != nil {
-					return recorder.Code, nil, nil, err
-				}
-				return recorder.Code, nil, &errorResp, nil
-			}
-
-			// return success response
-			resp := {{GetOutputArgDeclaration . }}
-			dec := json.NewDecoder(recorder.Body)
-			err = dec.Decode({{GetOutputArgName . }})
-			if err != nil {
-				return recorder.Code, nil, nil, err
-			}
-			return recorder.Code, resp, nil, nil
-		{{else}}
-			return recorder.Code, nil, nil
-		{{end}}
-	{{else}}
-		return recorder, nil
-	{{end}}
-}
-{{end}}
-{{end}}
-`
-
-var httpClientTemplate string = `
-// +build !appengine
-
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"encoding/json"
-	"net/http"
-	"net/http/httputil"
-	"strings"
-	"time"
-	"golang.org/x/net/context"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-)
-
-{{ $structName := .Name }}
-
-var debug = false
-
-type HTTPClient struct {
-	hostName string
-}
-
-func NewHTTPClient(host string) *HTTPClient {
-	return &HTTPClient{
-		hostName: host,
-	}
-}
-
-{{range .Operations}}
-
-{{if IsRestOperation . }}
-{{if IsRestOperationJSON . }}
-
-// {{ToFirstUpper .Name}} can be used by external clients to interact with the system
-func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string, timeout time.Duration)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
-
-	{{if HasInput . }}
-		requestBody, _ := json.Marshal(input)
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, strings.NewReader(string(requestBody)))
-	{{else}}
-		req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, nil)
-	{{end}}
-	if err != nil {
-		{{if HasOutput . }} return 0, nil, nil, err
-		{{else}} return 0,  nil, err
-		{{end}}
-	}
-	if cookie != nil {
-		req.AddCookie(cookie)
-	}
-	if requestUID != "" {
-		req.Header.Set("X-request-uid", requestUID)
-	}
-	{{if HasInput . }}
-		req.Header.Set("Content-type", "application/json")
-	{{end}}
-	{{if HasOutput . }}
-		req.Header.Set("Accept", "application/json")
-	{{end}}
-	req.Header.Set("X-CSRF-Token", "true")
-
-    if debug {
-		dump, err := httputil.DumpRequest(req, true)
-		if err == nil {
-			mylog.New().Debug(ctx, "HTTP request-payload:\n %s", dump)
-		}
-    }
-
-	cl := http.Client{}
-	cl.Timeout = timeout
-	res, err := cl.Do(req)
-	if err != nil {
-	{{if HasOutput . }}
-		return -1, nil, nil, err
-	{{else}}
-		return -1	, nil, nil
-	{{end}}
-	}
-	defer res.Body.Close()
-
-	if debug {
-		respDump, err := httputil.DumpResponse(res, true)
-		if err == nil {
-			mylog.New().Debug(ctx,"HTTP response-payload:\n%s", string(respDump))
-		}
-	}
-
-	{{if HasOutput . }}
-		if res.StatusCode >= http.StatusMultipleChoices {
-		    // return error response
-			var errorResp errorh.Error
-			dec := json.NewDecoder(res.Body)
-			err = dec.Decode(&errorResp)
-			if err != nil {
-				return res.StatusCode, nil, nil, err
-			}
-			return res.StatusCode, nil, &errorResp, nil
-		}
-
-		// return success response
-		resp := {{GetOutputArgDeclaration . }}
-		dec := json.NewDecoder(res.Body)
-		err = dec.Decode({{GetOutputArgName . }})
-		if err != nil {
-			return res.StatusCode, nil, nil, err
-		}
-		return res.StatusCode, resp, nil, nil
-
-	{{else}}
-		return res.StatusCode, nil, nil
-	{{end}}
-}
-{{end}}
-{{end}}
-{{end}}
-`
-
-var testServiceTemplate = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
-	"github.com/gorilla/mux"
-)
-
-// HTTPTestHandlerWithRouter registers endpoint in existing router
-func HTTPTestHandlerWithRouter(router *mux.Router, results testcase.TestSuiteDescriptor) *mux.Router {
-	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
-
-	subRouter.HandleFunc("/logs.md", testcase.WriteTestLogsAsMarkdown(results)).Methods("GET")
-
-	return router
-}
-
-`

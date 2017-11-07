@@ -13,12 +13,27 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return eventServiceAnnotation.Get()
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
 	return generate(inputDir, parsedSource.Structs)
 }
 
+type templateData struct {
+	PackageName string
+	Services    []model.Struct
+}
+
 func generate(inputDir string, structs []model.Struct) error {
-	eventServiceAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
@@ -36,35 +51,38 @@ func generate(inputDir string, structs []model.Struct) error {
 		}
 	}
 
-	templateData := struct {
-		PackageName string
-		Services    []model.Struct
-	}{
+	if len(eventServices) == 0 {
+		return nil
+	}
+
+	data := templateData{
 		PackageName: packageName,
 		Services:    eventServices,
 	}
+	return dogenerate(targetDir, packageName, eventServices, data)
+}
 
-	if len(eventServices) > 0 {
-		target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
-		err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "handlers", handlersTemplate, customTemplateFuncs, target)
-		if err != nil {
-			log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
-			return err
-		}
+func dogenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
 
-		for _, eventService := range eventServices {
-			if !IsEventServiceNoTest(eventService) {
-				target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
-				err = generationUtil.GenerateFileFromTemplate(templateData, packageName, "testHandlers", handlersTestTemplate, customTemplateFuncs, target)
-				if err != nil {
-					log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
-					return err
-				}
-				break
-			}
-		}
-
+	target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
+	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "event-handlers", "generator/eventService/handlers.go.tmpl", customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
+		return err
 	}
+
+	for _, eventService := range eventServices {
+		if !IsEventServiceNoTest(eventService) {
+			target = fmt.Sprintf("%s/$eventHandlerHelpers_test.go", targetDir)
+			err = generationUtil.GenerateFileFromTemplateFile(data, packageName, "test-handlers", "generator/eventService/testHandlers.go.tmpl", customTemplateFuncs, target)
+			if err != nil {
+				log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
+				return err
+			}
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -82,15 +100,18 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 	"IsAsyncAsString":                 IsAsyncAsString,
 	"IsEventNotTransient":             IsEventNotTransient,
+	"ToFirstUpper":                    ToFirstUpper,
 }
 
 func IsEventService(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
 }
 
 func IsAsync(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
 		if found && syncString == "true" {
 			return true
@@ -108,7 +129,7 @@ func IsAsyncAsString(s model.Struct) string {
 
 func IsEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
 			return !strings.Contains(arg.TypeName, "Discovered")
 		}
@@ -117,25 +138,28 @@ func IsEventNotTransient(o model.Operation) bool {
 }
 
 func IsEventServiceNoTest(s model.Struct) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamNoTest] == "true"
 	}
 	return false
 }
 
 func GetEventServiceSelfName(s model.Struct) string {
-	if ann, ok := annotation.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamSelf]
 	}
 	return ""
 }
 
 func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
 			eventsProduced := []string{}
-			for _, evt := range strings.Split(attrs, ",") {
-				evt := strings.TrimSpace(evt)
+			for _, e := range strings.Split(attrs, ",") {
+				evt := strings.TrimSpace(e)
 				if evt != "" {
 					eventsProduced = append(eventsProduced, evt)
 				}
@@ -176,12 +200,14 @@ operations:
 }
 
 func IsEventOperation(o model.Operation) bool {
-	_, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	_, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation)
 	return ok
 }
 
 func GetEventOperationTopic(o model.Operation) string {
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		return ann.Attributes[eventServiceAnnotation.ParamTopic]
 	}
 	return ""
@@ -217,10 +243,11 @@ operations:
 
 func GetEventOperationProcess(o model.Operation) string {
 	process := ""
-	if ann, ok := annotation.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		process = ann.Attributes[eventServiceAnnotation.ParamProcess]
 		if process != "" {
-			return toFirstUpper(process)
+			return ToFirstUpper(process)
 		}
 	}
 	return "Default"
@@ -228,7 +255,7 @@ func GetEventOperationProcess(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -238,243 +265,35 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
 	}
 	return ""
 }
-func IsContextArg(f model.Field) bool {
+func isContextArg(f model.Field) bool {
 	return f.TypeName == "context.Context"
 }
 
-func IsCredentialsArg(f model.Field) bool {
+func isCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return IsNumberArg(f) || IsStringArg(f)
+	return isNumberArg(f) || isStringArg(f)
 }
 
-func IsNumberArg(f model.Field) bool {
+func isNumberArg(f model.Field) bool {
 	return f.TypeName == "int"
 }
 
-func IsStringArg(f model.Field) bool {
+func isStringArg(f model.Field) bool {
 	return f.TypeName == "string"
 }
 
-func toFirstUpper(in string) string {
+func ToFirstUpper(in string) string {
 	a := []rune(in)
 	a[0] = unicode.ToUpper(a[0])
 	return string(a)
 }
-
-var handlersTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"golang.org/x/net/context"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	"github.com/gorilla/mux"
-)
-
-{{range $idxService, $service := .Services}}
-
-{{ $structName := .Name }}
-
-func (es *{{$structName}}) SubscribeToEvents(router *mux.Router) {
-
-	const subscriber = "{{GetEventServiceSelfName .}}"
-	{{ $serviceName := GetEventServiceSelfName $service }}
-	{{range GetEventServiceTopics .}}
-	{
-		// Subscribe to topic "{{.}}"
-	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
-		{{if IsAsync $service }}router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST"){{end}}
-	}
-	{{end}}
-}
-
-{{if IsAsync .}}
-
-func (es *{{$structName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
-	switch envlp.EventTypeName {
-	{{range $queueGroup := (GetEventOperationQueueGroups .)}}
-	case  {{range $idx, $event := $queueGroup.Events}}{{if $idx}},{{end}}{{$event}}EventName{{end}}:
-		return myqueue.ProcessType{{$queueGroup.Process}}
-	{{end}}
-	default: return myqueue.ProcessTypeDefault
-	}
-}
-
-func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
-	switch envlp.EventTypeName {
-	case {{range $idxOper, $oper := .Operations}}{{if IsEventOperation $oper}}{{if $idxOper}},{{end}}{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName{{end}}{{end}}:
-
-		taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
-
-		asJson, err := json.Marshal(envlp)
-		if err != nil {
-			msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-			myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-			return
-		}
-
-		err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), queue.Task{
-			Method:  "POST",
-			URL:     taskUrl,
-			Payload: asJson,
-		})
-		if err != nil {
-			msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-			myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-			return
-		}
-		mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
-	}
-}
-
-func (es *{{$structName}}) httpHandleEventAsync() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := ctx.New.CreateContext(r)
-
-		credentials := rest.Credentials{RequestURI: r.RequestURI}
-
-		// read and parse request body
-		var envlp envelope.Envelope
-		err := json.NewDecoder(r.Body).Decode(&envlp)
-		if err != nil {
-			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
-			return
-		}
-		credentials.SessionUID = envlp.SessionUID
-		es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
-	}
-}
-
-func (es *{{$structName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
-{{else}}
-func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
-{{end}}
-	const subscriber = "{{GetEventServiceSelfName .}}"
-
-    {{range $idxOper, $oper := .Operations}}
-	{{if IsEventOperation $oper}}
-	{
-	    evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
-	    if found {
-			mylog.New().Debug(c, "-->> As %s: Start handling '%s' for '%s/%s'",
-				subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
-		    err := es.{{$oper.Name}}(c, credentials, *evt)
-		    if err != nil {
-				msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
-					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
-				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-			} else {
-				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
-					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
-			}
-	    }
-	}
-	{{end}}
-{{end}}
-}
-{{end}}
-`
-
-var handlersTestTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"golang.org/x/net/context"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
-	"github.com/gorilla/mux"
-)
-
-{{range $idxService, $service := .Services}}
-
-   {{if not (IsEventServiceNoTest .) }}
-
-   {{ $struct := . }}
-   {{ $structName := .Name }}
-
-   {{range $idxOper, $oper := .Operations}}
-		{{if IsEventOperation $oper}}
-
-		func {{$oper.Name}}In{{$service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
-			{{if IsEventNotTransient $oper}}
-			{
-				err := store.StoreEvent{{GetInputArgType $oper}}(c, creds, &event)
-				if err != nil {
-					t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-				}
-			}
-			{{end}}
-
-			envlp, err := event.Wrap(creds.SessionUID)
-			if err != nil {
-				t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-			}
-
-			eventsBefore := getEvents(c, creds)
-
-			es.handleEvent{{IsAsyncAsString $struct}}(c, creds, "caregiver", *envlp)
-
-			eventsAfter := getEvents(c, creds)
-			delta :=  getEventsDelta(eventsBefore, eventsAfter)
-			verifyAllowed(t, {{GetEventOperationProducesEvents $oper}},delta)
-
-			return delta
-		}
-		{{end}}
-
-    {{end}}
-
-	{{end}}
-
-{{end}}
-
-func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
-	eventsBefore := []envelope.Envelope{}
-	eventStore.Mocked().IterateAll(c, creds, func(e envelope.Envelope) error {
-		eventsBefore = append(eventsBefore, e)
-		return nil
-	})
-	return eventsBefore
-}
-
-func getEventsDelta(before, after []envelope.Envelope) []envelope.Envelope {
-	return after[len(before):]
-}
-
-func verifyAllowed(t *testing.T, allowedNames []string, delta []envelope.Envelope) {
-	for _, e := range delta {
-		if !isAllowed(allowedNames, e) {
-			t.Fatalf("Event %s.%s is not allowed", e.AggregateName, e.EventTypeName)
-		}
-	}
-}
-
-func isAllowed(allowedEventNames []string, envlp envelope.Envelope) bool {
-	for _, name := range allowedEventNames {
-		if name == fmt.Sprintf("%s.%s", envlp.AggregateName, envlp.EventTypeName) {
-			return true
-		}
-	}
-	return false
-}
-`

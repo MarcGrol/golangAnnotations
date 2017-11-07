@@ -5,9 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/event"
-	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
-	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -67,7 +64,7 @@ func TestGenerateForJson(t *testing.T) {
 		Enums:   e,
 		Structs: s,
 	}
-	err := Generate("./testData/", ps)
+	err := NewGenerator().Generate("./testData/", ps)
 	assert.Nil(t, err)
 
 	// check that generated files exisst
@@ -86,25 +83,23 @@ func TestGenerateForJson(t *testing.T) {
 }
 
 func TestIsJsonEnum(t *testing.T) {
-	jsonAnnotation.Register()
+	registerAnnotations()
 	e := model.Enum{
 		DocLines: []string{
 			`// @JsonStruct()`,
 			`// @JsonEnum()`,
 		},
 	}
-	assert.True(t, IsJsonEnum(e))
+	assert.True(t, IsJSONEnum(e))
 }
 
 func TestIsJsonStruct(t *testing.T) {
-	eventAnnotation.Register()
-	jsonAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`// @Event(aggregate = "Test")`,
 			`// @JsonStruct()`,
 		},
 	}
-	assert.True(t, event.IsEvent(s))
-	assert.True(t, IsJsonStruct(s))
+	assert.True(t, IsJSONStruct(s))
 }

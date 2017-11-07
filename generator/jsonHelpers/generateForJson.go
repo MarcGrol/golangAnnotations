@@ -13,18 +13,35 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-type JsonContext struct {
+type Generator struct {
+}
+
+func NewGenerator() generationUtil.Generator {
+	return &Generator{}
+}
+
+func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
+	return jsonAnnotation.Get()
+}
+
+var annotations annotation.AnnotationRegister
+
+func registerAnnotations() {
+	annotations = annotation.NewRegistry(jsonAnnotation.Get())
+}
+
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	registerAnnotations()
+	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
+}
+
+type jsonContext struct {
 	PackageName string
 	Enums       []model.Enum
 	Structs     []model.Struct
 }
 
-func Generate(inputDir string, parsedSource model.ParsedSources) error {
-	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
-}
-
 func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {
-	jsonAnnotation.Register()
 
 	packageName, err := generationUtil.GetPackageNameForEnumsOrStructs(enums, structs)
 	if err != nil {
@@ -37,13 +54,13 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 
 	jsonEnums := make([]model.Enum, 0, len(enums))
 	for _, anEnum := range enums {
-		if IsJsonEnum(anEnum) {
+		if IsJSONEnum(anEnum) {
 			jsonEnums = append(jsonEnums, anEnum)
 		}
 	}
 	jsonStructs := make([]model.Struct, 0, len(structs))
 	for _, aStruct := range structs {
-		if IsJsonStruct(aStruct) {
+		if IsJSONStruct(aStruct) {
 			jsonStructs = append(jsonStructs, aStruct)
 		}
 	}
@@ -51,13 +68,22 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		return nil
 	}
 
+	err = doGenerate(packageName, jsonEnums, jsonStructs, targetDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func doGenerate(packageName string, jsonEnums []model.Enum, jsonStructs []model.Struct, targetDir string) error {
 	filenameMap := getFilenamesWithTypeNames(jsonEnums, jsonStructs)
 
 	for fn := range filenameMap {
 		targetFilename := strings.Replace(fn, ".", "_json.", 1)
 		target := fmt.Sprintf("%s/$%s", targetDir, targetFilename)
 
-		data := JsonContext{
+		data := jsonContext{
 			PackageName: packageName,
 		}
 
@@ -74,7 +100,7 @@ func generate(inputDir string, enums []model.Enum, structs []model.Struct) error
 		}
 
 		if len(data.Enums) > 0 || len(data.Structs) > 0 {
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "enums", enumTemplate, customTemplateFuncs, target)
+			err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "json-enums", "generator/jsonHelpers/enum.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for enums (%s)", err)
 				return err
@@ -107,79 +133,77 @@ func getFilenamesWithTypeNames(jsonEnums []model.Enum, jsonStructs []model.Struc
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"HasAlternativeName": HasAlternativeName,
-	"GetAlternativeName": GetAlternativeName,
-	"GetPreferredName":   GetPreferredName,
-	"HasDefaultValue":    HasDefaultValue,
-	"GetDefaultValue":    GetDefaultValue,
-	"HasSlices":          HasSlices,
+	"HasAlternativeName": hasAlternativeName,
+	"GetAlternativeName": getAlternativeName,
+	"GetPreferredName":   getPreferredName,
+	"HasDefaultValue":    hasDefaultValue,
+	"GetDefaultValue":    getDefaultValue,
+	"HasSlices":          hasSlices,
 }
 
-func IsJsonEnum(e model.Enum) bool {
-	_, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
+func IsJSONEnum(e model.Enum) bool {
+	_, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum)
 	return ok
 }
 
-func IsJsonEnumStripped(e model.Enum) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+func IsJSONEnumStripped(e model.Enum) bool {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamStripped] == "true"
 	}
 	return false
 }
 
-func IsJsonEnumTolerant(e model.Enum) bool {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+func IsJSONEnumTolerant(e model.Enum) bool {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamTolerant] == "true"
 	}
 	return false
 }
 
-func GetJsonEnumBase(e model.Enum) string {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+func GetJSONEnumBase(e model.Enum) string {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamBase]
 	}
 	return ""
 }
 
-func HasJsonEnumBase(e model.Enum) bool {
-	return GetJsonEnumBase(e) != ""
+func HasJSONEnumBase(e model.Enum) bool {
+	return GetJSONEnumBase(e) != ""
 }
 
-func GetJsonEnumDefault(e model.Enum) string {
-	if ann, ok := annotation.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+func GetJSONEnumDefault(e model.Enum) string {
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
 		return ann.Attributes[jsonAnnotation.ParamDefault]
 	}
 	return ""
 }
 
-func HasDefaultValue(e model.Enum) bool {
-	return GetJsonEnumDefault(e) != ""
+func hasDefaultValue(e model.Enum) bool {
+	return GetJSONEnumDefault(e) != ""
 }
 
-func GetDefaultValue(e model.Enum) string {
-	return GetJsonEnumBase(e) + GetJsonEnumDefault(e)
+func getDefaultValue(e model.Enum) string {
+	return GetJSONEnumBase(e) + GetJSONEnumDefault(e)
 }
 
-func HasAlternativeName(e model.Enum) bool {
-	return HasJsonEnumBase(e) && IsJsonEnumTolerant(e)
+func hasAlternativeName(e model.Enum) bool {
+	return HasJSONEnumBase(e) && IsJSONEnumTolerant(e)
 }
 
-func GetAlternativeName(e model.Enum, lit model.EnumLiteral) string {
-	if IsJsonEnumStripped(e) {
-		return lowerInitial(lit.Name)
-	} else {
-		base := GetJsonEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(lit.Name, base))
-	}
-}
-
-func GetPreferredName(e model.Enum, lit model.EnumLiteral) string {
-	if IsJsonEnumStripped(e) {
-		base := GetJsonEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(lit.Name, base))
-	} else {
+func getAlternativeName(e model.Enum, lit model.EnumLiteral) string {
+	if IsJSONEnumStripped(e) {
 		return lowerInitial(lit.Name)
 	}
+	base := GetJSONEnumBase(e)
+	return lowerInitial(strings.TrimPrefix(lit.Name, base))
+}
+
+func getPreferredName(e model.Enum, lit model.EnumLiteral) string {
+	if IsJSONEnumStripped(e) {
+		base := GetJSONEnumBase(e)
+		return lowerInitial(strings.TrimPrefix(lit.Name, base))
+	}
+	return lowerInitial(lit.Name)
 }
 
 func lowerInitial(s string) string {
@@ -188,12 +212,12 @@ func lowerInitial(s string) string {
 	return string(a)
 }
 
-func IsJsonStruct(s model.Struct) bool {
-	_, ok := annotation.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
+func IsJSONStruct(s model.Struct) bool {
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, jsonAnnotation.TypeStruct)
 	return ok
 }
 
-func HasSlices(s model.Struct) bool {
+func hasSlices(s model.Struct) bool {
 	for _, f := range s.Fields {
 		if f.IsSlice {
 			return true
@@ -201,116 +225,3 @@ func HasSlices(s model.Struct) bool {
 	}
 	return false
 }
-
-var enumTemplate string = `
-// Generated automatically by golangAnnotations: do not edit manually
-
-package {{.PackageName}}
-
-import "encoding/json"
-
-{{range .Enums}}
-{{$enum := .}}
-
-// Helpers for json-enum {{.Name}}
-
-var (
-	_{{.Name}}NameToValue = map[string]{{.Name}}{
-		{{range .EnumLiterals}}"{{GetPreferredName $enum .}}":{{.Name}},
-		{{end}}
-		{{if HasAlternativeName $enum}}
-		// alternative names for backward compatibility
-		{{range .EnumLiterals}}"{{GetAlternativeName $enum .}}":{{.Name}},
-		{{end}}{{end}}
-	}
-	_{{.Name}}ValueToName = map[{{.Name}}]string{
-		{{range .EnumLiterals }}{{.Name}}:"{{GetPreferredName $enum .}}",
-		{{end}}
-	}
-)
-
-{{if HasDefaultValue .}}
-func {{.Name}}ByName(name string) {{.Name}} {
-	t, ok := _{{.Name}}NameToValue[name]
-	if !ok {
-		return {{GetDefaultValue .}}
-	}
-	return t
-}
-{{end}}
-
-func (t {{.Name}}) String() string {
-	v, _ := _{{.Name}}ValueToName[t]
-	return v
-}
-
-// MarshalJSON caters for readable enums with a proper default value
-func (r {{.Name}}) MarshalJSON() ([]byte, error) {
-	s, ok := _{{.Name}}ValueToName[r]
-	if !ok {
-		{{if HasDefaultValue .}}s, _ = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", r){{end}}
-	}
-	return json.Marshal(s)
-}
-
-// UnmarshalJSON caters for readable enums with a proper default value
-func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("{{.Name}} should be a string, got %s", data)
-	}
-	v, ok := _{{.Name}}NameToValue[s]
-	if !ok {
-	{{if HasDefaultValue .}}v = {{GetDefaultValue .}}{{else}}return fmt.Errorf("invalid {{.Name}} %q", s){{end}}
-	}
-	*r = v
-	return nil
-}
-
-{{end}}
-
-{{range .Structs}}
-
-// Helpers for json-struct {{.Name}}
-
-{{if HasSlices . }}
-
-// MarshalJSON prevents nil slices in json
-func (data {{.Name}}) MarshalJSON() ([]byte, error) {
-	type alias {{.Name}}
-	var raw = alias(data)
-
-	{{range .Fields}}
-		{{if .IsSlice}}
-		if raw.{{.Name}} == nil {
-			raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
-		}
-		{{end}}
-	{{end}}
-
-	return json.Marshal(raw)
-}
-
-// UnmarshalJSON prevents nil slices from json
-func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
-	type alias {{.Name}}
-	var raw alias
-	err := json.Unmarshal(b, &raw)
-
-	{{range .Fields}}
-		{{if .IsSlice}}
-		if raw.{{.Name}} == nil {
-			raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
-		}
-		{{end}}
-	{{end}}
-
-	*data = {{.Name}}(raw)
-
-	return err
-}
-
-{{end}}
-
-{{end}}
-`

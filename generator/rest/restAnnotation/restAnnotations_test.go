@@ -9,34 +9,30 @@ import (
 )
 
 func TestCorrectRestOperationAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	a, ok := annotation.ResolveAnnotation(`// @RestOperation( Method = "GET", path = "/person/:uid" )`)
+	a, ok := registry.ResolveAnnotation(`// @RestOperation( Method = "GET", path = "/person/:uid" )`)
 	assert.True(t, ok)
 	assert.Equal(t, "GET", a.Attributes["method"])
 	assert.Equal(t, "/person/:uid", a.Attributes["path"])
 }
 
 func TestIncompleteRestOperationAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @RestOperation()`}))
+	assert.Empty(t, registry.ResolveAnnotations([]string{`// @RestOperation()`}))
 }
 
 func TestPartialIncompleteRestOperationAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @RestOperation( Method = "GET")`}))
+	assert.NotEmpty(t, registry.ResolveAnnotations([]string{`// @RestOperation( Method = "GET")`}))
 }
 
 func TestPartialIncompleteRestOperationAnnotation2(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @RestOperation( Path = "/foo")`}))
+	assert.Empty(t, registry.ResolveAnnotations([]string{`// @RestOperation( Path = "/foo")`}))
 }
 
 func findArgInArray(array []string, toMatch string) bool {
@@ -49,10 +45,9 @@ func findArgInArray(array []string, toMatch string) bool {
 }
 
 func TestOptionalArgRestOperationAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	ann, ok := annotation.ResolveAnnotationByName([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3", producesEvents="Order.OrderCreated, Basket.BasketFinalized")`}, "RestOperation")
+	ann, ok := registry.ResolveAnnotationByName([]string{`// @RestOperation( Path="/foo", Method = "GET", optionalArgs="arg2,arg3", producesEvents="Order.OrderCreated, Basket.BasketFinalized")`}, "RestOperation")
 	assert.True(t, ok)
 
 	{
@@ -75,24 +70,21 @@ func TestOptionalArgRestOperationAnnotation(t *testing.T) {
 }
 
 func TestCorrectRestServiceAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	ann, ok := annotation.ResolveAnnotationByName([]string{`// @RestService( Path = "/api")`}, "RestService")
+	ann, ok := registry.ResolveAnnotationByName([]string{`// @RestService( Path = "/api")`}, "RestService")
 	assert.True(t, ok)
 	assert.Equal(t, "/api", ann.Attributes["path"])
 }
 
 func TestIncompleteRestServiceAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.Empty(t, annotation.ResolveAnnotations([]string{`// @RestService()`}))
+	assert.Empty(t, registry.ResolveAnnotations([]string{`// @RestService()`}))
 }
 
 func TestEmptyRestServiceAnnotation(t *testing.T) {
-	annotation.ClearRegisteredAnnotations()
-	Register()
+	registry := annotation.NewRegistry(Get())
 
-	assert.NotEmpty(t, annotation.ResolveAnnotations([]string{`// @RestService( Path = "")`}))
+	assert.NotEmpty(t, registry.ResolveAnnotations([]string{`// @RestService( Path = "")`}))
 }

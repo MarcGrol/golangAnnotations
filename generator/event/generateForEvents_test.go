@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +32,7 @@ func TestGenerateForEvents(t *testing.T) {
 			},
 		},
 	}
-	err := Generate("testData", model.ParsedSources{Structs: s})
+	err := NewGenerator().Generate("testData", model.ParsedSources{Structs: s})
 	assert.Nil(t, err)
 
 	// check that generated files exisst
@@ -68,19 +67,19 @@ func TestGenerateForEvents(t *testing.T) {
 }
 
 func TestIsEvent(t *testing.T) {
-	eventAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
 	}
-	assert.True(t, IsEvent(s))
+	assert.True(t, isEvent(s))
 }
 
 func TestGetAggregateName(t *testing.T) {
-	eventAnnotation.Register()
+	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
 	}
-	assert.Equal(t, "person", GetAggregateName(s))
+	assert.Equal(t, "person", getAggregateName(s))
 }
