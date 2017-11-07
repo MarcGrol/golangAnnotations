@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 	"text/template"
+	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/util"
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/repository/repositoryAnnotation"
@@ -40,7 +40,7 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 	}
 	for _, repository := range structs {
 		if IsRepository(repository) {
-			target := fmt.Sprintf("%s/$%s.go", targetDir, util.LowerInitial(repository.Name))
+			target := fmt.Sprintf("%s/$%s.go", targetDir, toFirstUpper(repository.Name))
 			err = generationUtil.GenerateFileFromTemplateFile(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", "generator/repository/repository.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating repository %s: %s", repository.Name, err)
@@ -81,11 +81,11 @@ func AggregateNameConst(s model.Struct) string {
 }
 
 func LowerAggregateName(s model.Struct) string {
-	return util.LowerInitial(GetAggregateName(s))
+	return toFirstUpper(GetAggregateName(s))
 }
 
 func UpperAggregateName(s model.Struct) string {
-	return util.UpperInitial(GetAggregateName(s))
+	return toFirstUpper(GetAggregateName(s))
 }
 
 func GetAggregateName(s model.Struct) string {
@@ -108,11 +108,11 @@ func GetPackageName(s model.Struct) string {
 }
 
 func LowerModelName(s model.Struct) string {
-	return util.LowerInitial(GetModelName(s))
+	return toFirstUpper(GetModelName(s))
 }
 
 func UpperModelName(s model.Struct) string {
-	return util.UpperInitial(GetModelName(s))
+	return toFirstUpper(GetModelName(s))
 }
 
 func GetModelName(s model.Struct) string {
@@ -173,4 +173,10 @@ func HasMethod(s model.Struct, methodName string) bool {
 		}
 	}
 	return false
+}
+
+func toFirstUpper(in string) string {
+	a := []rune(in)
+	a[0] = unicode.ToUpper(a[0])
+	return string(a)
 }
