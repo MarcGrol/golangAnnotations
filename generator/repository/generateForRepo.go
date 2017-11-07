@@ -40,7 +40,7 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 	}
 	for _, repository := range structs {
 		if IsRepository(repository) {
-			target := fmt.Sprintf("%s/$%s.go", targetDir, toFirstUpper(repository.Name))
+			target := fmt.Sprintf("%s/$%s.go", targetDir, toFirstLower(repository.Name))
 			err = generationUtil.GenerateFileFromTemplateFile(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", "generator/repository/repository.go.tmpl", customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating repository %s: %s", repository.Name, err)
@@ -81,7 +81,7 @@ func AggregateNameConst(s model.Struct) string {
 }
 
 func LowerAggregateName(s model.Struct) string {
-	return toFirstUpper(GetAggregateName(s))
+	return toFirstLower(GetAggregateName(s))
 }
 
 func UpperAggregateName(s model.Struct) string {
@@ -108,7 +108,7 @@ func GetPackageName(s model.Struct) string {
 }
 
 func LowerModelName(s model.Struct) string {
-	return toFirstUpper(GetModelName(s))
+	return toFirstLower(GetModelName(s))
 }
 
 func UpperModelName(s model.Struct) string {
@@ -173,6 +173,12 @@ func HasMethod(s model.Struct, methodName string) bool {
 		}
 	}
 	return false
+}
+
+func toFirstLower(in string) string {
+	a := []rune(in)
+	a[0] = unicode.ToLower(a[0])
+	return string(a)
 }
 
 func toFirstUpper(in string) string {
