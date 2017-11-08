@@ -41,7 +41,7 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 	for _, repository := range structs {
 		if IsRepository(repository) {
 			target := fmt.Sprintf("%s/$%s.go", targetDir, toFirstLower(repository.Name))
-			err = generationUtil.GenerateFileFromTemplateFile(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", "generator/repository/repository.go.tmpl", customTemplateFuncs, target)
+			err = generationUtil.GenerateFileFromTemplate(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", repositoryTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating repository %s: %s", repository.Name, err)
 				return err

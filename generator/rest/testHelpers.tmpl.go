@@ -1,4 +1,6 @@
-// +build !appengine
+package rest
+
+const testHelpersTemplate = `// +build !appengine
 
 // Generated automatically by golangAnnotations: do not edit manually
 
@@ -304,3 +306,4 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 
     {{end}}
 {{end}}
+`

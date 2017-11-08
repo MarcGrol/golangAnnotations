@@ -65,7 +65,7 @@ func TestGenerateFileFromTemplate(t *testing.T) {
 	var fm = template.FuncMap{
 		"CommentedPackageName": CommentedPackageName,
 	}
-	err := generateFileFromTemplate(
+	err := GenerateFileFromTemplate(
 		model.Struct{PackageName: "testit"}, "testsrc",
 		"testtemplate",
 		"{{.PackageName}}\n{{CommentedPackageName .}}",

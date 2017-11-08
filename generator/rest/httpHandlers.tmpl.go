@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package rest
+
+const httpHandlersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -248,3 +250,4 @@ func {{$oper.Name}}( service *{{$structName}} ) http.HandlerFunc {
         {{end}}
     {{end}}
 {{end}}
+`

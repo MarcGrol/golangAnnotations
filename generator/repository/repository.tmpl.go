@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package repository
+
+const repositoryTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -152,3 +154,4 @@ func PurgeAll{{UpperAggregateName .}}EnvelopesOnEventType(c context.Context, cre
     return done, nil
 }
 {{end}}
+`

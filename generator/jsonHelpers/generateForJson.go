@@ -93,7 +93,7 @@ func doGenerate(packageName string, jsonEnums []model.Enum, jsonStructs []model.
 		}
 
 		if len(data.Enums) > 0 || len(data.Structs) > 0 {
-			err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "json-enums", "generator/jsonHelpers/enum.go.tmpl", customTemplateFuncs, target)
+			err := generationUtil.GenerateFileFromTemplate(data, packageName, "json-enums", jsonHelpersTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating wrappers for enums (%s)", err)
 				return err

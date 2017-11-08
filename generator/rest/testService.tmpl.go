@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package rest
+
+const testServiceTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -15,3 +17,4 @@ func HTTPTestHandlerWithRouter(router *mux.Router, results testcase.TestSuiteDes
 
     return router
 }
+`

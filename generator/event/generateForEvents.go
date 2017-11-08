@@ -96,7 +96,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 	}
 
 	target := fmt.Sprintf("%s/$aggregates.go", targetDir)
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "aggregates", "generator/event/aggregate.go.tmpl", customTemplateFuncs, target)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "aggregates", aggregateTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating aggregates (%s)", err)
 		return err
@@ -115,7 +115,7 @@ func generateWrappers(targetDir, packageName string, structs []model.Struct) err
 		Structs:     structs,
 	}
 	target := fmt.Sprintf("%s/$wrappers.go", targetDir)
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers", "generator/event/wrappers.go.tmpl", customTemplateFuncs, target)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers", wrappersTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating wrappers for structures (%s)", err)
 		return err
@@ -147,7 +147,7 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 		Structs:     structs,
 	}
 	target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "store-events", "generator/event/eventStore.go.tmpl", customTemplateFuncs, target)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", eventStoreTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating store-events for structures (%s)", err)
 		return err
@@ -166,7 +166,7 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 		Structs:     structs,
 	}
 	target := fmt.Sprintf("%s/$wrappers_test.go", targetDir)
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers-test", "generator/event/wrappers_test.go.tmpl", customTemplateFuncs, target)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating wrappers-test for structures (%s)", err)
 		return err

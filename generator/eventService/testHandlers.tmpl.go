@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package eventService
+
+const testHandlersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -86,3 +88,4 @@ func isAllowed(allowedEventNames []string, envlp envelope.Envelope) bool {
     }
     return false
 }
+`
