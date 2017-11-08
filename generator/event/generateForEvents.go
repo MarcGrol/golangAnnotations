@@ -32,14 +32,7 @@ func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
 	return eventAnnotation.Get()
 }
 
-var annotations annotation.AnnotationRegister
-
-func registerAnnotations() {
-	annotations = annotation.NewRegistry(eventAnnotation.Get())
-}
-
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
-	registerAnnotations()
 	return generate(inputDir, parsedSource.Structs)
 }
 
@@ -78,7 +71,6 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 func generateAggregates(targetDir, packageName string, structs []model.Struct) error {
-	target := fmt.Sprintf("%s/$aggregates.go", targetDir)
 
 	aggregates := make(map[string]map[string]string)
 	eventCount := 0
@@ -103,7 +95,8 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 		AggregateMap: aggregates,
 	}
 
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "aggregates", "generator/event/aggregate.go.tmpl", customTemplateFuncs, target)
+	target := fmt.Sprintf("%s/$aggregates.go", targetDir)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "aggregates", aggregateTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating aggregates (%s)", err)
 		return err
@@ -112,13 +105,17 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 }
 
 func generateWrappers(targetDir, packageName string, structs []model.Struct) error {
-	target := fmt.Sprintf("%s/$wrappers.go", targetDir)
+
+	if !hasEvents(structs) {
+		return nil
+	}
 
 	data := structures{
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers", "generator/event/wrappers.go.tmpl", customTemplateFuncs, target)
+	target := fmt.Sprintf("%s/$wrappers.go", targetDir)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers", wrappersTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating wrappers for structures (%s)", err)
 		return err
@@ -126,14 +123,31 @@ func generateWrappers(targetDir, packageName string, structs []model.Struct) err
 	return nil
 }
 
+func hasEvents(structs []model.Struct) bool {
+	eventCount := 0
+	for _, s := range structs {
+		if isEvent(s) {
+			eventCount++
+		}
+	}
+	if eventCount == 0 {
+		return false
+	}
+	return true
+}
+
 func generateEventStore(targetDir, packageName string, structs []model.Struct) error {
-	target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
+
+	if !hasEvents(structs) {
+		return nil
+	}
 
 	data := structures{
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "store-events", "generator/event/eventStore.go.tmpl", customTemplateFuncs, target)
+	target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", eventStoreTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating store-events for structures (%s)", err)
 		return err
@@ -142,13 +156,17 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 }
 
 func generateWrappersTest(targetDir, packageName string, structs []model.Struct) error {
-	target := fmt.Sprintf("%s/$wrappers_test.go", targetDir)
+
+	if !hasEvents(structs) {
+		return nil
+	}
 
 	data := structures{
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	err := generationUtil.GenerateFileFromTemplateFile(data, packageName, "wrappers-test", "generator/event/wrappers_test.go.tmpl", customTemplateFuncs, target)
+	target := fmt.Sprintf("%s/$wrappers_test.go", targetDir)
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "wrappers-test", wrappersTestTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating wrappers-test for structures (%s)", err)
 		return err
@@ -167,11 +185,13 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func isEvent(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	return ok
 }
 
 func getAggregateName(s model.Struct) string {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
 	}
@@ -179,6 +199,7 @@ func getAggregateName(s model.Struct) string {
 }
 
 func isRootEvent(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
 	}
@@ -190,6 +211,7 @@ func isPersistent(s model.Struct) bool {
 }
 
 func isTransient(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsTransient] == "true"
 	}

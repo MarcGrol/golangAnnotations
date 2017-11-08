@@ -83,7 +83,6 @@ func TestGenerateForJson(t *testing.T) {
 }
 
 func TestIsJsonEnum(t *testing.T) {
-	registerAnnotations()
 	e := model.Enum{
 		DocLines: []string{
 			`// @JsonStruct()`,
@@ -94,7 +93,6 @@ func TestIsJsonEnum(t *testing.T) {
 }
 
 func TestIsJsonStruct(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`// @Event(aggregate = "Test")`,

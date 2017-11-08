@@ -1,4 +1,6 @@
-// +build !appengine
+package event
+
+const wrappersTestTemplate = `// +build !appengine
 
 // Generated automatically by golangAnnotations: do not edit manually
 
@@ -45,3 +47,4 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 }
         {{end}}
 {{end}}
+`

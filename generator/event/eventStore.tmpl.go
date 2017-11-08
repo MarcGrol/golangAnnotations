@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package event
+
+const eventStoreTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package store
 
@@ -44,3 +46,4 @@ func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event 
     {{end}}
 
 {{end}}
+`

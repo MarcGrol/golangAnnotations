@@ -62,12 +62,11 @@ func TestGenerateForEvents(t *testing.T) {
 	os.Remove("./testData/$aggregates.go")
 	os.Remove("./testData/$wrappers.go")
 	os.Remove("./testData/$wrappers_test.go")
-	os.Remove("./repo/$storeEvents.go")
+	os.Remove("./repository/$storeEvents.go")
 
 }
 
 func TestIsEvent(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
@@ -76,7 +75,6 @@ func TestIsEvent(t *testing.T) {
 }
 
 func TestGetAggregateName(t *testing.T) {
-	registerAnnotations()
 	s := model.Struct{
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},

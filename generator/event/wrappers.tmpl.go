@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package event
+
+const wrappersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -89,3 +91,4 @@ func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
     {{end}}
 
 {{end}}
+`

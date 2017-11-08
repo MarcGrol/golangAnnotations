@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package jsonHelpers
+
+const jsonHelpersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -107,3 +109,4 @@ func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
     {{end}}
 
 {{end}}
+`

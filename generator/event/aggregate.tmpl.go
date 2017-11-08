@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package event
+
+const aggregateTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -94,3 +96,4 @@ func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, err
 }
 
 {{end}}
+`

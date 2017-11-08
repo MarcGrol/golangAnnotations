@@ -1,4 +1,6 @@
-// +build !appengine
+package rest
+
+const httpClientTemplate = `// +build !appengine
 
 // Generated automatically by golangAnnotations: do not edit manually
 
@@ -115,3 +117,4 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
         {{end}}
     {{end}}
 {{end}}
+`

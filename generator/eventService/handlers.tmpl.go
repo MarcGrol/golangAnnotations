@@ -1,4 +1,6 @@
-// Generated automatically by golangAnnotations: do not edit manually
+package eventService
+
+const handlersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
@@ -114,3 +116,4 @@ func (es *{{$structName}}) handleEvent(c context.Context, credentials rest.Crede
 {{end}}
 }
 {{end}}
+`
