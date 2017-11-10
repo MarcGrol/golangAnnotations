@@ -28,7 +28,7 @@ import (
 func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
     {{if IsEventNotTransient $oper}}
     {
-        err := store.StoreEvent{{GetInputArgType $oper}}(c, creds, &event)
+        err := store.StoreEvent(c, creds, &event)
         if err != nil {
             t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
         }

@@ -146,7 +146,7 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	target := fmt.Sprintf("%s/../store/$%sEventStore.go", targetDir, packageName)
+	target := fmt.Sprintf("%s/../store/%sStore/$%sEventStore.go", targetDir, packageName, packageName)
 	err := generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", eventStoreTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating store-events for structures (%s)", err)

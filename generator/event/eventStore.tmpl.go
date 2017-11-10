@@ -2,13 +2,19 @@ package event
 
 const eventStoreTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
-package store
+package {{.PackageName}}Store
 
 import (
     "golang.org/x/net/context"
     "github.com/MarcGrol/golangAnnotations/generator/rest"
     "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
+
+var eventStoreInstance eventStore.EventStore
+
+func init() {
+	eventStoreInstance = eventStore.New(myalerts.MyAlertHandler)
+}
 
 {{range .Structs}}
 
