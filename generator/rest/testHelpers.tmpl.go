@@ -168,11 +168,42 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 {{range .Operations}}
 
     {{if IsRestOperation . }}
-func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+
+type {{.Name}}TestRequest struct {
+	Url      string
+	Headers  map[string]string
+	HasInput bool
+	HasForm  bool
+	{{if HasInput . }}Body {{GetInputArgType . }}{{end}}
+	{{if IsRestOperationForm . }}Form url.Values{{end}}
+}
+
+type {{.Name}}TestResponse struct {
+	StatusCode int
+	Headers    map[string][]string
+	{{if HasOutput . }}Body {{GetOutputArgType . }}{{end}}
+	ErrorBody  *errorh.Error
+}
+
+
+func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
     return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
+	request := {{.Name}}TestRequest{
+		Url:     url,
+		Headers: headers,
+		{{if HasInput . }}Body: input,{{end}}
+		{{if IsRestOperationForm .}}Form: form,{{end}}
+	}
+
+	response := {{.Name}}TestHelperInternal(t, c, request)
+
+	return response.StatusCode, {{if HasOutput . }}response.Body,{{end}} response.ErrorBody, nil
+}
+
+func {{.Name}}TestHelperInternal(t *testing.T, c context.Context, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
     fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
     defer func() {
         fmt.Fprintf(logFp, "\t},\n")
@@ -184,26 +215,24 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
     recorder := httptest.NewRecorder()
 
     {{if HasUpload . }}
-        {{.Name}}SetUpload(input)
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+        {{.Name}}SetUpload(request.Body)
+        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
     {{else if IsRestOperationForm . }}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
+        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(request.Form.Encode()))
         req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
     {{else if HasInput . }}
-        rb, _ := json.Marshal(input)
+        rb, _ := json.Marshal(request.Body)
         // indent for readability
         var requestBody bytes.Buffer
         json.Indent(&requestBody, rb, "", "\t")
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
+        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(requestBody.String()))
     {{else}}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
     {{end}}
         if err != nil {
-        {{if IsRestOperationJSON . }}
-                {{if HasOutput . }} return 0, nil, nil, err{{else}}return 0, nil, err{{end}}
-        {{else}}return nil, err{{end}}
+			t.Fatalf("Error creating new request %s", err)
         }
-        req.RequestURI = url
+        req.RequestURI = request.Url
     {{if HasUpload . }}
     {{else if HasInput . }}
         req.Header.Set("Content-type", "application/json")
@@ -211,10 +240,10 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
     {{if HasOutput . }}
         req.Header.Set("Accept", "application/json")
     {{end}}
-    for k, v := range headers {
+    for k, v := range request.Headers {
         req.Header.Set(k, v)
     }
-    setCookieHook(req, headers)
+    setCookieHook(req, request.Headers)
 
     headersToBeSorted := []string{}
     for key, values := range req.Header {
@@ -226,7 +255,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 
     fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
     fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
-    fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", url)
+    fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", request.Url)
     fmt.Fprintf(logFp, "\tHeaders: []string{\n")
     for _, h := range headersToBeSorted {
         fmt.Fprintf(logFp, "\"%s\",\n", h)
@@ -277,31 +306,44 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string 
 
     {{if IsRestOperationJSON . }}
         {{if HasOutput . }}
-    if recorder.Code != http.StatusOK {
-        // return error response
-        var errorResp errorh.Error
-        dec := json.NewDecoder(recorder.Body)
-        err = dec.Decode(&errorResp)
-        if err != nil {
-            return recorder.Code, nil, nil, err
-        }
-        return recorder.Code, nil, &errorResp, nil
-    }
+			if recorder.Code != http.StatusOK {
+				// return error response
+				var errorResponse errorh.Error
+				dec := json.NewDecoder(recorder.Body)
+				err = dec.Decode(&errorResponse)
+				if err != nil {
+					t.Fatalf("Error decoding error response %s", err)
+				}
 
-    // return success response
-    resp := {{GetOutputArgDeclaration . }}
-    dec := json.NewDecoder(recorder.Body)
-    err = dec.Decode({{GetOutputArgName . }})
-    if err != nil {
-        return recorder.Code, nil, nil, err
-    }
-    return recorder.Code, resp, nil, nil
-        {{else}}
-    return recorder.Code, nil, nil
-        {{end}}
-    {{else}}
-    return recorder, nil
-    {{end}}
+				return {{.Name}}TestResponse {
+					StatusCode: recorder.Code,
+					Headers:    recorder.Header(),
+					ErrorBody:  &errorResponse,
+				}
+			}
+
+			// return success response
+			resp := {{GetOutputArgDeclaration . }}
+			dec := json.NewDecoder(recorder.Body)
+			err = dec.Decode({{GetOutputArgName . }})
+			if err != nil {
+				t.Fatalf("Error decoding response %s", err)
+			}
+
+			return {{.Name}}TestResponse {
+				StatusCode: recorder.Code,
+				Headers:    recorder.Header(),
+				Body:       resp,
+			}
+		{{else}}
+			return {{.Name}}TestResponse {
+				StatusCode: recorder.Code,
+				Headers:    recorder.Header(),
+			}
+		{{end}}
+	{{else}}
+		t.Fatal("TODO NO JSON OUTPUT")
+	{{end}}
 }
 
     {{end}}
