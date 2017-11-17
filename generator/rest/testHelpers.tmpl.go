@@ -29,8 +29,8 @@ func TestMain(m *testing.M) {
 	beforeAll()
 	code := m.Run()
 	afterAll()
-	testSuite.WriteToJsonGovarFile()
-	testSuite.WriteToMarkdownFile()
+	testSuite.WriteToMarkdownGoVarFile()
+	testSuite.WriteToJsonFile()
 	os.Exit(code)
 }
 
