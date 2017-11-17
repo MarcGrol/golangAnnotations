@@ -192,7 +192,7 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
         }
 
 
-        func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
+        func {{.Name}}TestHelperWithoutHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
             return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
         }
 
@@ -204,12 +204,12 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
                 {{if IsRestOperationForm .}}Form: form,{{end}}
             }
 
-            response := {{.Name}}TestHelperInternal(t, c, request)
+            response := {{.Name}}TestHelper(t, c, request)
 
             return {{if IsRestOperationJSON . }}response.StatusCode, {{if HasOutput . }}response.Body,{{end}} response.ErrorBody,{{else}}response.Recorder,{{end}} nil
         }
 
-        func {{.Name}}TestHelperInternal(t *testing.T, c context.Context, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
+        func {{.Name}}TestHelper(t *testing.T, c context.Context, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
             fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
             defer func() {
                 fmt.Fprintf(logFp, "\t},\n")
