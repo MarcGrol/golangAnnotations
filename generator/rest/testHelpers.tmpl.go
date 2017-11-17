@@ -12,31 +12,26 @@ import (
 
 var (
     setCookieHook = func(r *http.Request, headers map[string]string) {}
-	testSet= NewHTTPTestSet("{{.PackageName}}")
+    beforeAll = defaultBeforeAll
+    afterAll = defaultAfterAll
+	testSuite = libtest.NewHTTPTestSuite("{{.PackageName}}")
 )
-
-func TestMain(m *testing.M) {
-     beforeAll()
-
-     code := m.Run()
-
-     afterAll()
-
-     testSet.WriteToFile()
-
-     os.Exit(code)
-}
-
-var beforeAll = defaultBeforeAll
 
 func defaultBeforeAll() {
     mytime.SetMockNow()
 }
 
-var afterAll = defaultAfterAll
-
 func defaultAfterAll() {
     mytime.SetDefaultNow()
+}
+
+func TestMain(m *testing.M) {
+	beforeAll()
+	code := m.Run()
+	afterAll()
+	testSuite.WriteToJsonGovarFile()
+	testSuite.WriteToMarkdownFile()
+	os.Exit(code)
 }
 
 {{ $serviceName := .Name }}
@@ -44,17 +39,17 @@ func defaultAfterAll() {
 {{range .Operations}}
 
 {{if IsRestOperation . }}
-func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
     return {{.Name}}TestHelperWithHeaders( t, c, tc, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtest.HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
 	// collect test-case info
     tc.WithOperationName("{{.Name}}").
-       WithPreConditions([]string{"eventA","eventB"})
+       WithPreConditions([]string{"eventA","eventB"}) // TODO collect events from store
 	defer func() {
-        tc.WithPreConditions([]string{"eventC"})
-        testSet.Add(tc)
+        tc.WithPostConditions([]string{"eventC"}) // TODO collect delta events from store
+        testSuite.Add(tc)
 	}()
 
     // create http-request
@@ -94,8 +89,10 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *HTTPTe
     // collect test-case info
     tc.WithRequest("GET", url, httpReq.Header, []byte{})
 
-    // invoke remote service
-	httpResp := httptest.NewRecorder()
+    //
+    // invoke business logic as remote service
+	//
+    httpResp := httptest.NewRecorder()
     webservice := NewRest{{ToFirstUpper $serviceName}}()
     webservice.HTTPHandler().ServeHTTP(httpResp, httpReq)
 
@@ -126,10 +123,10 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *HTTPTe
 		{{else}}
 			return httpResp.Code, nil, nil
 		{{end}}
-	{{else}}  // else HasOutput
+	{{else}}
 		return httpResp.Code, nil
-	{{end}} // end IsRestOperationJSON
+	{{end}}
 }
-    {{end}} // end IsRestOperation
-{{end}} // end range
+    {{end}}
+{{end}}
 `

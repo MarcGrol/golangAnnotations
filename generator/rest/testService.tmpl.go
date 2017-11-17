@@ -1,20 +1,26 @@
 package rest
 
-const testServiceTemplate = `// Generated automatically by golangAnnotations: do not edit manually
+const testServiceTemplate = `package {{.PackageName}}
 
-package {{.PackageName}}
-
-import (
-    "github.com/MarcGrol/golangAnnotations/generator/rest/testcase"
-    "github.com/gorilla/mux"
-)
+// Generated automatically by golangAnnotations: do not edit manually
 
 // HTTPTestHandlerWithRouter registers endpoint in existing router
-func HTTPTestHandlerWithRouter(router *mux.Router, results testcase.TestSuiteDescriptor) *mux.Router {
-    subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
+func HTTPTestHandlerWithRouter(router *mux.Router, jsonTestResults string) *mux.Router {
+	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
 
-    subRouter.HandleFunc("/logs.md", testcase.WriteTestLogsAsMarkdown(results)).Methods("GET")
+	suite := libtest.HTTPTestSuite{}
+	err := json.Unmarshal([]byte(jsonTestResults), &suite)
+	if err == nil {
+		subRouter.HandleFunc("/logs.md", writeTestLogsAsMarkdown(suite)).Methods("GET")
+	}
 
-    return router
+	return router
+}
+
+func writeTestLogsAsMarkdown(suite libtest.HTTPTestSuite) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/markdown; charset=UTF-8")
+		fmt.Fprintf(w, "%s", suite.AsMarkdown())
+	}
 }
 `
