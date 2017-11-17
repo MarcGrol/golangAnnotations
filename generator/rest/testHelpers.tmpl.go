@@ -7,72 +7,24 @@ const testHelpersTemplate = `// +build !appengine
 package {{.PackageName}}
 
 import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "log"
-    "net/http"
-    "net/http/httptest"
-    "net/url"
-    "os"
-    "sort"
-    "strings"
-    "testing"
-
     "golang.org/x/net/context"
-
-    "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
-
-{{ $structName := .Name }}
 
 var (
-    logFp *os.File
     setCookieHook = func(r *http.Request, headers map[string]string) {}
-    eventsForOperations = map[string]map[string]bool{}
+	testSet= NewHTTPTestSet("{{.PackageName}}")
 )
 
-func openfile( filename string) *os.File {
-    fp, err := os.Create(filename)
-    if err != nil {
-        log.Fatalf("Error opening rest-dump-file %s: %s", filename, err.Error())
-    }
-    return fp
-}
-
 func TestMain(m *testing.M) {
+     beforeAll()
 
-    dirname := "{{.PackageName}}TestLog"
-    if _, err := os.Stat(dirname); os.IsNotExist(err) {
-        os.Mkdir(dirname, os.ModePerm)
-    }
-    logFp = openfile(dirname + "/$testResults.go")
-    defer func() {
-        logFp.Close()
-    }()
-    fmt.Fprintf(logFp, "package %s\n\n", dirname )
-    fmt.Fprintf(logFp, "// Generated automatically based on running of api-tests\n\n" )
-    fmt.Fprintf(logFp, "import \"github.com/MarcGrol/golangAnnotations/generator/rest/testcase\"\n")
+     code := m.Run()
 
-    fmt.Fprintf(logFp, "var TestResults = testcase.TestSuiteDescriptor {\n" )
-    fmt.Fprintf(logFp, "\tPackage: \"{{.PackageName}}\",\n")
-    fmt.Fprintf(logFp, "\tTestCases: []testcase.TestCaseDescriptor{\n")
+     afterAll()
 
-    beforeAll()
+     testSet.WriteToFile()
 
-    code := m.Run()
-
-    afterAll()
-
-    fmt.Fprintf(logFp, "},\n" )
-    fmt.Fprintf(logFp, "}\n" )
-
-    log.Printf("events-for-operations")
-    for operationName, events := range eventsForOperations {
-        log.Printf("operation: %s -> \"%s\"", operationName, mapToList(events))
-    }
-
-    os.Exit(code)
+     os.Exit(code)
 }
 
 var beforeAll = defaultBeforeAll
@@ -87,223 +39,97 @@ func defaultAfterAll() {
     mytime.SetDefaultNow()
 }
 
-func testCase(name string, description string) {
-    fmt.Fprintf(logFp, "\t\ttestcase.TestCaseDescriptor{\n")
-    fmt.Fprintf(logFp, "\t\tName:\"%s\",\n", name)
-    fmt.Fprintf(logFp, "\t\tDescription:\"%s\",\n", description)
-}
-
-func testCaseDone() {
-    fmt.Fprintf(logFp, "},\n")
-}
-
-func logOperationEvents(c context.Context, operationName string, allowedEvents []string) func(t *testing.T,c context.Context) {
-    eventsBeforeTest := collectBefore(c)
-    return func(t *testing.T, c context.Context) {
-        collectDelta(t, c, operationName, eventsBeforeTest, allowedEvents)
-    }
-}
-
-func collectBefore(c context.Context) []envelope.Envelope {
-    fmt.Fprintf(logFp, "\tPreConditions: []string{\n")
-    eventsBefore := []envelope.Envelope{}
-    eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
-        eventsBefore = append(eventsBefore, e)
-        fmt.Fprintf(logFp, "\"%s\",\n", fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
-        return nil
-    })
-    fmt.Fprintf(logFp, "\t},\n")
-
-    return eventsBefore
-}
-
-func collectDelta(t *testing.T, c context.Context, operationName string, eventsBefore []envelope.Envelope, allowedEvents []string) []envelope.Envelope {
-
-    after := []envelope.Envelope{}
-    eventStore.Mocked().IterateAll(c, credentials, func(e envelope.Envelope) error {
-        after = append(after, e)
-        return nil
-    })
-
-    events, found := eventsForOperations[operationName]
-    if !found {
-        events = map[string]bool{}
-    }
-
-    fmt.Fprintf(logFp, "\tPostConditions: []string{\n")
-
-    createdDuringTest := after[len(eventsBefore):]
-    for _, e := range createdDuringTest {
-        eventName := fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName)
-        events[eventName] = true
-        if !isEventAllowed(allowedEvents, eventName) {
-            t.Fatalf("Event '%s' is NOT allowed as result of operation '%s' (allowed: %+v)", eventName, operationName, allowedEvents)
-        }
-        fmt.Fprintf(logFp, "\"%s\",\n", eventName)
-    }
-    fmt.Fprintf(logFp, "\t},\n")
-
-    eventsForOperations[operationName] = events
-
-    return createdDuringTest
-}
-
-func mapToList(in map[string]bool) string {
-    out := []string{}
-    for e, _ := range in {
-        out = append(out, e)
-    }
-    return strings.Join(out, ",")
-}
-
-func isEventAllowed(allowedEventNames []string, anEventName string) bool {
-    for _, e := range allowedEventNames {
-        if anEventName == e {
-            return true
-        }
-    }
-    return false
-}
+{{ $serviceName := .Name }}
 
 {{range .Operations}}
 
-    {{if IsRestOperation . }}
-func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-    return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
+{{if IsRestOperation . }}
+func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+    return {{.Name}}TestHelperWithHeaders( t, c, tc, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
 }
 
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
-    fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
-    defer func() {
-        fmt.Fprintf(logFp, "\t},\n")
-    }()
+func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
+	// collect test-case info
+    tc.WithOperationName("{{.Name}}").
+       WithPreConditions([]string{"eventA","eventB"})
+	defer func() {
+        tc.WithPreConditions([]string{"eventC"})
+        testSet.Add(tc)
+	}()
 
-    testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
-    defer testcaseCompletion(t, c)
-
-    recorder := httptest.NewRecorder()
-
+    // create http-request
     {{if HasUpload . }}
         {{.Name}}SetUpload(input)
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+        httpReq, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
     {{else if IsRestOperationForm . }}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+        httpReq, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
+        httpReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
     {{else if HasInput . }}
         rb, _ := json.Marshal(input)
         // indent for readability
         var requestBody bytes.Buffer
         json.Indent(&requestBody, rb, "", "\t")
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
+        httpReq, err := http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(requestBody.String()))
     {{else}}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
+        httpReq, err := http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
     {{end}}
         if err != nil {
         {{if IsRestOperationJSON . }}
                 {{if HasOutput . }} return 0, nil, nil, err{{else}}return 0, nil, err{{end}}
         {{else}}return nil, err{{end}}
         }
-        req.RequestURI = url
+        httpReq.RequestURI = url
     {{if HasUpload . }}
     {{else if HasInput . }}
-        req.Header.Set("Content-type", "application/json")
+        httpReq.Header.Set("Content-type", "application/json")
     {{end}}
     {{if HasOutput . }}
-        req.Header.Set("Accept", "application/json")
+        httpReq.Header.Set("Accept", "application/json")
     {{end}}
     for k, v := range headers {
-        req.Header.Set(k, v)
+        httpReq.Header.Set(k, v)
     }
-    setCookieHook(req, headers)
+    setCookieHook(httpReq, headers)
 
-    headersToBeSorted := []string{}
-    for key, values := range req.Header {
-        for _, value := range values {
-            headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
-        }
-    }
-    sort.Strings(headersToBeSorted)
+    // collect test-case info
+    tc.WithRequest("GET", url, httpReq.Header, []byte{})
 
-    fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
-    fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
-    fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", url)
-    fmt.Fprintf(logFp, "\tHeaders: []string{\n")
-    for _, h := range headersToBeSorted {
-        fmt.Fprintf(logFp, "\"%s\",\n", h)
-    }
-    fmt.Fprintf(logFp, "\t},\n")
+    // invoke remote service
+	httpResp := httptest.NewRecorder()
+    webservice := NewRest{{ToFirstUpper $serviceName}}()
+    webservice.HTTPHandler().ServeHTTP(httpResp, httpReq)
 
-    {{if HasUpload . }}
-	{{else if HasInput . }}
-        fmt.Fprintf(logFp, "\tBody:\n" )
-        fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
-        fmt.Fprintf(logFp, ",\n" )
-    {{end}}
-    fmt.Fprintf(logFp, "},\n")
+	// collect response related test-case info
+	tc.WithResponse(httpResp.Code, httpResp.Header(), httpResp.Body.Bytes())
 
-    // dump readable request
-    //payload, err := httputil.DumpRequest(req, true)
+	{{if IsRestOperationJSON . }}
+		{{if HasOutput . }}
+				if httpResp.Code != http.StatusOK {
+					// return error response
+					var errorResp errorh.Error
+					dec := json.NewDecoder(httpResp.Body)
+					err = dec.Decode(&errorResp)
+					if err != nil {
+						return httpResp.Code, nil, nil, err
+					}
+					return httpResp.Code, nil, &errorResp, nil
+				}
 
-    fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
-    defer func() {
-        fmt.Fprintf(logFp, "\t},\n")
-    }()
-
-    webservice := NewRest{{ToFirstUpper $structName}}()
-    webservice.HTTPHandler().ServeHTTP(recorder, req)
-
-    {{if IsRestOperationJSON . }}
-        // dump readable response
-        var responseBody bytes.Buffer
-        json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
-    {{end}}
-
-    fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
-
-    headersToBeSorted = []string{}
-    for key, values := range recorder.Header() {
-        for _, value := range values {
-            headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
-        }
-    }
-    sort.Strings(headersToBeSorted)
-
-    fmt.Fprintf(logFp,"\tHeaders:[]string{\n")
-    for _, h := range headersToBeSorted {
-        fmt.Fprintf(logFp, "\"%s\",\n", h)
-    }
-    fmt.Fprintf(logFp, "\t},\n")
-    fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
-
-    {{if IsRestOperationJSON . }}
-        {{if HasOutput . }}
-    if recorder.Code != http.StatusOK {
-        // return error response
-        var errorResp errorh.Error
-        dec := json.NewDecoder(recorder.Body)
-        err = dec.Decode(&errorResp)
-        if err != nil {
-            return recorder.Code, nil, nil, err
-        }
-        return recorder.Code, nil, &errorResp, nil
-    }
-
-    // return success response
-    resp := {{GetOutputArgDeclaration . }}
-    dec := json.NewDecoder(recorder.Body)
-    err = dec.Decode({{GetOutputArgName . }})
-    if err != nil {
-        return recorder.Code, nil, nil, err
-    }
-    return recorder.Code, resp, nil, nil
-        {{else}}
-    return recorder.Code, nil, nil
-        {{end}}
-    {{else}}
-    return recorder, nil
-    {{end}}
+				// return success response
+				resp := {{GetOutputArgDeclaration . }}
+				dec := json.NewDecoder(httpResp.Body)
+				err = dec.Decode({{GetOutputArgName . }})
+				if err != nil {
+					return httpResp.Code, nil, nil, err
+				}
+				return httpResp.Code, resp, nil, nil
+		{{else}}
+			return httpResp.Code, nil, nil
+		{{end}}
+	{{else}}  // else HasOutput
+		return httpResp.Code, nil
+	{{end}} // end IsRestOperationJSON
 }
-
-    {{end}}
-{{end}}
+    {{end}} // end IsRestOperation
+{{end}} // end range
 `
