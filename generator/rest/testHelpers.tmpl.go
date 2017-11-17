@@ -169,183 +169,192 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 
     {{if IsRestOperation . }}
 
-type {{.Name}}TestRequest struct {
-	Url      string
-	Headers  map[string]string
-	HasInput bool
-	HasForm  bool
-	{{if HasInput . }}Body {{GetInputArgType . }}{{end}}
-	{{if IsRestOperationForm . }}Form url.Values{{end}}
-}
-
-type {{.Name}}TestResponse struct {
-	StatusCode int
-	Headers    map[string][]string
-	{{if HasOutput . }}Body {{GetOutputArgType . }}{{end}}
-	ErrorBody  *errorh.Error
-}
-
-
-func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
-    return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
-}
-
-func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
-	request := {{.Name}}TestRequest{
-		Url:     url,
-		Headers: headers,
-		{{if HasInput . }}Body: input,{{end}}
-		{{if IsRestOperationForm .}}Form: form,{{end}}
-	}
-
-	response := {{.Name}}TestHelperInternal(t, c, request)
-
-	return response.StatusCode, {{if HasOutput . }}response.Body,{{end}} response.ErrorBody, nil
-}
-
-func {{.Name}}TestHelperInternal(t *testing.T, c context.Context, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
-    fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
-    defer func() {
-        fmt.Fprintf(logFp, "\t},\n")
-    }()
-
-    testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
-    defer testcaseCompletion(t, c)
-
-    recorder := httptest.NewRecorder()
-
-    {{if HasUpload . }}
-        {{.Name}}SetUpload(request.Body)
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
-    {{else if IsRestOperationForm . }}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(request.Form.Encode()))
-        req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-    {{else if HasInput . }}
-        rb, _ := json.Marshal(request.Body)
-        // indent for readability
-        var requestBody bytes.Buffer
-        json.Indent(&requestBody, rb, "", "\t")
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(requestBody.String()))
-    {{else}}
-        req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
-    {{end}}
-        if err != nil {
-			t.Fatalf("Error creating new request %s", err)
+        type {{.Name}}TestRequest struct {
+            Url      string
+            Headers  map[string]string
+            HasInput bool
+            HasForm  bool
+            {{if HasInput . }}Body {{GetInputArgType . }}{{end}}
+            {{if IsRestOperationForm . }}Form url.Values{{end}}
         }
-        req.RequestURI = request.Url
-    {{if HasUpload . }}
-    {{else if HasInput . }}
-        req.Header.Set("Content-type", "application/json")
-    {{end}}
-    {{if HasOutput . }}
-        req.Header.Set("Accept", "application/json")
-    {{end}}
-    for k, v := range request.Headers {
-        req.Header.Set(k, v)
-    }
-    setCookieHook(req, request.Headers)
 
-    headersToBeSorted := []string{}
-    for key, values := range req.Header {
-        for _, value := range values {
-            headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+        type {{.Name}}TestResponse struct {
+            StatusCode int
+            Headers    map[string][]string
+            {{if IsRestOperationJSON . }}
+                {{if HasOutput . }}
+                    Body {{GetOutputArgType . }}
+                {{end}}
+            {{else}}
+                Recorder *httptest.ResponseRecorder
+            {{end}}
+            ErrorBody  *errorh.Error
         }
-    }
-    sort.Strings(headersToBeSorted)
 
-    fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
-    fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
-    fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", request.Url)
-    fmt.Fprintf(logFp, "\tHeaders: []string{\n")
-    for _, h := range headersToBeSorted {
-        fmt.Fprintf(logFp, "\"%s\",\n", h)
-    }
-    fmt.Fprintf(logFp, "\t},\n")
 
-    {{if HasUpload . }}
-	{{else if HasInput . }}
-        fmt.Fprintf(logFp, "\tBody:\n" )
-        fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
-        fmt.Fprintf(logFp, ",\n" )
-    {{end}}
-    fmt.Fprintf(logFp, "},\n")
-
-    // dump readable request
-    //payload, err := httputil.DumpRequest(req, true)
-
-    fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
-    defer func() {
-        fmt.Fprintf(logFp, "\t},\n")
-    }()
-
-    webservice := NewRest{{ToFirstUpper $structName}}()
-    webservice.HTTPHandler().ServeHTTP(recorder, req)
-
-    {{if IsRestOperationJSON . }}
-        // dump readable response
-        var responseBody bytes.Buffer
-        json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
-    {{end}}
-
-    fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
-
-    headersToBeSorted = []string{}
-    for key, values := range recorder.Header() {
-        for _, value := range values {
-            headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+        func {{.Name}}TestHelper(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
+            return {{.Name}}TestHelperWithHeaders( t, c, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
         }
-    }
-    sort.Strings(headersToBeSorted)
 
-    fmt.Fprintf(logFp,"\tHeaders:[]string{\n")
-    for _, h := range headersToBeSorted {
-        fmt.Fprintf(logFp, "\"%s\",\n", h)
-    }
-    fmt.Fprintf(logFp, "\t},\n")
-    fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
+        func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}}, headers map[string]string)  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
+            request := {{.Name}}TestRequest{
+                Url:     url,
+                Headers: headers,
+                {{if HasInput . }}Body: input,{{end}}
+                {{if IsRestOperationForm .}}Form: form,{{end}}
+            }
 
-    {{if IsRestOperationJSON . }}
-        {{if HasOutput . }}
-			if recorder.Code != http.StatusOK {
-				// return error response
-				var errorResponse errorh.Error
-				dec := json.NewDecoder(recorder.Body)
-				err = dec.Decode(&errorResponse)
-				if err != nil {
-					t.Fatalf("Error decoding error response %s", err)
-				}
+            response := {{.Name}}TestHelperInternal(t, c, request)
 
-				return {{.Name}}TestResponse {
-					StatusCode: recorder.Code,
-					Headers:    recorder.Header(),
-					ErrorBody:  &errorResponse,
-				}
-			}
+            return {{if IsRestOperationJSON . }}response.StatusCode, {{if HasOutput . }}response.Body,{{end}} response.ErrorBody,{{else}}response.Recorder,{{end}} nil
+        }
 
-			// return success response
-			resp := {{GetOutputArgDeclaration . }}
-			dec := json.NewDecoder(recorder.Body)
-			err = dec.Decode({{GetOutputArgName . }})
-			if err != nil {
-				t.Fatalf("Error decoding response %s", err)
-			}
+        func {{.Name}}TestHelperInternal(t *testing.T, c context.Context, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
+            fmt.Fprintf(logFp, "\t\tOperation:\"%s\",\n", "{{.Name}}")
+            defer func() {
+                fmt.Fprintf(logFp, "\t},\n")
+            }()
 
-			return {{.Name}}TestResponse {
-				StatusCode: recorder.Code,
-				Headers:    recorder.Header(),
-				Body:       resp,
-			}
-		{{else}}
-			return {{.Name}}TestResponse {
-				StatusCode: recorder.Code,
-				Headers:    recorder.Header(),
-			}
-		{{end}}
-	{{else}}
-		t.Fatal("TODO NO JSON OUTPUT")
-	{{end}}
-}
+            testcaseCompletion := logOperationEvents(c,  "{{.Name}}", {{GetRestOperationProducesEvents .}})
+            defer testcaseCompletion(t, c)
 
+            recorder := httptest.NewRecorder()
+
+            {{if HasUpload . }}
+                {{.Name}}SetUpload(request.Body)
+                req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
+            {{else if IsRestOperationForm . }}
+                req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(request.Form.Encode()))
+                req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+            {{else if HasInput . }}
+                rb, _ := json.Marshal(request.Body)
+                // indent for readability
+                var requestBody bytes.Buffer
+                json.Indent(&requestBody, rb, "", "\t")
+                req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(requestBody.String()))
+            {{else}}
+                req, err := http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
+            {{end}}
+                if err != nil {
+                    t.Fatalf("Error creating new request %s", err)
+                }
+                req.RequestURI = request.Url
+            {{if HasUpload . }}
+            {{else if HasInput . }}
+                req.Header.Set("Content-type", "application/json")
+            {{end}}
+            {{if HasOutput . }}
+                req.Header.Set("Accept", "application/json")
+            {{end}}
+            for k, v := range request.Headers {
+                req.Header.Set(k, v)
+            }
+            setCookieHook(req, request.Headers)
+
+            headersToBeSorted := []string{}
+            for key, values := range req.Header {
+                for _, value := range values {
+                    headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+                }
+            }
+            sort.Strings(headersToBeSorted)
+
+            fmt.Fprintf(logFp, "\tRequest: testcase.RequestDescriptor{\n")
+            fmt.Fprintf(logFp, "\tMethod:\"%s\",\n", "{{GetRestOperationMethod . }}")
+            fmt.Fprintf(logFp, "\tUrl:\"%s\",\n", request.Url)
+            fmt.Fprintf(logFp, "\tHeaders: []string{\n")
+            for _, h := range headersToBeSorted {
+                fmt.Fprintf(logFp, "\"%s\",\n", h)
+            }
+            fmt.Fprintf(logFp, "\t},\n")
+
+            {{if HasUpload . }}
+            {{else if HasInput . }}
+                fmt.Fprintf(logFp, "\tBody:\n" )
+                fmt.Fprintf(logFp, "{{BackTick}}%s{{BackTick}}", requestBody.String() )
+                fmt.Fprintf(logFp, ",\n" )
+            {{end}}
+            fmt.Fprintf(logFp, "},\n")
+
+            // dump readable request
+            //payload, err := httputil.DumpRequest(req, true)
+
+            fmt.Fprintf(logFp, "\tResponse:testcase.ResponseDescriptor{\n")
+            defer func() {
+                fmt.Fprintf(logFp, "\t},\n")
+            }()
+
+            webservice := NewRest{{ToFirstUpper $structName}}()
+            webservice.HTTPHandler().ServeHTTP(recorder, req)
+
+            {{if IsRestOperationJSON . }}
+                // dump readable response
+                var responseBody bytes.Buffer
+                json.Indent(&responseBody, recorder.Body.Bytes(), "", "\t")
+            {{end}}
+
+            fmt.Fprintf(logFp, "\tStatus:%d,\n", recorder.Code)
+
+            headersToBeSorted = []string{}
+            for key, values := range recorder.Header() {
+                for _, value := range values {
+                    headersToBeSorted = append(headersToBeSorted, fmt.Sprintf("%s:%s", key, value))
+                }
+            }
+            sort.Strings(headersToBeSorted)
+
+            fmt.Fprintf(logFp,"\tHeaders:[]string{\n")
+            for _, h := range headersToBeSorted {
+                fmt.Fprintf(logFp, "\"%s\",\n", h)
+            }
+            fmt.Fprintf(logFp, "\t},\n")
+            fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
+
+            {{if IsRestOperationJSON . }}
+                {{if HasOutput . }}
+                    if recorder.Code != http.StatusOK {
+                        // return error response
+                        var errorResponse errorh.Error
+                        dec := json.NewDecoder(recorder.Body)
+                        err = dec.Decode(&errorResponse)
+                        if err != nil {
+                            t.Fatalf("Error decoding error response %s", err)
+                        }
+
+                        return {{.Name}}TestResponse {
+                            StatusCode: recorder.Code,
+                            Headers:    recorder.Header(),
+                            ErrorBody:  &errorResponse,
+                        }
+                    }
+
+                    // return success response
+                    resp := {{GetOutputArgDeclaration . }}
+                    dec := json.NewDecoder(recorder.Body)
+                    err = dec.Decode({{GetOutputArgName . }})
+                    if err != nil {
+                        t.Fatalf("Error decoding response %s", err)
+                    }
+
+                    return {{.Name}}TestResponse {
+                        StatusCode: recorder.Code,
+                        Headers:    recorder.Header(),
+                        Body:       resp,
+                    }
+                {{else}}
+                    return {{.Name}}TestResponse {
+                        StatusCode: recorder.Code,
+                        Headers:    recorder.Header(),
+                    }
+                {{end}}
+            {{else}}
+                return {{.Name}}TestResponse {
+                    StatusCode: recorder.Code,
+                    Headers:    recorder.Header(),
+                    Recorder:   recorder,
+                }
+            {{end}}
+        }
     {{end}}
 {{end}}
 `
