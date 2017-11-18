@@ -54,7 +54,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 		if err != nil {
 			t.Fatalf("Invalid post-condions: %s", err )
 		}
-		// store test-case details when this test has completed
+		// add recordings of this test-case to the test-suite
         testSuite.Add(tc)
 	}()
 
