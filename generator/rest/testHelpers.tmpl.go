@@ -77,12 +77,10 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 		{{else}}
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 		{{end}}
-			if err != nil {
-				{{if IsRestOperationJSON . }}
-					{{if HasOutput . }} return 0, nil, nil, err{{else}}return 0, nil, err{{end}}
-				{{else}}return nil, err{{end}}
-			}
-			httpReq.RequestURI = url
+		if err != nil {
+			t.Fatalf("Error creating http-request: %s", err )
+		}
+		httpReq.RequestURI = url
 		{{if HasUpload . }}
 		{{else if HasInput . }}
 			httpReq.Header.Set("Content-type", "application/json")
@@ -115,7 +113,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 		{{if IsRestOperationJSON . }}
 			{{if HasOutput . }}
 				if httpResp.Code != http.StatusOK {
-					// return typestrong error response
+					// return type-strong error response
 					var errorResp errorh.Error
 					dec := json.NewDecoder(httpResp.Body)
 					err = dec.Decode(&errorResp)
@@ -125,7 +123,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 					return httpResp.Code, nil, &errorResp, nil
 				}
 
-				// return typestrong success response
+				// return type-strong success response
 				resp := {{GetOutputArgDeclaration . }}
 				dec := json.NewDecoder(httpResp.Body)
 				err = dec.Decode({{GetOutputArgName . }})
