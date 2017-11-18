@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	afterAll()
 	testSuite.WriteToMarkdownGoVarFile()
-	testSuite.WriteToJsonFile()
+	//testSuite.WriteToJsonFile()
 	os.Exit(code)
 }
 

@@ -87,7 +87,13 @@ func generateHttpTestHelpers(targetDir, packageName string, service model.Struct
 }
 
 func generateHttpTestService(targetDir, packageName string, service model.Struct) error {
+	// create this file within a subdirectoty
+	packageName = packageName + "TestLog"
+
+	service.PackageName = packageName
+	targetDir = targetDir + "/" + packageName
 	target := fmt.Sprintf("%s/$httpTest%s.go", targetDir, ToFirstUpper(service.Name))
+
 	err := generationUtil.GenerateFileFromTemplate(service, fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)), "testService", testServiceTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating testHandler for service %s: %s", service.Name, err)

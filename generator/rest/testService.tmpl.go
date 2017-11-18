@@ -4,6 +4,8 @@ const testServiceTemplate = `package {{.PackageName}}
 
 // Generated automatically by golangAnnotations: do not edit manually
 
+var testResults = ""
+
 // HTTPTestHandlerWithRouter registers endpoint in existing router
 func HTTPTestHandlerWithRouter(router *mux.Router) *mux.Router {
 	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
@@ -16,7 +18,7 @@ func HTTPTestHandlerWithRouter(router *mux.Router) *mux.Router {
 func writeTestLogsAsMarkdown() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/markdown; charset=UTF-8")
-		fmt.Fprintf(w, "%s", {{.PackageName}}TestLog.TestResults)
+		fmt.Fprintf(w, "%s", testResults)
 	}
 }
 `
