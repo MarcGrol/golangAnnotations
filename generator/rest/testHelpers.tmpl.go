@@ -30,11 +30,11 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-{{ $serviceName := .Name }}
+{{ $serviceName := .Name -}}
 
-{{range .Operations}}
+{{range .Operations -}}
 
-{{if IsRestOperation . }}
+{{if IsRestOperation . -}}
 func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCase, url string {{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }} {{end}} )  ({{if IsRestOperationJSON . }}int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error{{else}}*httptest.ResponseRecorder{{end}},error) {
     return {{.Name}}TestHelperWithHeaders( t, c, tc, url {{if IsRestOperationForm . }}, form{{else if HasInput . }}, input {{end}}, map[string]string{} )
 }

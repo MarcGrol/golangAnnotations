@@ -16,7 +16,7 @@ import (
     "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
-{{ $structName := .Name }}
+{{ $serviceName := .Name }}
 
 var debug = false
 
@@ -30,24 +30,26 @@ func NewHTTPClient(host string) *HTTPClient {
     }
 }
 
-{{range .Operations}}
+{{range .Operations -}}
 
-{{if IsRestOperation . }}
-    {{if IsRestOperationJSON . }}
+{{if IsRestOperation . -}}
+    {{if IsRestOperationJSON . -}}
 
 // {{ToFirstUpper .Name}} can be used by external clients to interact with the system
 func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if HasInput . }}, input {{GetInputArgType . }} {{end}}, cookie *http.Cookie, requestUID string, timeout time.Duration)  (int {{if HasOutput . }},{{GetOutputArgType . }}{{end}},*errorh.Error,error) {
 
-    {{if HasInput . }}
+    {{if HasInput . -}}
     requestBody, _ := json.Marshal(input)
     req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, strings.NewReader(string(requestBody)))
-    {{else}}
+    {{else -}}
     req, err := http.NewRequest("{{GetRestOperationMethod . }}", c.hostName+url, nil)
-    {{end}}
+    {{end -}}
     if err != nil {
-        {{if HasOutput . }} return 0, nil, nil, err
-        {{else}} return 0,  nil, err
-        {{end}}
+        {{if HasOutput . -}}
+			return 0, nil, nil, err
+        {{else -}}
+			return 0,  nil, err
+        {{end -}}
     }
     if cookie != nil {
         req.AddCookie(cookie)
@@ -55,12 +57,12 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     if requestUID != "" {
         req.Header.Set("X-request-uid", requestUID)
     }
-    {{if HasInput . }}
+    {{if HasInput . -}}
         req.Header.Set("Content-type", "application/json")
-    {{end}}
-    {{if HasOutput . }}
+    {{end -}}
+    {{if HasOutput . -}}
     req.Header.Set("Accept", "application/json")
-    {{end}}
+    {{end -}}
     req.Header.Set("X-CSRF-Token", "true")
 
     if debug {
@@ -74,11 +76,11 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     cl.Timeout = timeout
     res, err := cl.Do(req)
     if err != nil {
-        {{if HasOutput . }}
+        {{if HasOutput . -}}
         return -1, nil, nil, err
-        {{else}}
+        {{else -}}
         return -1	, nil, nil
-    {{end}}
+    {{end -}}
     }
     defer res.Body.Close()
 
@@ -89,7 +91,7 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
         }
     }
 
-    {{if HasOutput . }}
+    {{if HasOutput . -}}
     if res.StatusCode >= http.StatusMultipleChoices {
         // return error response
         var errorResp errorh.Error
@@ -110,11 +112,11 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     }
     return res.StatusCode, resp, nil, nil
 
-    {{else}}
+    {{else -}}
     return res.StatusCode, nil, nil
-    {{end}}
+    {{end -}}
 }
-        {{end}}
-    {{end}}
-{{end}}
+        {{end -}}
+    {{end -}}
+{{end -}}
 `

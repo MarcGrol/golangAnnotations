@@ -13,20 +13,24 @@ import "encoding/json"
 
 var (
     _{{.Name}}NameToValue = map[string]{{.Name}}{
-        {{range .EnumLiterals}}"{{GetPreferredName $enum .}}":{{.Name}},
-        {{end}}
-        {{if HasAlternativeName $enum}}
+        {{range .EnumLiterals -}}
+			"{{GetPreferredName $enum .}}":{{.Name}},
+        {{end -}}
+        {{if HasAlternativeName $enum -}}
             // alternative names for backward compatibility
-            {{range .EnumLiterals}}"{{GetAlternativeName $enum .}}":{{.Name}},
-        {{end}}{{end}}
+            {{range .EnumLiterals -}}
+				"{{GetAlternativeName $enum .}}":{{.Name}},
+        	{{end -}}
+		{{end -}}
     }
     _{{.Name}}ValueToName = map[{{.Name}}]string{
-            {{range .EnumLiterals }}{{.Name}}:"{{GetPreferredName $enum .}}",
-            {{end}}
+		{{range .EnumLiterals -}}
+			{{.Name}}:"{{GetPreferredName $enum .}}",
+		{{end -}}
     }
 )
 
-{{if HasDefaultValue .}}
+{{if HasDefaultValue . -}}
     func {{.Name}}ByName(name string) {{.Name}} {
     t, ok := _{{.Name}}NameToValue[name]
     if !ok {
@@ -34,7 +38,7 @@ var (
     }
     return t
 }
-{{end}}
+{{end -}}
 
 func (t {{.Name}}) String() string {
     v, _ := _{{.Name}}ValueToName[t]
@@ -64,25 +68,24 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
     return nil
 }
 
-{{end}}
+{{end -}}
 
-{{range .Structs}}
+{{range .Structs -}}
 
 // Helpers for json-struct {{.Name}}
-{{if HasSlices . }}
+{{if HasSlices . -}}
 
 // MarshalJSON prevents nil slices in json
 func (data {{.Name}}) MarshalJSON() ([]byte, error) {
     type alias {{.Name}}
     var raw = alias(data)
-
-    {{range .Fields}}
-        {{if .IsSlice}}
-        if raw.{{.Name}} == nil {
-            raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
-        }
-        {{end}}
-    {{end}}
+    {{range .Fields -}}
+        {{if .IsSlice -}}
+			if raw.{{.Name}} == nil {
+				raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
+			}
+        {{end -}}
+    {{end -}}
 
     return json.Marshal(raw)
 }
@@ -93,20 +96,19 @@ func (data *{{.Name}}) UnmarshalJSON(b []byte) error {
     var raw alias
     err := json.Unmarshal(b, &raw)
 
-    {{range .Fields}}
-        {{if .IsSlice}}
+    {{range .Fields -}}
+        {{if .IsSlice -}}
     if raw.{{.Name}} == nil {
         raw.{{.Name}} = []{{if .IsPointer}}*{{end}}{{.TypeName}}{}
     }
-        {{end}}
-    {{end}}
+        {{end -}}
+    {{end -}}
 
     *data = {{.Name}}(raw)
 
     return err
 }
 
-    {{end}}
-
-{{end}}
+    {{end -}}
+{{end -}}
 `

@@ -16,9 +16,9 @@ func init() {
 	eventStoreInstance = eventStore.New(myalerts.MyAlertHandler)
 }
 
-{{range .Structs}}
+{{range .Structs -}}
 
-    {{if and (IsEvent .) (IsPersistent .) }}
+    {{if and (IsEvent .) (IsPersistent .) -}}
 
 func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
         err := StoreEvent{{.Name}}(c, credentials, &event)
@@ -48,8 +48,6 @@ func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event 
 
     return nil
 }
-
-    {{end}}
-
-{{end}}
+	{{end -}}
+{{end -}}
 `

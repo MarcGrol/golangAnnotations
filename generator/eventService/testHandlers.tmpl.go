@@ -5,59 +5,49 @@ const testHandlersTemplate = `// Generated automatically by golangAnnotations: d
 package {{.PackageName}}
 
 import (
-    "encoding/json"
-    "fmt"
-    "net/http"
     "golang.org/x/net/context"
-    "github.com/MarcGrol/golangAnnotations/generator/rest"
-    "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
     "github.com/gorilla/mux"
 )
 
-{{range $idxService, $service := .Services}}
+{{range $idxService, $service := .Services -}}
 
-   {{if not (IsEventServiceNoTest .) }}
+   {{if not (IsEventServiceNoTest .) -}}
 
-   {{ $struct := . }}
-   {{ $structName := .Name }}
+	   {{ $eventService := . -}}
+	   {{ $eventServiceName := .Name -}}
 
-       {{range $idxOper, $oper := .Operations}}
+       {{range $idxOper, $oper := .Operations -}}
+		   {{if IsEventOperation $oper -}}
 
-		   {{if IsEventOperation $oper}}
+func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$eventServiceName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+	{{if IsEventNotTransient $oper -}}
+	{
+		err := store.StoreEvent(c, creds, &event)
+		if err != nil {
+			t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+		}
+	}
+	{{end -}}
 
-func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$structName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
-    {{if IsEventNotTransient $oper}}
-    {
-        err := store.StoreEvent(c, creds, &event)
-        if err != nil {
-            t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-        }
-    }
-    {{end}}
+	envlp, err := event.Wrap(creds.SessionUID)
+	if err != nil {
+		t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+	}
 
-    envlp, err := event.Wrap(creds.SessionUID)
-    if err != nil {
-        t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-    }
+	eventsBefore := getEvents(c, creds)
 
-    eventsBefore := getEvents(c, creds)
+	es.handleEvent{{IsAsyncAsString $eventService}}(c, creds, "caregiver", *envlp)
 
-    es.handleEvent{{IsAsyncAsString $struct}}(c, creds, "caregiver", *envlp)
+	eventsAfter := getEvents(c, creds)
+	delta :=  getEventsDelta(eventsBefore, eventsAfter)
+	verifyAllowed(t, {{GetEventOperationProducesEvents $oper}},delta)
 
-    eventsAfter := getEvents(c, creds)
-    delta :=  getEventsDelta(eventsBefore, eventsAfter)
-    verifyAllowed(t, {{GetEventOperationProducesEvents $oper}},delta)
-
-    return delta
+	return delta
 }
-
-            {{end}}
-
-        {{end}}
-
-    {{end}}
-
-{{end}}
+            {{end -}}
+        {{end -}}
+    {{end -}}
+{{end -}}
 
 func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
     eventsBefore := []envelope.Envelope{}

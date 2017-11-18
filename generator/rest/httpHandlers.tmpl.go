@@ -156,12 +156,14 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			}
 		{{end -}}
 
-        // call business logic
         {{if HasMetaOutput . -}}
+	        // call business logic
         	result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
         {{else if HasOutput . -}}
+	        // call business logic
         	result, err := service.{{$oper.Name}}({{GetInputParamString . }})
         {{else -}}
+	        // call business logic
         	err = service.{{$oper.Name}}({{GetInputParamString . }})
         {{end -}}
         if err != nil {
@@ -169,21 +171,21 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
             return
         }
         {{if HasMetaOutput . -}}
-        if meta != nil {
-            err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
-            if err != nil {
-                rest.HandleHttpError(c, credentials, err, w, r)
-                return
-            }
-        }
+			if meta != nil {
+				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+				if err != nil {
+					rest.HandleHttpError(c, credentials, err, w, r)
+					return
+				}
+			}
         {{end -}}
 
         {{if HasRestOperationAfter . -}}
-        err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
-        if err != nil {
-            rest.HandleHttpError(c, credentials, err, w, r)
-            return
-        }
+			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
+			if err != nil {
+				rest.HandleHttpError(c, credentials, err, w, r)
+				return
+			}
         {{end -}}
 
         {{if NeedsContext $oper -}}
@@ -238,7 +240,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
 		{{else -}}
 			errorh.NewInternalErrorf(0, "Not implemented")
-		{{end -}}
+		{{end -}}// call business logic
     }
 }
     {{else -}}
