@@ -111,10 +111,11 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 	}
 
 	// handle response
-	{{if IsRestOperationJSON . }}
-		{{if HasOutput . }}
+	{
+		{{if IsRestOperationJSON . }}
+			{{if HasOutput . }}
 				if httpResp.Code != http.StatusOK {
-					// return error response
+					// return typestrong error response
 					var errorResp errorh.Error
 					dec := json.NewDecoder(httpResp.Body)
 					err = dec.Decode(&errorResp)
@@ -124,7 +125,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 					return httpResp.Code, nil, &errorResp, nil
 				}
 
-				// return success response
+				// return typestrong success response
 				resp := {{GetOutputArgDeclaration . }}
 				dec := json.NewDecoder(httpResp.Body)
 				err = dec.Decode({{GetOutputArgName . }})
@@ -132,12 +133,13 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 					return httpResp.Code, nil, nil, err
 				}
 				return httpResp.Code, resp, nil, nil
+			{{else}}
+				return httpResp.Code, nil, nil
+			{{end}}
 		{{else}}
-			return httpResp.Code, nil, nil
+			return httpResp, nil
 		{{end}}
-	{{else}}
-		return httpResp, nil
-	{{end}}
+	}
 }
     {{end}}
 {{end}}
