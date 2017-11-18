@@ -52,7 +52,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
         // verify post-conditions
 		tc, err := tc.WithPostConditions(fetchEvents(c))
 		if err != nil {
-			t.Fatalf("Invalid post-condions: %s", err )
+			t.Fatalf("Invalid post-conditions: %s", err )
 		}
 		// add recordings of this test-case to the test-suite
         testSuite.Add(tc)
@@ -61,6 +61,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
     // compose http-request
 	var httpReq *http.Request
 	{
+		var requestPayload []byte
 		{{if HasUpload . }}
 			{{.Name}}SetUpload(input)
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
@@ -68,11 +69,11 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
 			httpReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		{{else if HasInput . }}
-			requestJson, err := json.MarshalIndent(input, "", "\t")
+			requestPayload, err = json.MarshalIndent(input, "", "\t")
 			if err != nil {
 				t.Fatalf("Error marshalling request: %s", err )
 			}
-			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestJson)))
+			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestPayload)))
 		{{else}}
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
 		{{end}}
@@ -95,7 +96,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 		setCookieHook(httpReq, headers)
 
 		// record request-part of test-case
-		tc.WithRequest("GET", url, httpReq.Header, []byte{})
+		tc.WithRequest("{{GetRestOperationMethod . }}", url, httpReq.Header, requestPayload)
 	}
 
 	// call server
@@ -104,9 +105,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 	    // invoke business logic on remote service
     	webservice := NewRest{{ToFirstUpper $serviceName}}()
     	webservice.HTTPHandler().ServeHTTP(httpResp, httpReq)
-	}
 
-	{
 		// record response-part of test-case
 		tc.WithResponse(httpResp.Code, httpResp.Header(), httpResp.Body.Bytes())
 	}
