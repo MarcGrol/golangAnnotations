@@ -124,7 +124,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 			return httpResp.Code, nil, nil
 		{{end}}
 	{{else}}
-		return httpResp.Code, nil
+		return httpResp, nil
 	{{end}}
 }
     {{end}}
