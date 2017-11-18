@@ -120,7 +120,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 					dec := json.NewDecoder(httpResp.Body)
 					err = dec.Decode(&errorResp)
 					if err != nil {
-						t.Fatalf("Error unmarshalling response: %s", err )
+						t.Fatalf("Error unmarshalling error-response: %s", err )
 					}
 					return httpResp.Code, nil, &errorResp, nil
 				}
@@ -130,7 +130,7 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 				dec := json.NewDecoder(httpResp.Body)
 				err = dec.Decode({{GetOutputArgName . }})
 				if err != nil {
-					return httpResp.Code, nil, nil, err
+					t.Fatalf("Error unmarshalling response: %s", err )
 				}
 				return httpResp.Code, resp, nil, nil
 			{{else}}
