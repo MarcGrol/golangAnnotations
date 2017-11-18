@@ -62,32 +62,32 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 	var httpReq *http.Request
 	{
 		var requestPayload []byte
-		{{if HasUpload . }}
+		{{if HasUpload . -}}
 			{{.Name}}SetUpload(input)
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
-		{{else if IsRestOperationForm . }}
+		{{else if IsRestOperationForm . -}}
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(form.Encode()))
 			httpReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		{{else if HasInput . }}
+		{{else if HasInput . -}}
 			requestPayload, err = json.MarshalIndent(input, "", "\t")
 			if err != nil {
 				t.Fatalf("Error marshalling request: %s", err )
 			}
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, strings.NewReader(string(requestPayload)))
-		{{else}}
+		{{else -}}
 			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", url, nil)
-		{{end}}
+		{{end -}}
 		if err != nil {
 			t.Fatalf("Error creating http-request: %s", err )
 		}
 		httpReq.RequestURI = url
-		{{if HasUpload . }}
-		{{else if HasInput . }}
+		{{if HasUpload . -}}
+		{{else if HasInput . -}}
 			httpReq.Header.Set("Content-type", "application/json")
-		{{end}}
-		{{if HasOutput . }}
+		{{end -}}
+		{{if HasOutput . -}}
 			httpReq.Header.Set("Accept", "application/json")
-		{{end}}
+		{{end -}}
 		for k, v := range headers {
 			httpReq.Header.Set(k, v)
 		}
@@ -110,8 +110,8 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 
 	// handle response
 	{
-		{{if IsRestOperationJSON . }}
-			{{if HasOutput . }}
+		{{if IsRestOperationJSON . -}}
+			{{if HasOutput . -}}
 				if httpResp.Code != http.StatusOK {
 					// return type-strong error response
 					var errorResp errorh.Error
@@ -131,16 +131,16 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context,  tc *libtes
 					t.Fatalf("Error unmarshalling response: %s", err )
 				}
 				return httpResp.Code, resp, nil, nil
-			{{else}}
+			{{else -}}
 				return httpResp.Code, nil, nil
-			{{end}}
-		{{else}}
+			{{end -}}
+		{{else -}}
 			return httpResp, nil
-		{{end}}
+		{{end -}}
 	}
 }
-    {{end}}
-{{end}}
+    {{end -}}
+{{end -}}
 
 func defaultBeforeAll() {
     mytime.SetMockNow()
