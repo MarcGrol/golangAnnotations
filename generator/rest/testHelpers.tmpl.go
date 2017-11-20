@@ -172,15 +172,14 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
         type {{.Name}}TestRequest struct {
             Url      string
             Headers  map[string]string
-            HasInput bool
-            HasForm  bool
             {{if HasInput . }}Body {{GetInputArgType . }}{{end}}
             {{if IsRestOperationForm . }}Form url.Values{{end}}
         }
 
         type {{.Name}}TestResponse struct {
             StatusCode int
-            Headers    map[string][]string
+            HeaderMap  http.Header
+			Cookies    []*http.Cookie
             {{if IsRestOperationJSON . }}
                 {{if HasOutput . }}
                     Body {{GetOutputArgType . }}
@@ -310,6 +309,11 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
             fmt.Fprintf(logFp, "\t},\n")
             fmt.Fprintf(logFp, "\tBody:\n{{BackTick}}%s{{BackTick}},\n", {{if IsRestOperationJSON . }}responseBody.String(){{else}}recorder.Body.Bytes(){{end}})
 
+			// read cookies
+			requestWithCookies := &http.Request{
+				Header: http.Header{"Cookie": recorder.HeaderMap["Set-Cookie"]},
+			}
+
             {{if IsRestOperationJSON . }}
                 {{if HasOutput . }}
                     if recorder.Code != http.StatusOK {
@@ -323,7 +327,8 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 
                         return {{.Name}}TestResponse {
                             StatusCode: recorder.Code,
-                            Headers:    recorder.Header(),
+                            HeaderMap:  recorder.HeaderMap,
+							Cookies:	requestWithCookies.Cookies(),
                             ErrorBody:  &errorResponse,
                         }
                     }
@@ -338,19 +343,22 @@ func isEventAllowed(allowedEventNames []string, anEventName string) bool {
 
                     return {{.Name}}TestResponse {
                         StatusCode: recorder.Code,
-                        Headers:    recorder.Header(),
+                        HeaderMap:  recorder.HeaderMap,
+						Cookies:	requestWithCookies.Cookies(),
                         Body:       resp,
                     }
                 {{else}}
                     return {{.Name}}TestResponse {
                         StatusCode: recorder.Code,
-                        Headers:    recorder.Header(),
+                        HeaderMap:  recorder.HeaderMap,
+						Cookies:	requestWithCookies.Cookies(),
                     }
                 {{end}}
             {{else}}
                 return {{.Name}}TestResponse {
                     StatusCode: recorder.Code,
-                    Headers:    recorder.Header(),
+                    HeaderMap:  recorder.HeaderMap,
+					Cookies:	requestWithCookies.Cookies(),
                     Recorder:   recorder,
                 }
             {{end}}
