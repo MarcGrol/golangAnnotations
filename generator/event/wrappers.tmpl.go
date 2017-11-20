@@ -12,20 +12,20 @@ import (
 )
 
 const (
-{{range .Structs}}
-    {{if IsEvent . }}
+{{range .Structs -}}
+    {{if IsEvent . -}}
         // {{.Name}}EventName provides a constant symbol for {{.Name}}
         {{.Name}}EventName = "{{.Name}}"
-    {{end}}
-{{end}}
+    {{end -}}
+{{end -}}
 )
 
 var getUID = func() string {
     return uuid.NewV1().String()
 }
 
-{{range .Structs}}
-    {{if IsEvent . }}
+{{range .Structs -}}
+    {{if IsEvent . -}}
 
 // Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
@@ -88,7 +88,6 @@ func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
     return &event, nil
 }
 
-    {{end}}
-
-{{end}}
+    {{end -}}
+{{end -}}
 `
