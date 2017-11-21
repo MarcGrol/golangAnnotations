@@ -47,7 +47,7 @@ type {{.Name}}TestRequest struct {
 type {{.Name}}TestResponse struct {
     StatusCode int
     HeaderMap  http.Header
-    Cookies    []*http.Cookie
+    GetCookie  func(string) *http.Cookie
     {{if IsRestOperationJSON . }}
         {{if HasOutput . }}
             Body {{GetOutputArgType . }}
@@ -154,6 +154,14 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
             Header: http.Header{"Cookie": httpResp.HeaderMap["Set-Cookie"]},
         }
 
+		getCookie := func (name string) *http.Cookie {
+			cookie, err := requestWithCookies.Cookie(name)
+			if err != nil {
+				t.Fatalf("Error reading cookie", err)
+			}
+			return cookie
+		}
+
         {{if IsRestOperationJSON . -}}
             {{if HasOutput . -}}
                 if httpResp.Code != http.StatusOK {
@@ -168,7 +176,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
                     return {{.Name}}TestResponse {
                         StatusCode: httpResp.Code,
                         HeaderMap:  httpResp.HeaderMap,
-                        Cookies:	requestWithCookies.Cookies(),
+                        GetCookie:	getCookie,
                         ErrorBody:  &errorResponse,
                     }
                 }
@@ -184,21 +192,21 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
                 return {{.Name}}TestResponse {
                     StatusCode: httpResp.Code,
                     HeaderMap:  httpResp.HeaderMap,
-                    Cookies:	requestWithCookies.Cookies(),
+                    GetCookie:	getCookie,
                     Body:       resp,
                 }
             {{else -}}
                 return {{.Name}}TestResponse {
                     StatusCode: httpResp.Code,
                     HeaderMap:  httpResp.HeaderMap,
-                    Cookies:	requestWithCookies.Cookies(),
+                    GetCookie:	getCookie,
                 }
             {{end -}}
         {{else -}}
             return {{.Name}}TestResponse {
                 StatusCode: httpResp.Code,
                 HeaderMap:  httpResp.HeaderMap,
-                Cookies:	requestWithCookies.Cookies(),
+                GetCookie:	getCookie,
                 Recorder:   httpResp,
             }
         {{end -}}
