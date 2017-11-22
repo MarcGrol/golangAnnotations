@@ -157,7 +157,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
 		getCookie := func (name string) *http.Cookie {
 			cookie, err := requestWithCookies.Cookie(name)
 			if err != nil {
-				t.Fatalf("Error reading cookie", err)
+				t.Fatalf("Error reading cookie: %s", err)
 			}
 			return cookie
 		}
