@@ -2,7 +2,7 @@ package event
 
 const eventStoreTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
-package store
+package {{.PackageName}}Store
 
 import (
     "golang.org/x/net/context"
@@ -10,9 +10,15 @@ import (
     "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
-{{range .Structs}}
+var eventStoreInstance eventStore.EventStore
 
-    {{if and (IsEvent .) (IsPersistent .) }}
+func init() {
+	eventStoreInstance = eventStore.New(myalerts.MyAlertHandler)
+}
+
+{{range .Structs -}}
+
+    {{if and (IsEvent .) (IsPersistent .) -}}
 
 func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
         err := StoreEvent{{.Name}}(c, credentials, &event)
@@ -42,8 +48,6 @@ func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event 
 
     return nil
 }
-
-    {{end}}
-
-{{end}}
+	{{end -}}
+{{end -}}
 `

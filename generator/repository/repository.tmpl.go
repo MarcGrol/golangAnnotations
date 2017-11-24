@@ -12,7 +12,7 @@ import (
     "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
-{{if HasMethodFind .}}
+{{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID
 
 func DefaultFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) (*model.{{UpperModelName .}}, error) {
@@ -20,19 +20,19 @@ func DefaultFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Cr
     return {{LowerModelName .}}, err
 }
 
-{{if HasMethodFilterByEvent .}}
+{{if HasMethodFilterByEvent . -}}
 func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, metadata {{GetPackageName .}}.Metadata) (*model.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, credentials, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
     return {{LowerModelName .}}, err
 }
-{{end}}
+{{end -}}
 
-{{if HasMethodFilterByMoment .}}
+{{if HasMethodFilterByMoment . -}}
 func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, moment time.Time) (*model.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, credentials, {{LowerModelName .}}UID, envelope.FilterByMoment{Moment: moment})
     return {{LowerModelName .}}, err
 }
-{{end}}
+{{end -}}
 
 func DoFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*model.{{UpperModelName .}}, []envelope.Envelope, error) {
     envelopes, err := doFind{{UpperAggregateName .}}EnvelopesOnUID(c, credentials, {{LowerModelName .}}UID, envelopeFilter)
@@ -62,9 +62,9 @@ func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, credentials
 
     return envelopes, nil
 }
-{{end}}
+{{end -}}
 
-{{if HasMethodFindStates .}}
+{{if HasMethodFindStates . -}}
     func Find{{UpperModelName .}}StatesOnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) ([]model.{{UpperModelName .}}, error) {
     envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, credentials, {{LowerModelName .}}UID, envelope.AcceptAll)
     if err != nil {
@@ -82,9 +82,9 @@ func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, credentials
     }
     return states, nil
     }
-{{end}}
+{{end -}}
 
-{{if HasMethodExists .}}
+{{if HasMethodExists . -}}
 func Exists{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) (bool, error) {
     exists, err := eventStoreInstance.Exists(c, credentials, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID)
     if err != nil {
@@ -92,9 +92,9 @@ func Exists{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credent
     }
     return exists, nil
 }
-{{end}}
+{{end -}}
 
-{{if HasMethodAllAggregateUIDs .}}
+{{if HasMethodAllAggregateUIDs . -}}
 func GetAll{{UpperModelName .}}UIDs(c context.Context, credentials rest.Credentials) ([]string, error) {
     {{LowerModelName .}}UIDs, err := eventStoreInstance.GetAllAggregateUIDs(c, credentials, {{GetPackageName .}}.{{AggregateNameConst .}})
     if err != nil {
@@ -102,9 +102,9 @@ func GetAll{{UpperModelName .}}UIDs(c context.Context, credentials rest.Credenti
     }
         return {{LowerModelName .}}UIDs, nil
     }
-{{end}}
+{{end -}}
 
-{{if HasMethodGetAllAggregates .}}
+{{if HasMethodGetAllAggregates . -}}
 func GetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Credentials, optOffset time.Time) ([]model.{{UpperModelName .}}, error) {
             {{LowerModelName .}}, _, err := DoGetAllRecent{{UpperModelName .}}s(c, credentials, optOffset)
     return {{LowerModelName .}}, err
@@ -134,15 +134,15 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Cre
     }
     return {{LowerModelName .}}s, {{LowerModelName .}}Map, nil
 }
-{{end}}
+{{end -}}
 
-{{if HasMethodPurgeOnEventUIDs .}}
+{{if HasMethodPurgeOnEventUIDs . -}}
     func Purge{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, eventUUIDs []string) error {
     return eventStoreInstance.Purge(c, credentials, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID, eventUUIDs)
 }
-{{end}}
+{{end -}}
 
-{{if HasMethodPurgeOnEventType .}}
+{{if HasMethodPurgeOnEventType . -}}
 func PurgeAll{{UpperAggregateName .}}EnvelopesOnEventType(c context.Context, credentials rest.Credentials, eventTypeName string) (bool, error) {
     if eventTypeName == "" {
     return false, errorh.NewInvalidInputErrorf(0, "Missing eventTypeName")
@@ -153,5 +153,5 @@ func PurgeAll{{UpperAggregateName .}}EnvelopesOnEventType(c context.Context, cre
     }
     return done, nil
 }
-{{end}}
+{{end -}}
 `

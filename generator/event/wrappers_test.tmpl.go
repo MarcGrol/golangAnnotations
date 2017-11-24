@@ -17,9 +17,9 @@ func testGetUID() string {
     return "1234321"
 }
 
-{{range .Structs}}
+{{range .Structs -}}
 
-    {{if IsEvent . }}
+    {{if IsEvent . -}}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
     mytime.SetMockNow()
@@ -27,8 +27,11 @@ func Test{{.Name}}Wrapper(t *testing.T) {
     getUID = testGetUID
 
     event := {{.Name}}{
-        {{range .Fields}}
-                {{if HasValueForField .}} {{.Name}}: {{ValueForField .}}, {{end}} {{end}}
+        {{range .Fields -}}
+			{{if HasValueForField . -}}
+				{{.Name}}: {{ValueForField .}},
+			{{end -}}
+		{{end -}}
     }
     wrapped, err := event.Wrap("test_session")
     assert.NoError(t, err)
@@ -45,6 +48,6 @@ func Test{{.Name}}Wrapper(t *testing.T) {
     assert.NotNil(t,again)
     reflect.DeepEqual(event, *again)
 }
-        {{end}}
-{{end}}
+        {{end -}}
+{{end -}}
 `
