@@ -151,6 +151,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetOutputArgType":                      GetOutputArgType,
 	"HasOutput":                             HasOutput,
 	"HasMetaOutput":                         HasMetaOutput,
+	"IsMetaCallback":                        IsMetaCallback,
 	"IsPrimitiveArg":                        IsPrimitiveArg,
 	"IsNumberArg":                           IsNumberArg,
 	"RequiresParamValidation":               RequiresParamValidation,
@@ -575,16 +576,25 @@ func GetOutputArgType(o model.Operation) string {
 }
 
 func HasMetaOutput(o model.Operation) bool {
+	return GetMetaArg(o) != nil
+}
+
+func IsMetaCallback(o model.Operation) bool {
+	arg := GetMetaArg(o)
+	return arg != nil && IsMetaCallbackArg(*arg)
+}
+
+func GetMetaArg(o model.Operation) *model.Field {
 	var count = 0
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			count++
 			if count == 2 {
-				return true
+				return &arg
 			}
 		}
 	}
-	return false
+	return nil
 }
 
 func GetOutputArgDeclaration(o model.Operation) string {
@@ -675,6 +685,10 @@ func IsContextArg(f model.Field) bool {
 
 func IsCredentialsArg(f model.Field) bool {
 	return f.TypeName == "rest.Credentials"
+}
+
+func IsMetaCallbackArg(f model.Field) bool {
+	return f.TypeName == "rest.MetaCallback"
 }
 
 func IsPrimitiveArg(f model.Field) bool {

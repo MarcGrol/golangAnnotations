@@ -172,7 +172,11 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
         }
         {{if HasMetaOutput . -}}
 			if meta != nil {
-				err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+				{{if IsMetaCallback . -}}
+					err = meta(c, w)
+				{{else -}}
+					err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+				{{end -}}
 				if err != nil {
 					rest.HandleHttpError(c, credentials, err, w, r)
 					return

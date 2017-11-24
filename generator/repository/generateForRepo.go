@@ -118,9 +118,9 @@ func UpperModelName(s model.Struct) string {
 func GetModelName(s model.Struct) string {
 	annotations := annotation.NewRegistry(repositoryAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, repositoryAnnotation.TypeRepository); ok {
-		model := ann.Attributes[repositoryAnnotation.ParamModel]
-		if model != "" {
-			return model
+		m := ann.Attributes[repositoryAnnotation.ParamModel]
+		if m != "" {
+			return m
 		}
 	}
 	return GetAggregateName(s)

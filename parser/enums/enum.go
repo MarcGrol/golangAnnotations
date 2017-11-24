@@ -14,5 +14,5 @@ type Profession string
 
 const (
 	Teacher Profession = "_teacher"
-	Cleaner            = "_cleaner"
+	Cleaner Profession = "_cleaner"
 )
