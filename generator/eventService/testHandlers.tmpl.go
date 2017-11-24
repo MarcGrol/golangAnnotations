@@ -36,7 +36,7 @@ func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c co
 
 	eventsBefore := getEvents(c, creds)
 
-	es.handleEvent{{IsAsyncAsString $eventService}}(c, creds, "caregiver", *envlp)
+	es.handleEvent{{IsAsyncAsString $eventService}}(c, creds, "{{GetEventOperationTopic .}}", *envlp)
 
 	eventsAfter := getEvents(c, creds)
 	delta :=  getEventsDelta(eventsBefore, eventsAfter)
