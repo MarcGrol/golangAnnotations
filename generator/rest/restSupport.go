@@ -45,7 +45,6 @@ type Credentials struct {
 	RequestURI    string    `json:"requestUri,omitempty"`
 	RequestUID    string    `json:"requestUid,omitempty"`
 	SessionUID    string    `json:"sessionUid,omitempty"`
-	EndUserAccess string    `json:"endUserAccess,omitempty"`
 	EndUserRole   string    `json:"endUserRole,omitempty"`
 	EndUserUID    string    `json:"endUserUid,omitempty"`
 	ApiKey        string    `json:"apiKey,omitempty"`
@@ -61,13 +60,17 @@ type AuthUser struct {
 	ID           string `json:"id,omitempty"`
 }
 
+func (credentials Credentials) WithAuthUser(c context.Context) Credentials {
+	credentials.AuthUser = GetAuthUser(c)
+	return credentials
+}
+
 func ExtractAllCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
 		Language:      ExtractLanguage(r),
 		RequestURI:    r.RequestURI,
 		RequestUID:    r.Header.Get("X-request-uid"),
 		SessionUID:    r.Header.Get("X-session-uid"),
-		EndUserAccess: r.Header.Get("X-enduser-access"),
 		EndUserRole:   r.Header.Get("X-enduser-role"),
 		EndUserUID:    r.Header.Get("X-enduser-uid"),
 		AuthUser:      GetAuthUser(c),
