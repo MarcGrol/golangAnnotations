@@ -9,7 +9,7 @@ import (
 	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
-type MetaCallback func(c context.Context, w http.ResponseWriter) error
+type MetaCallback func(c context.Context, w http.ResponseWriter, r *http.Request) error
 
 type restSupport interface {
 	GetAuthUser(c context.Context) *AuthUser
