@@ -32,6 +32,20 @@ func TestMain(m *testing.M) {
 
 {{ $serviceName := .Name -}}
 
+type testClient struct {
+	c        context.Context
+	t        *testing.T
+	testCase *libtest.HTTPTestCase
+}
+
+func newTestClient(ctx context.Context, testingT *testing.T, testCase *libtest.HTTPTestCase) *testClient {
+	return &testClient{
+		c:        ctx,
+		t:        testingT,
+		testCase: testCase,
+	}
+}
+
 {{range .Operations -}}
 
 {{if IsRestOperation . -}}
@@ -71,26 +85,26 @@ func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, tc *libtest
         {{if IsRestOperationForm .}}Form: form,{{end}}
     }
 
-    response := {{.Name}}TestHelper(t, c, tc, request)
+    response := newTestClient(c, t, tc).{{.Name}}(request)
 
     return {{if IsRestOperationJSON . }}response.StatusCode, {{if HasOutput . }}response.Body,{{end}} response.ErrorBody,{{else}}response.Recorder,{{end}} nil
 }
 
-func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCase, request {{.Name}}TestRequest)  {{.Name}}TestResponse {
+func (tcl *testClient){{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResponse {
 
     var err error
 
     // add operation specific info to test-case
-    tc.ForOperationName("{{.Name}}").
+    tcl.testCase.ForOperationName("{{.Name}}").
        WithAllowedPostConditions({{GetRestOperationProducesEvents .}}).
-       WithPreConditions(fetchEvents(c))
+       WithPreConditions(fetchEvents(tcl.c))
 
     // called when function terminates
     defer func() {
         // verify post-conditions
-        tc, err := tc.WithPostConditions(fetchEvents(c))
+        tc, err := tcl.testCase.WithPostConditions(fetchEvents(tcl.c))
         if err != nil {
-            t.Fatalf("Invalid post-conditions: %s", err )
+            tcl.t.Fatalf("Invalid post-conditions: %s", err )
         }
         // add recordings of this test-case to the test-suite
         testSuite.Add(tc)
@@ -109,14 +123,14 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
         {{else if HasInput . -}}
             requestPayload, err = json.MarshalIndent(request.Body, "", "\t")
             if err != nil {
-                t.Fatalf("Error marshalling request: %s", err )
+                tcl.t.Fatalf("Error marshalling request: %s", err )
             }
             httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(string(requestPayload)))
         {{else -}}
             httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
         {{end -}}
         if err != nil {
-            t.Fatalf("Error creating http-request: %s", err )
+            tcl.t.Fatalf("Error creating http-request: %s", err )
         }
         httpReq.RequestURI = request.Url
         {{if HasUpload . -}}
@@ -132,7 +146,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
         setCookieHook(httpReq, request.Headers)
 
         // record request-part of test-case
-        tc.WithRequest("{{GetRestOperationMethod . }}", request.Url, httpReq.Header, requestPayload)
+        tcl.testCase.WithRequest("{{GetRestOperationMethod . }}", request.Url, httpReq.Header, requestPayload)
     }
 
     // call server
@@ -143,7 +157,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
         webservice.HTTPHandler().ServeHTTP(httpResp, httpReq)
 
         // record responsepart of testcase
-        tc.WithResponse(httpResp.Code, httpResp.Header() , httpResp.Body.Bytes())
+        tcl.testCase.WithResponse(httpResp.Code, httpResp.Header() , httpResp.Body.Bytes())
     }
 
 
@@ -157,7 +171,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
 		getCookie := func (name string) *http.Cookie {
 			cookie, err := requestWithCookies.Cookie(name)
 			if err != nil {
-				t.Fatalf("Error reading cookie: %s", err)
+				tcl.t.Logf("Error reading cookie '%s': %s", name, err)
 			}
 			return cookie
 		}
@@ -170,7 +184,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
                     dec := json.NewDecoder(httpResp.Body)
                     err = dec.Decode(&errorResponse)
                     if err != nil {
-                        t.Fatalf("Error unmarshalling error-response: %s", err )
+                        tcl.t.Fatalf("Error unmarshalling error-response: %s", err )
                     }
 
                     return {{.Name}}TestResponse {
@@ -186,7 +200,7 @@ func {{.Name}}TestHelper(t *testing.T, c context.Context, tc *libtest.HTTPTestCa
                 dec := json.NewDecoder(httpResp.Body)
                 err = dec.Decode({{GetOutputArgName . }})
                 if err != nil {
-                    t.Fatalf("Error unmarshalling response: %s", err )
+                    tcl.t.Fatalf("Error unmarshalling response: %s", err )
                 }
 
                 return {{.Name}}TestResponse {
