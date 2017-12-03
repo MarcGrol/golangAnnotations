@@ -15,32 +15,32 @@ import (
 {{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID
 
-func DefaultFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) (*model.{{UpperModelName .}}, error) {
+func DefaultFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, credentials, {{LowerModelName .}}UID, envelope.AcceptAll)
     return {{LowerModelName .}}, err
 }
 
 {{if HasMethodFilterByEvent . -}}
-func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, metadata {{GetPackageName .}}.Metadata) (*model.{{UpperModelName .}}, error) {
+func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, metadata {{GetPackageName .}}.Metadata) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, credentials, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
     return {{LowerModelName .}}, err
 }
 {{end -}}
 
 {{if HasMethodFilterByMoment . -}}
-func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, moment time.Time) (*model.{{UpperModelName .}}, error) {
+func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, moment time.Time) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, credentials, {{LowerModelName .}}UID, envelope.FilterByMoment{Moment: moment})
     return {{LowerModelName .}}, err
 }
 {{end -}}
 
-func DoFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*model.{{UpperModelName .}}, []envelope.Envelope, error) {
+func DoFind{{UpperModelName .}}OnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
     envelopes, err := doFind{{UpperAggregateName .}}EnvelopesOnUID(c, credentials, {{LowerModelName .}}UID, envelopeFilter)
     if err != nil {
         return nil, nil, err
     }
 
-    {{LowerModelName .}} := model.New{{UpperModelName .}}()
+    {{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
     err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, envelopes, {{LowerModelName .}})
     if err != nil {
         return nil, nil, errorh.NewInternalErrorf(0, "Failed to apply %d events for {{LowerModelName .}} with uid %s: %s", len(envelopes), {{LowerModelName .}}UID, err)
@@ -65,14 +65,14 @@ func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, credentials
 {{end -}}
 
 {{if HasMethodFindStates . -}}
-    func Find{{UpperModelName .}}StatesOnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) ([]model.{{UpperModelName .}}, error) {
+    func Find{{UpperModelName .}}StatesOnUID(c context.Context, credentials rest.Credentials, {{LowerModelName .}}UID string) ([]{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, credentials, {{LowerModelName .}}UID, envelope.AcceptAll)
     if err != nil {
         return nil, err
     }
 
-    states := make([]model.{{UpperModelName .}}, 0, len(envelopes))
-    {{LowerModelName .}} := model.New{{UpperModelName .}}()
+    states := make([]{{ModelPackageName .}}.{{UpperModelName .}}, 0, len(envelopes))
+    {{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
     for _, envlp := range envelopes {
         err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Event(c, envlp, {{LowerModelName .}})
         if err != nil {
@@ -105,12 +105,12 @@ func GetAll{{UpperModelName .}}UIDs(c context.Context, credentials rest.Credenti
 {{end -}}
 
 {{if HasMethodGetAllAggregates . -}}
-func GetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Credentials, optOffset time.Time) ([]model.{{UpperModelName .}}, error) {
+func GetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Credentials, optOffset time.Time) ([]{{ModelPackageName .}}.{{UpperModelName .}}, error) {
             {{LowerModelName .}}, _, err := DoGetAllRecent{{UpperModelName .}}s(c, credentials, optOffset)
     return {{LowerModelName .}}, err
 }
 
-func DoGetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Credentials, optOffset time.Time) ([]model.{{UpperModelName .}}, map[string][]envelope.Envelope, error) {
+func DoGetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Credentials, optOffset time.Time) ([]{{ModelPackageName .}}.{{UpperModelName .}}, map[string][]envelope.Envelope, error) {
             {{LowerModelName .}}Map := map[string][]envelope.Envelope{}
     err := eventStoreInstance.IterateWithOffset(c, credentials, {{GetPackageName .}}.{{AggregateNameConst .}}, optOffset, func(envlp envelope.Envelope) error {
         if envlp.IsRootEvent {
@@ -126,9 +126,9 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, credentials rest.Cre
         return nil, nil, err
     }
 
-    {{LowerModelName .}}s := make([]model.{{UpperModelName .}}, 0, len({{LowerModelName .}}Map))
+    {{LowerModelName .}}s := make([]{{ModelPackageName .}}.{{UpperModelName .}}, 0, len({{LowerModelName .}}Map))
     for _, {{LowerAggregateName .}}Envelopes := range {{LowerModelName .}}Map {
-        {{LowerModelName .}} := model.New{{UpperModelName .}}()
+        {{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
         {{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, {{LowerAggregateName .}}Envelopes, {{LowerModelName .}})
         {{LowerModelName .}}s = append({{LowerModelName .}}s, *{{LowerModelName .}})
     }

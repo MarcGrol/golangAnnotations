@@ -59,6 +59,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetPackageName":            GetPackageName,
 	"LowerModelName":            LowerModelName,
 	"UpperModelName":            UpperModelName,
+	"ModelPackageName":          ModelPackageName,
 	"HasMethodFind":             HasMethodFind,
 	"HasMethodFilterByEvent":    HasMethodFilterByEvent,
 	"HasMethodFilterByMoment":   HasMethodFilterByMoment,
@@ -113,6 +114,10 @@ func LowerModelName(s model.Struct) string {
 
 func UpperModelName(s model.Struct) string {
 	return toFirstUpper(GetModelName(s))
+}
+
+func ModelPackageName(s model.Struct) string {
+	return toFirstLower(GetModelName(s)) + "Model"
 }
 
 func GetModelName(s model.Struct) string {
