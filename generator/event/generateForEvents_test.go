@@ -12,7 +12,7 @@ import (
 func cleanup() {
 	os.Remove("./testData/$aggregates.go")
 	os.Remove("./testData/$wrappers.go")
-	os.Remove("./store/$testDataEventStore.go")
+	os.Remove("./store/testDataStore/$testDataEventStore.go")
 }
 
 func TestGenerateForEvents(t *testing.T) {
