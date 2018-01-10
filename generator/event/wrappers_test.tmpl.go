@@ -13,18 +13,15 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func testGetUID() string {
-    return "1234321"
-}
-
 {{range .Structs -}}
-
     {{if IsEvent . -}}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
-    mytime.SetMockNow()
     defer mytime.SetDefaultNow()
-    getUID = testGetUID
+	defer myuuid.SetDefaults()
+
+    mytime.SetMockNow()
+	myuuid.SetMockV1("1234321")
 
     event := {{.Name}}{
         {{range .Fields -}}

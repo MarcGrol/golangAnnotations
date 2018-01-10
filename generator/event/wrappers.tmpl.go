@@ -8,7 +8,6 @@ import (
     "encoding/json"
     "fmt"
     "log"
-    uuid "github.com/satori/go.uuid"
 )
 
 const (
@@ -20,22 +19,22 @@ const (
 {{end -}}
 )
 
-var getUID = func() string {
-    return uuid.NewV1().String()
-}
-
 {{range .Structs -}}
     {{if IsEvent . -}}
 
 // Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
-    blob, err := json.Marshal(s)
+	uuid, err := myuuid.NewV1()
+	if err != nil {
+		return nil, err
+	}
+	blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
     envelope := envelope.Envelope{
-        UUID: getUID(),
+        UUID: uuid,
         IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
         SequenceNumber: int64(0), // Set later by event-store
         SessionUID: sessionUID,
