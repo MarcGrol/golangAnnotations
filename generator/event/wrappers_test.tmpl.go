@@ -21,7 +21,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 	defer myuuid.SetDefaults()
 
     mytime.SetMockNow()
-	myuuid.SetMockV1("1234321")
+	myuuid.SetMockV1({{GetAggregateName . }}AggregateName, "1234321")
 
     event := {{.Name}}{
         {{range .Fields -}}
@@ -33,8 +33,8 @@ func Test{{.Name}}Wrapper(t *testing.T) {
     wrapped, err := event.Wrap("test_session")
     assert.NoError(t, err)
     assert.True(t, Is{{.Name}}(wrapped))
-    assert.Equal(t, "{{GetAggregateName . }}", wrapped.AggregateName)
-    assert.Equal(t, "{{.Name}}", wrapped.EventTypeName)
+    assert.Equal(t, {{GetAggregateName . }}AggregateName, wrapped.AggregateName)
+    assert.Equal(t, {{.Name}}EventName, wrapped.EventTypeName)
     //	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
     assert.Equal(t, "test_session", wrapped.SessionUID)
     assert.Equal(t, "1234321", wrapped.UUID)

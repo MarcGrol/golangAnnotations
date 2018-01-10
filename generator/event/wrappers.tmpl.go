@@ -24,7 +24,7 @@ const (
 
 // Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
-	uuid, err := myuuid.NewV1()
+	uuid, err := myuuid.NewV1({{GetAggregateName . }}AggregateName)
 	if err != nil {
 		return nil, err
 	}
