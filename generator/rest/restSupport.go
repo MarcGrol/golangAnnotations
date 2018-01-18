@@ -49,6 +49,7 @@ type Credentials struct {
 	EndUserUID  string    `json:"endUserUid,omitempty"`
 	ApiKey      string    `json:"apiKey,omitempty"`
 	AuthUser    *AuthUser `json:"authUser,omitempty"`
+	UserAgent   string    `json:"userAgent,omitempty"`
 }
 
 // provided by App Engine's user authentication service.
@@ -73,6 +74,7 @@ func ExtractAllCredentials(c context.Context, r *http.Request) Credentials {
 		SessionUID:  r.Header.Get("X-session-uid"),
 		EndUserRole: r.Header.Get("X-enduser-role"),
 		EndUserUID:  r.Header.Get("X-enduser-uid"),
+		UserAgent:   r.Header.Get("User-Agent"),
 		AuthUser:    GetAuthUser(c),
 	}
 }
@@ -82,6 +84,7 @@ func ExtractAdminCredentials(c context.Context, r *http.Request) Credentials {
 		Language:   ExtractLanguage(r),
 		RequestURI: r.RequestURI,
 		AuthUser:   GetAuthUser(c),
+		UserAgent:  r.Header.Get("User-Agent"),
 	}
 }
 
@@ -89,6 +92,7 @@ func ExtractNoCredentials(c context.Context, r *http.Request) Credentials {
 	return Credentials{
 		Language:   ExtractLanguage(r),
 		RequestURI: r.RequestURI,
+		UserAgent:  r.Header.Get("User-Agent"),
 	}
 }
 
