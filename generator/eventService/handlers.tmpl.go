@@ -72,7 +72,6 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
 				return
 			}
-			mylog.New().Info(c, "Enqueued task to url %s", taskUrl)
 	}
 }
 
