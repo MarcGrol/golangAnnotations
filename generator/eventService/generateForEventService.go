@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/template"
 	"unicode"
+	"time"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
@@ -59,10 +60,10 @@ func generate(inputDir string, structs []model.Struct) error {
 		PackageName: packageName,
 		Services:    eventServices,
 	}
-	return dogenerate(targetDir, packageName, eventServices, data)
+	return doGenerate(targetDir, packageName, eventServices, data)
 }
 
-func dogenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
+func doGenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
 
 	target := fmt.Sprintf("%s/$eventHandler.go", targetDir)
 	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-handlers", handlersTemplate, customTemplateFuncs, target)
@@ -96,6 +97,9 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           GetEventServiceTopics,
 	"GetEventOperationTopic":          GetEventOperationTopic,
+	"GetEventOperationDelay":          GetEventOperationDelay,
+	"IsEventOperationDelayed":         IsEventOperationDelayed,
+	"IsAnyEventOperationDelayed":      IsAnyEventOperationDelayed,
 	"GetEventOperationQueueGroups":    GetEventOperationQueueGroups,
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
 	"IsAsyncAsString":                 IsAsyncAsString,
@@ -242,15 +246,39 @@ operations:
 }
 
 func GetEventOperationProcess(o model.Operation) string {
-	process := ""
 	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
-		process = ann.Attributes[eventServiceAnnotation.ParamProcess]
+		process := ann.Attributes[eventServiceAnnotation.ParamProcess]
 		if process != "" {
 			return ToFirstUpper(process)
 		}
 	}
 	return "Default"
+}
+
+func IsEventOperationDelayed(o model.Operation) bool {
+	return GetEventOperationDelay(o) > 0
+}
+
+func IsAnyEventOperationDelayed(s model.Struct) bool {
+	for _, oper := range s.Operations {
+		if IsEventOperationDelayed(*oper) {
+			return true
+		}
+	}
+	return false
+}
+
+func GetEventOperationDelay(o model.Operation) float64 {
+	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
+		delay := ann.Attributes[eventServiceAnnotation.ParamDelay]
+		duration, err := time.ParseDuration(delay)
+		if err == nil {
+			return duration.Seconds()
+		}
+	}
+	return 0
 }
 
 func GetInputArgType(o model.Operation) string {

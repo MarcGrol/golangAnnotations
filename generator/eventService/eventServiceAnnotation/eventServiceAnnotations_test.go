@@ -10,7 +10,7 @@ import (
 func TestCorrectEventServiceAnnotation(t *testing.T) {
 	registry := annotation.NewRegistry(Get())
 
-	ann, ok := registry.ResolveAnnotationByName([]string{`// @EventService( Self = "caregiverService", process = "myprocess", async="true", admin="true", producesEvents="x,y" )`}, "EventService")
+	ann, ok := registry.ResolveAnnotationByName([]string{`// @EventService( Self = "caregiverService", process = "myprocess", async="true", delay = "30", producesEvents="x,y" )`}, "EventService")
 	assert.True(t, ok)
 	{
 		self, ok := ann.Attributes[ParamSelf]

@@ -53,6 +53,16 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 				{{if $idxOper}},{{end -}}{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName{{end -}}
 			{{end -}}:
 
+			var delay time.Duration = 0
+			{{if IsAnyEventOperationDelayed . -}}
+			switch envlp.EventTypeName {
+			{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
+			case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
+				delay = {{GetEventOperationDelay $oper}} * time.Second
+			{{end -}}{{end -}}
+			}	
+			{{end}}
+
 			taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
 
 			asJson, err := json.Marshal(envlp)
@@ -66,6 +76,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 				Method:  "POST",
 				URL:     taskUrl,
 				Payload: asJson,
+				Delay:   delay,
 			})
 			if err != nil {
 				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
