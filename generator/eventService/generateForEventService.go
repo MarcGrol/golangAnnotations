@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 	"text/template"
-	"unicode"
 	"time"
+	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"

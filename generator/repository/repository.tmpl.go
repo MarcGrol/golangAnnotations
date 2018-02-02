@@ -154,4 +154,14 @@ func PurgeAll{{UpperAggregateName .}}EnvelopesOnEventType(c context.Context, cre
     return done, nil
 }
 {{end -}}
+
+{{if HasMethodPurgeAll . -}}
+func PurgeAll{{UpperAggregateName .}}Envelopes(c context.Context, credentials rest.Credentials) (bool, error) {
+    done, err := eventStoreInstance.PurgeAll(c, credentials, {{GetPackageName .}}.{{AggregateNameConst .}}, "")
+    if err != nil {
+    return false, errorh.NewInternalErrorf(0, "Failed to purge all '%s' events: %s", {{GetPackageName .}}.{{AggregateNameConst .}}, err)
+    }
+    return done, nil
+}
+{{end -}}
 `

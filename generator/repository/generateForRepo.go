@@ -69,6 +69,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasMethodGetAllAggregates": HasMethodGetAllAggregates,
 	"HasMethodPurgeOnEventUIDs": HasMethodPurgeOnEventUIDs,
 	"HasMethodPurgeOnEventType": HasMethodPurgeOnEventType,
+	"HasMethodPurgeAll":         HasMethodPurgeAll,
 }
 
 func IsRepository(s model.Struct) bool {
@@ -165,6 +166,10 @@ func HasMethodPurgeOnEventUIDs(s model.Struct) bool {
 
 func HasMethodPurgeOnEventType(s model.Struct) bool {
 	return HasMethod(s, "purgeOnEventType")
+}
+
+func HasMethodPurgeAll(s model.Struct) bool {
+	return HasMethod(s, "purgeAll")
 }
 
 func HasMethod(s model.Struct, methodName string) bool {
