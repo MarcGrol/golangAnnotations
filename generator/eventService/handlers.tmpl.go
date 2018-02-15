@@ -83,6 +83,8 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
 				return
 			}
+			mylog.New().Debug(c, "Subscribed service %s.%s enqueued task on topic '%s' with event %s %s.%s", 
+				"{{.PackageName}}", "{{$eventServiceName}}", topic, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID )
 	}
 }
 
