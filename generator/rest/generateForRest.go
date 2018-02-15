@@ -142,6 +142,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasInput":                              HasInput,
 	"GetInputArgType":                       GetInputArgType,
 	"GetOutputArgDeclaration":               GetOutputArgDeclaration,
+	"GetOutputArgInitialisation":            GetOutputArgInitialisation,
 	"GetOutputArgName":                      GetOutputArgName,
 	"HasAnyPathParam":                       HasAnyPathParam,
 	"IsSliceParam":                          IsSliceParam,
@@ -612,6 +613,24 @@ func GetOutputArgDeclaration(o model.Operation) string {
 
 			}
 			return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
+		}
+	}
+	return ""
+}
+
+func GetOutputArgInitialisation(o model.Operation) string {
+	for _, arg := range o.OutputArgs {
+		if !IsErrorArg(arg) {
+			pointer := ""
+			slice := ""
+			if arg.IsPointer {
+				pointer = "*"
+			}
+
+			if arg.IsSlice {
+				slice = "[]"
+			}
+			return fmt.Sprintf("%s%s%s", slice, pointer, arg.TypeName)
 		}
 	}
 	return ""

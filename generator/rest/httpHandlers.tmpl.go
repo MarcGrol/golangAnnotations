@@ -154,23 +154,29 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 				rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 				return
 			}
-		{{end -}}
+		{{end}}
 
-        {{if HasMetaOutput . -}}
-	        // call business logic
+        // call business logic
+		{{if HasMetaOutput . -}}
         	result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
         {{else if HasOutput . -}}
-	        // call business logic
-        	result, err := service.{{$oper.Name}}({{GetInputParamString . }})
+        	var result {{GetOutputArgInitialisation . }}
+		    err = eventStore.RunInTransaction(c, func(c context.Context) error {
+				result, err = service.{{$oper.Name}}({{GetInputParamString . }})
+					if err != nil {
+						return err
+					}
+					return nil
+				})
         {{else -}}
-	        // call business logic
-        	err = service.{{$oper.Name}}({{GetInputParamString . }})
+            err = eventStore.RunInTransaction(c, func(c context.Context) error {
+			err = service.{{$oper.Name}}({{GetInputParamString . }})
         {{end -}}
         if err != nil {
             rest.HandleHttpError(c, credentials, err, w, r)
             return
         }
-        {{if HasMetaOutput . -}}
+        {{if HasMetaOutput .}}
 			if meta != nil {
 				{{if IsMetaCallback . -}}
 					err = meta(c, w, r)
@@ -192,7 +198,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			}
         {{end -}}
 
-        {{if NeedsContext $oper -}}
+        {{if NeedsContext $oper}}
         	postLogicHook( c, w, r, credentials )
         {{else -}}
         	postLogicHook( nil, w, r, credentials )
@@ -204,47 +210,32 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
         {{end -}}
         {{if IsRestOperationJSON . -}}
             {{if HasOutput . -}}
-				err = json.NewEncoder(w).Encode(result)
-				if err != nil {
-					log.Printf("Error encoding response payload %+v", err)
-				}
+				json.NewEncoder(w).Encode(result) 
 			{{end -}}
 		{{else if IsRestOperationHTML . -}}
 			{{if HasOutput . -}}
-				err = service.{{$oper.Name}}WriteHTML(w, result)
+				service.{{$oper.Name}}WriteHTML(w, result)
 			{{else -}}
-				err = service.{{$oper.Name}}WriteHTML(w)
+				service.{{$oper.Name}}WriteHTML(w)
 			{{end -}}
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
 		{{else if IsRestOperationCSV . -}}
         	w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
         	{{if HasOutput . -}}
-				err = service.{{$oper.Name}}WriteCSV(w, result)
+				service.{{$oper.Name}}WriteCSV(w, result)
 			{{else -}}
-				err = {{$oper.Name}}WriteCSV(w)
+				{{$oper.Name}}WriteCSV(w)
 			{{end -}}
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
 		{{else if IsRestOperationTXT . -}}
-			_, err = fmt.Fprint(w, result)
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
+			fmt.Fprint(w, result)
 		{{else if IsRestOperationMD . -}}
-			_, err = fmt.Fprint(w, result)
-			if err != nil {
-				log.Printf("Error encoding response payload %+v", err)
-			}
+			fmt.Fprint(w, result)
 		{{else if IsRestOperationNoContent . -}}
 			w.WriteHeader(http.StatusNoContent)
 		{{else if IsRestOperationCustom . -}}
 			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
 		{{else -}}
 			errorh.NewInternalErrorf(0, "Not implemented")
-		{{end -}}// call business logic
+		{{end -}}
     }
 }
     {{else -}}
