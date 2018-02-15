@@ -114,6 +114,7 @@ func generateHttpClient(targetDir, packageName string, service model.Struct) err
 
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":                         IsRestService,
+	"IsRestServiceTransactional":            IsRestServiceTransactional,
 	"ExtractImports":                        ExtractImports,
 	"GetRestServicePath":                    GetRestServicePath,
 	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
@@ -181,6 +182,14 @@ func IsRestService(s model.Struct) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService)
 	return ok
+}
+
+func IsRestServiceTransactional(s model.Struct) bool {
+	annotations := annotation.NewRegistry(restAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
+		return ann.Attributes[restAnnotation.ParamTransactional] == "true"
+	}
+	return false
 }
 
 func IsRestServiceUnprotected(s model.Struct) bool {
@@ -279,6 +288,7 @@ func IsRestOperation(o model.Operation) bool {
 	_, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation)
 	return ok
 }
+
 
 func IsRestOperationNoWrap(o model.Operation) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())

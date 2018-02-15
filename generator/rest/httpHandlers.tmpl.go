@@ -10,6 +10,7 @@ import (
 )
 
 {{ $serviceName := .Name }}
+{{ $transactional := IsRestServiceTransactional . }}
 
 var (
     preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
@@ -156,21 +157,34 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			}
 		{{end}}
 
-        // call business logic
+        // call business logic: transactional: {{$transactional}}
 		{{if HasMetaOutput . -}}
         	result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
         {{else if HasOutput . -}}
         	var result {{GetOutputArgInitialisation . }}
+			{{if $transactional -}}
 		    err = eventStore.RunInTransaction(c, func(c context.Context) error {
+			{{end -}}
 				result, err = service.{{$oper.Name}}({{GetInputParamString . }})
+			{{if $transactional -}}
 					if err != nil {
 						return err
 					}
 					return nil
 				})
-        {{else -}}
-            err = eventStore.RunInTransaction(c, func(c context.Context) error {
+ 			{{end -}}
+       {{else -}}
+			{{if $transactional -}}
+		    err = eventStore.RunInTransaction(c, func(c context.Context) error {
+			{{end -}}
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
+			{{if $transactional -}}
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+ 			{{end -}}
         {{end -}}
         if err != nil {
             rest.HandleHttpError(c, credentials, err, w, r)

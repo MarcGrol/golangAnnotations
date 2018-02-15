@@ -9,6 +9,7 @@ const (
 	ParamNoValidation   = "novalidation"
 	ParamProtected      = "protected"
 	ParamNoTest         = "notest"
+	ParamTransactional  = "transactional"
 	ParamNoWrap         = "nowrap"
 	ParamAfter          = "after"
 	ParamPath           = "path"
@@ -25,7 +26,7 @@ func Get() []annotation.AnnotationDescriptor {
 	return []annotation.AnnotationDescriptor{
 		{
 			Name:       TypeRestService,
-			ParamNames: []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath},
+			ParamNames: []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath, ParamTransactional},
 			Validator:  validateRestServiceAnnotation,
 		},
 		{
