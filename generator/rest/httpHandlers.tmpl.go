@@ -158,38 +158,31 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 		{{end}}
 
         // call business logic: transactional: {{$transactional}}
+        {{range GetOutputArgsDeclaration . -}}
+			{{.}}
+		{{end -}}
+		{{if $transactional -}}
+	    err = eventStore.RunInTransaction(c, func(c context.Context) error {
+		{{end -}}
 		{{if HasMetaOutput . -}}
-        	result, meta, err := service.{{$oper.Name}}({{GetInputParamString . }})
+        	result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})
         {{else if HasOutput . -}}
-        	var result {{GetOutputArgInitialisation . }}
-			{{if $transactional -}}
-		    err = eventStore.RunInTransaction(c, func(c context.Context) error {
-			{{end -}}
-				result, err = service.{{$oper.Name}}({{GetInputParamString . }})
-			{{if $transactional -}}
-					if err != nil {
-						return err
-					}
-					return nil
-				})
- 			{{end -}}
-       {{else -}}
-			{{if $transactional -}}
-		    err = eventStore.RunInTransaction(c, func(c context.Context) error {
-			{{end -}}
+			result, err = service.{{$oper.Name}}({{GetInputParamString . }})
+        {{else -}}
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
-			{{if $transactional -}}
-					if err != nil {
-						return err
-					}
-					return nil
-				})
- 			{{end -}}
+        {{end -}}
+ 		{{if $transactional -}}
+			if err != nil {
+				return err
+			}
+			return nil
+		})
         {{end -}}
         if err != nil {
             rest.HandleHttpError(c, credentials, err, w, r)
             return
         }
+
         {{if HasMetaOutput .}}
 			if meta != nil {
 				{{if IsMetaCallback . -}}
@@ -204,7 +197,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			}
         {{end -}}
 
-        {{if HasRestOperationAfter . -}}
+       {{if HasRestOperationAfter . -}}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
 				rest.HandleHttpError(c, credentials, err, w, r)

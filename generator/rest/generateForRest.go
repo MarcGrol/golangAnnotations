@@ -143,7 +143,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasInput":                              HasInput,
 	"GetInputArgType":                       GetInputArgType,
 	"GetOutputArgDeclaration":               GetOutputArgDeclaration,
-	"GetOutputArgInitialisation":            GetOutputArgInitialisation,
+	"GetOutputArgsDeclaration":              GetOutputArgsDeclaration,
 	"GetOutputArgName":                      GetOutputArgName,
 	"HasAnyPathParam":                       HasAnyPathParam,
 	"IsSliceParam":                          IsSliceParam,
@@ -628,22 +628,30 @@ func GetOutputArgDeclaration(o model.Operation) string {
 	return ""
 }
 
-func GetOutputArgInitialisation(o model.Operation) string {
-	for _, arg := range o.OutputArgs {
+func GetOutputArgsDeclaration(o model.Operation) []string {
+	args := []string{}
+	for idx, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
+			name := ""
 			pointer := ""
 			slice := ""
 			if arg.IsPointer {
 				pointer = "*"
 			}
+			if idx == 0 {
+				name = "result"
+			}
+			if idx == 1 {
+				name = "meta"
+			}
 
 			if arg.IsSlice {
 				slice = "[]"
 			}
-			return fmt.Sprintf("%s%s%s", slice, pointer, arg.TypeName)
+			args = append(args, fmt.Sprintf("var %s %s%s%s", name, slice, pointer, arg.TypeName))
 		}
 	}
-	return ""
+	return args
 }
 
 func GetOutputArgName(o model.Operation) string {
