@@ -46,7 +46,7 @@ func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqu
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
+func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $oper := .Operations -}}
 			{{if IsEventOperation $oper -}}
@@ -69,7 +69,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 			if err != nil {
 				msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
 				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-				return
+				return err
 			}
 
 			err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), queue.Task{
@@ -81,12 +81,16 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 			if err != nil {
 				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
 				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-				return
+				return err
 			}
+
 			mylog.New().Debug(c, "Subscriber %s.%s enqueued task on topic '%s' with event %s %s.%s", 
 				"{{.PackageName}}", "{{$eventServiceName}}", 
 				topic, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID )
+
+			return nil
 	}
+	return nil
 }
 
 func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
@@ -103,13 +107,17 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 			return
 		}
 		credentials.SessionUID = envlp.SessionUID
-		es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
+		err = es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
+		if err != nil {
+			rest.HandleHttpError(c, credentials, err, w, r)
+			return
+		}
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
+func (es *{{$eventServiceName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
 {{else -}}
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) {
+func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
 {{end -}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 
@@ -125,14 +133,18 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 					msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
 						subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
 					myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
-				} else {
-					mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
-						subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+					return err
 				}
+
+				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
+					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+
+				return nil
 			}
 		}
 		{{end -}}
 	{{end -}}
+	return nil
 }
 {{end -}}
 `
