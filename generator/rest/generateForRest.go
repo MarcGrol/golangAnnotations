@@ -289,7 +289,6 @@ func IsRestOperation(o model.Operation) bool {
 	return ok
 }
 
-
 func IsRestOperationNoWrap(o model.Operation) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
