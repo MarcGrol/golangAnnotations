@@ -54,9 +54,6 @@ func (c *HTTPClient) {{ToFirstUpper .Name}}(ctx context.Context, url string {{if
     if cookie != nil {
         req.AddCookie(cookie)
     }
-    if requestUID != "" {
-        req.Header.Set("X-request-uid", requestUID)
-    }
     {{if HasInput . -}}
         req.Header.Set("Content-type", "application/json")
     {{end -}}
