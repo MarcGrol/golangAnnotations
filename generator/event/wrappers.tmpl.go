@@ -23,10 +23,9 @@ const (
     {{if IsEvent . -}}
 
 // Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
-	uuid, err := myuuid.NewV1({{GetAggregateName . }}AggregateName)
-	if err != nil {
-		return nil, err
+func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error) {
+    if credentials.RequestUID == "" {	
+        credentials.RequestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
 	}
 	blob, err := json.Marshal(s)
     if err != nil {
@@ -34,10 +33,10 @@ func (s *{{.Name}}) Wrap(sessionUID string) (*envelope.Envelope,error) {
         return nil, err
     }
     envelope := envelope.Envelope{
-        UUID: uuid,
+        UUID: credentials.RequestUID,
         IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
         SequenceNumber: int64(0), // Set later by event-store
-        SessionUID: sessionUID,
+        SessionUID: credentials.SessionUID,
         Timestamp: mytime.Now(),
         AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
         AggregateUID:  s.GetUID(),

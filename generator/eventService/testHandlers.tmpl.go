@@ -29,7 +29,7 @@ func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c co
 	}
 	{{end -}}
 
-	envlp, err := event.Wrap(creds.SessionUID)
+	envlp, err := event.Wrap(creds)
 	if err != nil {
 		t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 	}

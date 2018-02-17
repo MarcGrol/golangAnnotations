@@ -24,7 +24,7 @@ func StoreAndApplyEvent{{.Name}}(c context.Context, credentials rest.Credentials
 
 // StoreEvent{{.Name}} is used to store event of type {{.Name}}
 func StoreEvent{{.Name}}(c context.Context, credentials rest.Credentials, event *{{.PackageName}}.{{.Name}}) error {
-    envelope, err := event.Wrap(credentials.SessionUID)
+    envelope, err := event.Wrap(credentials)
     if err != nil {
         return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
     }
