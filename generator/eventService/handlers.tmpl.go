@@ -97,7 +97,6 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		credentials := rest.Credentials{RequestURI: r.RequestURI}
 
 		// read and parse request body
 		var envlp envelope.Envelope
@@ -106,7 +105,13 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
-		credentials.SessionUID = envlp.SessionUID
+
+		credentials := rest.Credentials{
+			RequestUID: envlp.UUID,
+			SessionUID: envlp.SessionUID,
+			RequestURI: r.RequestURI,
+		}
+
 		err = es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
 		if err != nil {
 			rest.HandleHttpError(c, credentials, err, w, r)
