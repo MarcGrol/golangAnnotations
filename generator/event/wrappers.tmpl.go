@@ -24,16 +24,12 @@ const (
 
 // Wrap wraps event {{.Name}} into an envelope
 func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error) {
-    if credentials.RequestUID == "" {	
-        credentials.RequestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
-	}
 	blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
     envelope := envelope.Envelope{
-        UUID: credentials.RequestUID,
         IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
         SequenceNumber: int64(0), // Set later by event-store
         SessionUID: credentials.SessionUID,
@@ -44,6 +40,12 @@ func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error
         EventTypeVersion: 0,
         EventData: string(blob),
     }
+
+	requestUID := credentials.RequestUID
+	if requestUID == "" {	
+		requestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
+	}
+	envelope.CreateRequestUID(requestUID)
 
     return &envelope, nil
 }
