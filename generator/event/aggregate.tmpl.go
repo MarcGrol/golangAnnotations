@@ -31,8 +31,9 @@ var AggregateEvents = map[string][]string{
 
 // {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
+	idempotency.Checker
 	{{range $aggregName, $eventName := $events -}}
-			Apply{{$eventName}}(c context.Context, event {{$eventName}})
+		Apply{{$eventName}}(c context.Context, event {{$eventName}})
 	{{end -}}
 }
 
