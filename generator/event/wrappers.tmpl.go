@@ -45,7 +45,7 @@ func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error
 	if requestUID == "" {	
 		requestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
 	}
-	envelope.CreateRequestUID(requestUID)
+	envelope.UUID = envelope.CreateRequestUID(requestUID)
 
     return &envelope, nil
 }
