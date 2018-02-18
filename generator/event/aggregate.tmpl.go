@@ -39,6 +39,11 @@ type {{$aggr}}Aggregate interface {
 
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+	if aggregateRoot.IsEventProcessed(envelope.UUID){
+		 mylog.New().Warning(c, "Event %+v already processed", envelope)
+		 return nil
+	}
+
 	switch envelope.EventTypeName {
 		{{range $aggregName, $eventName := $events -}}
 			case {{$eventName}}EventName:
@@ -52,6 +57,8 @@ func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregat
 		default:
 		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
 	}
+
+	aggregateRoot.MarkEventProcessed(envelope.UUID)
 	return nil
 }
 
