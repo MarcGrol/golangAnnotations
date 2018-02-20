@@ -162,7 +162,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			{{.}}
 		{{end -}}
 		{{if $transactional -}}
-	    err = eventStore.RunInTransaction(c, func(c context.Context) error {
+	    err = eventStore.RunInTransaction(c, &credentials, func(c context.Context) error {
 		{{end -}}
 		{{if HasMetaOutput . -}}
         	result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})

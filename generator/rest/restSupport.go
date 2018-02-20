@@ -41,15 +41,16 @@ func HandleHttpError(c context.Context, credentials Credentials, err error, w ht
 
 // @JsonStruct()
 type Credentials struct {
-	Language    string    `json:"language,omitempty"`
-	RequestURI  string    `json:"requestUri,omitempty"`
-	RequestUID  string    `json:"requestUid,omitempty"`
-	SessionUID  string    `json:"sessionUid,omitempty"`
-	EndUserRole string    `json:"endUserRole,omitempty"`
-	EndUserUID  string    `json:"endUserUid,omitempty"`
-	ApiKey      string    `json:"apiKey,omitempty"`
-	AuthUser    *AuthUser `json:"authUser,omitempty"`
-	UserAgent   string    `json:"userAgent,omitempty"`
+	Language        string    `json:"language,omitempty"`
+	RequestURI      string    `json:"requestUri,omitempty"`
+	RequestUID      string    `json:"requestUid,omitempty"`
+	IsTransactional bool      `json:"isTransactional,omitempty"`
+	SessionUID      string    `json:"sessionUid,omitempty"`
+	EndUserRole     string    `json:"endUserRole,omitempty"`
+	EndUserUID      string    `json:"endUserUid,omitempty"`
+	ApiKey          string    `json:"apiKey,omitempty"`
+	AuthUser        *AuthUser `json:"authUser,omitempty"`
+	UserAgent       string    `json:"userAgent,omitempty"`
 }
 
 // provided by App Engine's user authentication service.
