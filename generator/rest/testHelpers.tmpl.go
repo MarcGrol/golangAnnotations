@@ -239,7 +239,7 @@ func defaultAfterAll() {
 
 func fetchEvents(c context.Context) []string {
     found := []string{}
-    eventStore.Mocked().IterateAll(c, rest.Credentials{}, func(e envelope.Envelope) error {
+    eventStore.Mocked().IterateAll(c, request.NewEmptyCredentials(), func(e envelope.Envelope) error {
         found = append(found, fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
         return nil
     })

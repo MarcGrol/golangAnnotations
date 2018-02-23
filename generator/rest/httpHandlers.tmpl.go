@@ -13,7 +13,7 @@ import (
 
 var (
     preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
-    postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, credentials rest.Credentials) {}
+    postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, rc request.Context) {}
 )
 
 // HTTPHandler registers endpoint in new router
@@ -54,11 +54,11 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			preLogicHook( nil, w, r )
         {{end -}}
 
-        credentials := {{ $extractCredentialsMethod }}(c, r)
+        rc := {{ $extractCredentialsMethod }}(c, r)
         {{if (not $noValidation) and (HasCredentials $oper) -}}
-        	err = validateCredentials(c, credentials, {{GetRestOperationRolesString $oper}})
+        	err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
         	if err != nil {
-            	rest.HandleHttpError(c, credentials, err, w, r)
+            	errorh.HandleHttpError(c, rc, err, w, r)
             	return
         	}
         {{end -}}
@@ -134,7 +134,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 
 		{{if RequiresParamValidation . -}}
 			if len(validationErrors) > 0 {
-				rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
+				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
 				return
 			}
 		{{end -}}
@@ -142,7 +142,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 		{{if HasUpload . -}}
 			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
 			if err != nil {
-				rest.HandleHttpError(c, credentials, err, w, r)
+				errorh.HandleHttpError(c, rc, err, w, r)
 				return
 			}
 		{{else if HasInput . -}}
@@ -151,7 +151,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
 			if err != nil {
-				rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 				return
 			}
 		{{end}}
@@ -161,7 +161,8 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			{{.}}
 		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
-	    err = eventStore.RunInTransaction(c, &credentials, func(c context.Context) error {
+	    err = eventStore.RunInTransaction(c, rc, func(c context.Context) error {
+			rc = rc.AsTransactional()
 		{{end -}}
 		{{if HasMetaOutput . -}}
         	result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})
@@ -178,7 +179,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 		})
         {{end -}}
         if err != nil {
-            rest.HandleHttpError(c, credentials, err, w, r)
+            errorh.HandleHttpError(c, rc, err, w, r)
             return
         }
 
@@ -190,7 +191,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 					err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
 				{{end -}}
 				if err != nil {
-					rest.HandleHttpError(c, credentials, err, w, r)
+					errorh.HandleHttpError(c, rc, err, w, r)
 					return
 				}
 			}
@@ -199,15 +200,15 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
        {{if HasRestOperationAfter . -}}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
-				rest.HandleHttpError(c, credentials, err, w, r)
+				errorh.HandleHttpError(c, rc, err, w, r)
 				return
 			}
         {{end -}}
 
         {{if NeedsContext $oper}}
-        	postLogicHook( c, w, r, credentials )
+        	postLogicHook( c, w, r, rc )
         {{else -}}
-        	postLogicHook( nil, w, r, credentials )
+        	postLogicHook( nil, w, r, rc )
         {{end -}}
 
         // write OK response body

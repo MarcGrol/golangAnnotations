@@ -23,7 +23,7 @@ const (
     {{if IsEvent . -}}
 
 // Wrap wraps event {{.Name}} into an envelope
-func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error) {
+func (s *{{.Name}}) Wrap(rc request.Context) (*envelope.Envelope,error) {
 	blob, err := json.Marshal(s)
     if err != nil {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
@@ -32,7 +32,7 @@ func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error
     envelope := envelope.Envelope{
         IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
         SequenceNumber: int64(0), // Set later by event-store
-        SessionUID: credentials.SessionUID,
+        SessionUID: rc.GetSessionUID(),
         Timestamp: mytime.Now(),
         AggregateName: {{GetAggregateName . }}AggregateName, // from annotation!
         AggregateUID:  s.GetUID(),
@@ -41,7 +41,7 @@ func (s *{{.Name}}) Wrap(credentials rest.Credentials) (*envelope.Envelope,error
         EventData: string(blob),
     }
 
-	requestUID := credentials.RequestUID
+	requestUID := rc.GetRequestUID()
 	if requestUID == "" {	
 		requestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
 	}

@@ -51,7 +51,7 @@ func TestGenerateForEvents(t *testing.T) {
 	// check that generate code has 4 helper functions for MyStruct
 	data, err = ioutil.ReadFile("./testData/$wrappers.go")
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "func (s *MyStruct) Wrap(credentials rest.Credentials) (*envelope.Envelope,error) {")
+	assert.Contains(t, string(data), "func (s *MyStruct) Wrap(rc request.Context) (*envelope.Envelope,error) {")
 	assert.Contains(t, string(data), "func IsMyStruct(envelope *envelope.Envelope) bool {")
 	assert.Contains(t, string(data), "func GetIfIsMyStruct(envelope *envelope.Envelope) (*MyStruct, bool) {")
 	assert.Contains(t, string(data), "func UnWrapMyStruct(envelope *envelope.Envelope) (*MyStruct,error) {")

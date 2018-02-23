@@ -133,7 +133,7 @@ func IsAsyncAsString(s model.Struct) string {
 
 func IsEventNotTransient(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isRequestContextArg(arg) {
 			// TODO MarcGrol: is there a better way to find out of an event can be stored?
 			return !strings.Contains(arg.TypeName, "Discovered")
 		}
@@ -283,7 +283,7 @@ func GetEventOperationDelay(o model.Operation) float64 {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isRequestContextArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-1]
 		}
@@ -293,7 +293,7 @@ func GetInputArgType(o model.Operation) string {
 
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isRequestContextArg(arg) {
 			tn := strings.Split(arg.TypeName, ".")
 			return tn[len(tn)-2]
 		}
@@ -304,8 +304,8 @@ func isContextArg(f model.Field) bool {
 	return f.TypeName == "context.Context"
 }
 
-func isCredentialsArg(f model.Field) bool {
-	return f.TypeName == "rest.Credentials"
+func isRequestContextArg(f model.Field) bool {
+	return f.TypeName == "request.Context"
 }
 
 func IsPrimitiveArg(f model.Field) bool {

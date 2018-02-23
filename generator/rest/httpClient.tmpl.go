@@ -13,7 +13,6 @@ import (
     "strings"
     "time"
     "golang.org/x/net/context"
-    "github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 )
 
 {{ $serviceName := .Name }}

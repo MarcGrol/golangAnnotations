@@ -211,14 +211,14 @@ func GetExtractCredentialsMethod(s model.Struct) string {
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
 		case "all":
-			return "rest.ExtractAllCredentials"
+			return "request.NewRequestContext"
 		case "admin":
-			return "rest.ExtractAdminCredentials"
+			return "request.NewAdminRequestContext"
 		case "none":
-			return "rest.ExtractNoCredentials"
+			return "request.NewMinimalRequestContext"
 		}
 	}
-	return "extractCredentials"
+	return "extractRequestContext"
 }
 
 func IsRestServiceNoValidation(s model.Struct) bool {
@@ -720,7 +720,7 @@ func IsContextArg(f model.Field) bool {
 }
 
 func IsCredentialsArg(f model.Field) bool {
-	return f.TypeName == "rest.Credentials"
+	return f.TypeName == "request.Context"
 }
 
 func IsMetaCallbackArg(f model.Field) bool {

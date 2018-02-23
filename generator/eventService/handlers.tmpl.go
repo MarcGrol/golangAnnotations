@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"golang.org/x/net/context"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/generator/rest/errorh"
 	"github.com/gorilla/mux"
 )
 
@@ -46,7 +44,7 @@ func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqu
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $oper := .Operations -}}
 			{{if IsEventOperation $oper -}}
@@ -68,7 +66,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 			asJson, err := json.Marshal(envlp)
 			if err != nil {
 				msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
-				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
+				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 				return err
 			}
 
@@ -80,7 +78,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 			})
 			if err != nil {
 				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
-				myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
+				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 				return err
 			}
 
@@ -97,32 +95,30 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		credentials := rest.Credentials{
-			RequestURI: r.RequestURI,
-		}
+		rc := request.NewMininalContext(c,r)
 
 		// read and parse request body
 		var envlp envelope.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envlp)
 		if err != nil {
-			rest.HandleHttpError(c, credentials, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 
-		credentials.RequestUID = envlp.UUID
-		credentials.SessionUID = envlp.SessionUID
+		rc.RequestUID = envlp.UUID
+		rc.SessionUID = envlp.SessionUID
 
-		err = es.handleEventAsync(c, credentials, envlp.AggregateName, envlp)
+		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
-			rest.HandleHttpError(c, credentials, err, w, r)
+			errorh.HandleHttpError(c, rc, err, w, r)
 			return
 		}
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEventAsync(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) handleEventAsync(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
 {{else -}}
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest.Credentials, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
 {{end -}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 
@@ -133,11 +129,11 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, credentials rest
 			if found {
 				mylog.New().Debug(c, "-->> As %s: Start handling '%s' for '%s/%s'",
 					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
-				err := es.{{$oper.Name}}(c, credentials, *evt)
+				err := es.{{$oper.Name}}(c, rc, *evt)
 				if err != nil {
 					msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
 						subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
-					myerrorhandling.HandleEventError(c, credentials, topic, envlp, msg, err)
+					myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 					return err
 				}
 
