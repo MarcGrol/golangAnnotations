@@ -95,18 +95,19 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		rc := request.NewMinimalContext(c,r)
+		rcb := request.NewMinimalContextBuilder(c,r)
 
 		// read and parse request body
 		var envlp envelope.Envelope
 		err := json.NewDecoder(r.Body).Decode(&envlp)
 		if err != nil {
-			errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+			errorh.HandleHttpError(c, rcb.Build(), errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 			return
 		}
 
-		rc.SetRequestUID( envlp.UUID )
-		rc.SetSessionUID( envlp.SessionUID )
+		rc := rcb.RequestUID( envlp.UUID ).
+		    SessionUID( envlp.SessionUID ).
+            Build()
 
 		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
 		if err != nil {

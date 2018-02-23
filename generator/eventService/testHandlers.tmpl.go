@@ -7,6 +7,7 @@ package {{.PackageName}}
 import (
     "golang.org/x/net/context"
     "github.com/gorilla/mux"
+	"github.com/Duxxie/platform/backend/lib/request"
 )
 
 {{range $idxService, $service := .Services -}}

@@ -8,6 +8,7 @@ package {{.PackageName}}
 
 import (
     "golang.org/x/net/context"
+	"github.com/Duxxie/platform/backend/lib/request"
 )
 
 var (
@@ -239,7 +240,7 @@ func defaultAfterAll() {
 
 func fetchEvents(c context.Context) []string {
     found := []string{}
-    eventStore.Mocked().IterateAll(c, request.NewEmptyRequestContext(), func(e envelope.Envelope) error {
+    eventStore.Mocked().IterateAll(c, request.NewEmptyContext(), func(e envelope.Envelope) error {
         found = append(found, fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
         return nil
     })
