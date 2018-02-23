@@ -5,7 +5,7 @@ import "github.com/MarcGrol/golangAnnotations/annotation"
 const (
 	TypeRestOperation   = "RestOperation"
 	TypeRestService     = "RestService"
-	ParamCredentials    = "rc"
+	ParamCredentials    = "credentials"
 	ParamNoValidation   = "novalidation"
 	ParamProtected      = "protected"
 	ParamNoTest         = "notest"

@@ -151,23 +151,23 @@ var customTemplateFuncs = template.FuncMap{
 	"GetInputArgName":                       GetInputArgName,
 	"GetInputParamString":                   GetInputParamString,
 	"GetOutputArgType":                      GetOutputArgType,
-	"HasOutput":                             HasOutput,
-	"HasMetaOutput":                         HasMetaOutput,
-	"IsMetaCallback":                        IsMetaCallback,
-	"IsPrimitiveArg":                        IsPrimitiveArg,
-	"IsNumberArg":                           IsNumberArg,
-	"RequiresParamValidation":               RequiresParamValidation,
-	"IsInputArgMandatory":                   IsInputArgMandatory,
-	"HasUpload":                             HasUpload,
-	"IsUploadArg":                           IsUploadArg,
-	"HasCredentials":                        HasCredentials,
-	"HasContext":                            HasContext,
-	"ReturnsError":                          ReturnsError,
-	"NeedsContext":                          NeedsContext,
-	"GetContextName":                        GetContextName,
-	"WithBackTicks":                         SurroundWithBackTicks,
-	"BackTick":                              BackTick,
-	"ToFirstUpper":                          ToFirstUpper,
+	"HasOutput":               HasOutput,
+	"HasMetaOutput":           HasMetaOutput,
+	"IsMetaCallback":          IsMetaCallback,
+	"IsPrimitiveArg":          IsPrimitiveArg,
+	"IsNumberArg":             IsNumberArg,
+	"RequiresParamValidation": RequiresParamValidation,
+	"IsInputArgMandatory":     IsInputArgMandatory,
+	"HasUpload":               HasUpload,
+	"IsUploadArg":             IsUploadArg,
+	"HasRequestContext":          HasRequestContext,
+	"HasContext":              HasContext,
+	"ReturnsError":            ReturnsError,
+	"NeedsContext":            NeedsContext,
+	"GetContextName":          GetContextName,
+	"WithBackTicks":           SurroundWithBackTicks,
+	"BackTick":                BackTick,
+	"ToFirstUpper":            ToFirstUpper,
 }
 
 func BackTick() string {
@@ -474,7 +474,7 @@ func HasInput(o model.Operation) bool {
 	return false
 }
 
-func HasCredentials(o model.Operation) bool {
+func HasRequestContext(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
 		if IsRequestContextArg(arg) {
 			return true
@@ -724,7 +724,7 @@ func IsRequestContextArg(f model.Field) bool {
 }
 
 func IsMetaCallbackArg(f model.Field) bool {
-	return f.TypeName == "rest.MetaCallback"
+	return f.TypeName == "errorh.MetaCallback"
 }
 
 func IsPrimitiveArg(f model.Field) bool {

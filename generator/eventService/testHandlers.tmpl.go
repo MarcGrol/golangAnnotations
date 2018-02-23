@@ -19,26 +19,26 @@ import (
        {{range $idxOper, $oper := .Operations -}}
 		   {{if IsEventOperation $oper -}}
 
-func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, creds rest.Credentials, es *{{$eventServiceName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
 	{{if IsEventNotTransient $oper -}}
 	{
-		err := store.StoreEvent(c, creds, &event)
+		err := store.StoreEvent(c, rc, &event)
 		if err != nil {
 			t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 		}
 	}
 	{{end -}}
 
-	envlp, err := event.Wrap(creds)
+	envlp, err := event.Wrap(rc)
 	if err != nil {
 		t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 	}
 
-	eventsBefore := getEvents(c, creds)
+	eventsBefore := getEvents(c, rc)
 
-	es.handleEvent{{IsAsyncAsString $eventService}}(c, creds, "{{GetEventOperationTopic .}}", *envlp)
+	es.handleEvent{{IsAsyncAsString $eventService}}(c, rc, "{{GetEventOperationTopic .}}", *envlp)
 
-	eventsAfter := getEvents(c, creds)
+	eventsAfter := getEvents(c, rc)
 	delta :=  getEventsDelta(eventsBefore, eventsAfter)
 	verifyAllowed(t, {{GetEventOperationProducesEvents $oper}},delta)
 
@@ -49,9 +49,9 @@ func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c co
     {{end -}}
 {{end -}}
 
-func getEvents(c context.Context, creds rest.Credentials) []envelope.Envelope {
+func getEvents(c context.Context, rc request.Context) []envelope.Envelope {
     eventsBefore := []envelope.Envelope{}
-    eventStore.Mocked().IterateAll(c, creds, func(e envelope.Envelope) error {
+    eventStore.Mocked().IterateAll(c, rc, func(e envelope.Envelope) error {
         eventsBefore = append(eventsBefore, e)
         return nil
     })

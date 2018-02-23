@@ -35,7 +35,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
     return router
 }
 
-{{ $extractCredentialsMethod := GetExtractRequestContextMethod . }}
+{{ $extractRequestContextMethod := GetExtractRequestContextMethod . }}
 {{ $noValidation := IsRestServiceNoValidation . }}
 
 {{range $idxOper, $oper := .Operations}}
@@ -54,8 +54,8 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			preLogicHook( nil, w, r )
         {{end -}}
 
-        rc := {{ $extractCredentialsMethod }}(c, r)
-        {{if (not $noValidation) and (HasCredentials $oper) -}}
+        rc := {{ $extractRequestContextMethod }}(c, r)
+        {{if (not $noValidation) and (HasRequestContext $oper) -}}
         	err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
         	if err != nil {
             	errorh.HandleHttpError(c, rc, err, w, r)
