@@ -116,7 +116,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRestService":                         IsRestService,
 	"ExtractImports":                        ExtractImports,
 	"GetRestServicePath":                    GetRestServicePath,
-	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
+	"GetExtractRequestContextMethod":        GetExtractRequestContextMethod,
 	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
 	"IsRestOperation":                       IsRestOperation,
 	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
@@ -206,7 +206,7 @@ func GetRestServicePath(s model.Struct) string {
 	return ""
 }
 
-func GetExtractCredentialsMethod(s model.Struct) string {
+func GetExtractRequestContextMethod(s model.Struct) string {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
@@ -466,7 +466,7 @@ func asStringSlice(in []string) string {
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
 				return true
 			}
 		}
@@ -476,7 +476,7 @@ func HasInput(o model.Operation) bool {
 
 func HasCredentials(o model.Operation) bool {
 	for _, arg := range o.InputArgs {
-		if IsCredentialsArg(arg) {
+		if IsRequestContextArg(arg) {
 			return true
 		}
 	}
@@ -519,7 +519,7 @@ func GetContextName(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
 			return arg.TypeName
 		}
 	}
@@ -531,7 +531,7 @@ func IsSliceParam(arg model.Field) bool {
 }
 
 func IsQueryParam(o model.Operation, arg model.Field) bool {
-	if IsContextArg(arg) || IsCredentialsArg(arg) {
+	if IsContextArg(arg) || IsRequestContextArg(arg) {
 		return false
 	}
 	for _, pathParam := range getAllPathParams(o) {
@@ -544,7 +544,7 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsCredentialsArg(arg) {
+		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
 			return arg.Name
 		}
 	}
@@ -719,7 +719,7 @@ func IsContextArg(f model.Field) bool {
 	return f.TypeName == "context.Context"
 }
 
-func IsCredentialsArg(f model.Field) bool {
+func IsRequestContextArg(f model.Field) bool {
 	return f.TypeName == "request.Context"
 }
 

@@ -35,7 +35,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
     return router
 }
 
-{{ $extractCredentialsMethod := GetExtractCredentialsMethod . }}
+{{ $extractCredentialsMethod := GetExtractRequestContextMethod . }}
 {{ $noValidation := IsRestServiceNoValidation . }}
 
 {{range $idxOper, $oper := .Operations}}
