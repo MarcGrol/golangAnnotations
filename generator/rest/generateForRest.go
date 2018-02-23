@@ -211,11 +211,11 @@ func GetExtractRequestContextMethod(s model.Struct) string {
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
 		switch ann.Attributes[restAnnotation.ParamCredentials] {
 		case "all":
-			return "request.NewRequestContext"
+			return "request.NewContext"
 		case "admin":
-			return "request.NewAdminRequestContext"
+			return "request.NewAdminContext"
 		case "none":
-			return "request.NewMinimalRequestContext"
+			return "request.NewMinimalContext"
 		}
 	}
 	return "extractRequestContext"
