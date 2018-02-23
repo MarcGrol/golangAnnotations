@@ -30,7 +30,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
 			{{end -}}
 		{{end -}}
     }
-    wrapped, err := event.Wrap(request.NewBuilder().SessionUID("test_session").Build())
+    wrapped, err := event.Wrap(request.New(request.SessionUID("test_session")))
     assert.NoError(t, err)
     assert.True(t, Is{{.Name}}(wrapped))
     assert.Equal(t, {{GetAggregateName . }}AggregateName, wrapped.AggregateName)

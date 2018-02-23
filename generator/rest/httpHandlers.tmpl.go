@@ -54,9 +54,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			preLogicHook( nil, w, r )
         {{end -}}
 
-        rc := {{ $extractRequestContextMethod }}Builder(c, r).
-		       Transactional({{ IsRestOperationTransactional $service .}}).
-               Build()
+        rc := {{ $extractRequestContextMethod }}(c, r)
 
         {{if (not $noValidation) and (HasRequestContext $oper) -}}
         	err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
@@ -159,8 +157,9 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			}
 		{{end}}
 
-        // call business logic: transactional: {{ IsRestOperationTransactional $service .}}
-        {{range GetOutputArgsDeclaration . -}}
+        // call business logic
+        rc.Set(request.Transactional({{ IsRestOperationTransactional $service .}}))
+		{{range GetOutputArgsDeclaration . -}}
 			{{.}}
 		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
