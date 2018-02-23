@@ -107,6 +107,7 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 
 		rc := rcb.RequestUID( envlp.UUID ).
 		    SessionUID( envlp.SessionUID ).
+		    RequestUID(envlp.UUID). // pas a stable identifyer that make write of resulting events idempotent
             Build()
 
 		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
