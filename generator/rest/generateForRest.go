@@ -114,7 +114,6 @@ func generateHttpClient(targetDir, packageName string, service model.Struct) err
 
 var customTemplateFuncs = template.FuncMap{
 	"IsRestService":                         IsRestService,
-	"IsRestServiceTransactional":            IsRestServiceTransactional,
 	"ExtractImports":                        ExtractImports,
 	"GetRestServicePath":                    GetRestServicePath,
 	"GetExtractCredentialsMethod":           GetExtractCredentialsMethod,
@@ -125,6 +124,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasRestOperationAfter":                 HasRestOperationAfter,
 	"GetRestOperationPath":                  GetRestOperationPath,
 	"GetRestOperationMethod":                GetRestOperationMethod,
+	"IsRestOperationTransactional":          IsRestOperationTransactional,
 	"IsRestOperationForm":                   IsRestOperationForm,
 	"IsRestOperationJSON":                   IsRestOperationJSON,
 	"IsRestOperationHTML":                   IsRestOperationHTML,
@@ -184,10 +184,10 @@ func IsRestService(s model.Struct) bool {
 	return ok
 }
 
-func IsRestServiceTransactional(s model.Struct) bool {
+func IsRestOperationTransactional(s model.Struct, o model.Operation) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
-		return ann.Attributes[restAnnotation.ParamTransactional] == "true"
+		return ann.Attributes[restAnnotation.ParamTransactional] == "true" && GetRestOperationMethod(o) != "GET"
 	}
 	return false
 }

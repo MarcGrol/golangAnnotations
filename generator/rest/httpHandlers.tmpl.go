@@ -9,8 +9,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-{{ $serviceName := .Name }}
-{{ $transactional := IsRestServiceTransactional . }}
+{{ $service := . }}
 
 var (
     preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
@@ -44,7 +43,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
         {{if IsRestOperationGenerated . -}}
 
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
+func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var err error
 
@@ -157,11 +156,11 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
 			}
 		{{end}}
 
-        // call business logic: transactional: {{$transactional}}
+        // call business logic: transactional: {{ IsRestOperationTransactional $service .}}
         {{range GetOutputArgsDeclaration . -}}
 			{{.}}
 		{{end -}}
-		{{if $transactional -}}
+		{{if IsRestOperationTransactional $service . -}}
 	    err = eventStore.RunInTransaction(c, &credentials, func(c context.Context) error {
 		{{end -}}
 		{{if HasMetaOutput . -}}
@@ -171,7 +170,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
         {{else -}}
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
         {{end -}}
- 		{{if $transactional -}}
+		{{if IsRestOperationTransactional $service . -}}
 			if err != nil {
 				return err
 			}
@@ -248,7 +247,7 @@ func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
     {{else -}}
 
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$serviceName}} ) http.HandlerFunc {
+func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         {{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
