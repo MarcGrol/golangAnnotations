@@ -177,6 +177,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			if err != nil {
 				return err
 			}
+			publishStoredEnvelopes(c, rc)
 			return nil
 		})
         {{end -}}
@@ -184,6 +185,10 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
             errorh.HandleHttpError(c, rc, err, w, r)
             return
         }
+		{{if IsRestOperationTransactional $service . -}}
+		{{else -}}
+			publishStoredEnvelopes(c, rc)
+		{{end -}}
 
         {{if HasMetaOutput .}}
 			if meta != nil {
@@ -261,5 +266,19 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 
         {{end -}}
     {{end -}}
-{{end -}}
+{{end}}
+
+func publishStoredEnvelopes(c context.Context, rc request.Context ) {
+	storedEnvelopes := rc.GetEnvelopes()
+	mylog.New().Info(c, "Publish %d stored envelopes", len(storedEnvelopes))
+	for _, e := range storedEnvelopes {
+		if rc.IsTransactional() {
+			bus.PublishBackground(c, rc, e.AggregateName, e) // async
+		} else {
+			bus.Publish(c, rc, e.AggregateName, e)
+		}
+	}
+	rc.ClearEnvelopes()
+}
+
 `
