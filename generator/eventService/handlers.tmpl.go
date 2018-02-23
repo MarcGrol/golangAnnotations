@@ -95,7 +95,7 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		rc := request.NewMininalContext(c,r)
+		rc := request.NewMinimalContext(c,r)
 
 		// read and parse request body
 		var envlp envelope.Envelope
@@ -105,8 +105,8 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 			return
 		}
 
-		rc.RequestUID = envlp.UUID
-		rc.SessionUID = envlp.SessionUID
+		rc.SetRequestUID( envlp.UUID )
+		rc.SetSessionUID( envlp.SessionUID )
 
 		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
