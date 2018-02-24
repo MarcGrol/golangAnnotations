@@ -268,9 +268,9 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 {{end}}
 
 func publishStoredEnvelopes(c context.Context, rc request.Context) {
-	// copy stored envelopes out of request.Context
+	// move stored envelopes out of request.Context
 	storedEnvelopes := rc.GetEnvelopes()
-	rc.ClearEnvelopes()
+	rc.Set(request.ClearEnvelopes())
 
 	mylog.New().Info(c, "Publish %d stored envelopes", len(storedEnvelopes))
 	for _, e := range storedEnvelopes {
