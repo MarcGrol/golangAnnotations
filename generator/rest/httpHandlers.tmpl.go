@@ -176,7 +176,10 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			publishStoredEnvelopes(c, rc)
+			err = bus.PublishStoredEnvelopes(c, rc)
+			if err != nil {
+				return err
+			}
 			return nil
 		})
         {{end -}}
@@ -186,7 +189,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         }
 		{{if IsRestOperationTransactional $service . -}}
 		{{else -}}
-			publishStoredEnvelopes(c, rc)
+			bus.PublishStoredEnvelopes(c, rc)
 		{{end -}}
 
         {{if HasMetaOutput .}}
@@ -266,24 +269,5 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         {{end -}}
     {{end -}}
 {{end}}
-
-func publishStoredEnvelopes(c context.Context, rc request.Context) {
-	// move stored envelopes out of request.Context
-	storedEnvelopes := rc.GetEnvelopes()
-	rc.Set(request.ClearEnvelopes())
-
-	mylog.New().Info(c, "Publish %d stored envelopes", len(storedEnvelopes))
-	for _, e := range storedEnvelopes {
-		if rc.IsTransactional() {
-			bus.PublishBackground(c, rc, e.AggregateName, e) // async
-		} else {
-			bus.Publish(c, rc, e.AggregateName, e) //sync
-		}
-	}
-	if len(rc.GetEnvelopes()) > 0 {
-		// recurse because sync publisher can also have stored events that need to be published
-		publishStoredEnvelopes(c, rc)
-	}
-}
 
 `

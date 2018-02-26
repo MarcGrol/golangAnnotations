@@ -82,9 +82,8 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 				return err
 			}
 
-			mylog.New().Debug(c, "Subscriber %s.%s enqueued task on topic '%s' with event %s %s.%s", 
-				"{{.PackageName}}", "{{$eventServiceName}}", 
-				topic, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID )
+			mylog.New().Debug(c, "Subscriber %s.%s enqueued task on topic '%s' with event %s", 
+				"{{.PackageName}}", "{{$eventServiceName}}", topic, envlp.NiceName() )
 
 			return nil
 	}
@@ -107,7 +106,7 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 
 		rc.Set(request.RequestUID( envlp.UUID ),
 		    request.SessionUID( envlp.SessionUID ),
-		    request.RequestUID(envlp.UUID)) // pas a stable identifyer that make write of resulting events idempotent
+		    request.RequestUID(envlp.UUID)) // pas a stable identifyer that make writing of resulting events idempotent
 
 		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
@@ -128,18 +127,15 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 		{
 			evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
 			if found {
-				mylog.New().Debug(c, "-->> As %s: Start handling '%s' for '%s/%s'",
-					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+				mylog.New().Debug(c, "-->> As %s: Start handling '%s'", subscriber, envlp.NiceName())
 				err := es.{{$oper.Name}}(c, rc, *evt)
 				if err != nil {
-					msg := fmt.Sprintf("Subscriber '%s' failed to handle '%s' for '%s/%s'",
-						subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+					msg := fmt.Sprintf("As subscriber '%s': Failed to handle '%s':%s", subscriber, envlp.NiceName(), err)
 					myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 					return err
 				}
 
-				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' for '%s/%s'",
-					subscriber, envlp.EventTypeName, envlp.AggregateName, envlp.AggregateUID)
+				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s'", subscriber, envlp.NiceName())
 
 				return nil
 			}
