@@ -6,7 +6,6 @@ const (
 	TypeEventService    = "EventService"
 	TypeEventOperation  = "EventOperation"
 	ParamSelf           = "self"
-	ParamAsync          = "async"
 	ParamTopic          = "topic"
 	ParamProcess        = "process"
 	ParamDelay          = "delay"
@@ -18,7 +17,7 @@ func Get() []annotation.AnnotationDescriptor {
 	return []annotation.AnnotationDescriptor{
 		{
 			Name:       TypeEventService,
-			ParamNames: []string{ParamSelf, ParamAsync, ParamNoTest},
+			ParamNames: []string{ParamSelf, ParamNoTest},
 			Validator:  validateEventServiceAnnotation,
 		},
 		{

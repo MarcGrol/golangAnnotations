@@ -18,11 +18,6 @@ func TestCorrectEventServiceAnnotation(t *testing.T) {
 		assert.Equal(t, "caregiverService", self)
 	}
 	{
-		async, ok := ann.Attributes[ParamAsync]
-		assert.True(t, ok)
-		assert.Equal(t, "true", async)
-	}
-	{
 		process, ok := ann.Attributes[ParamProcess]
 		assert.True(t, ok)
 		assert.Equal(t, "myprocess", process)

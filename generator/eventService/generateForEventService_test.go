@@ -52,7 +52,7 @@ func TestGenerateForWeb(t *testing.T) {
 	// check that generate code has 4 helper functions for MyStruct
 	data, err := ioutil.ReadFile("./testData/$eventHandler.go")
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, es.handleEvent)`)
+	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, es.enqueueEventToBackground)`)
 	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{`)
 }
 

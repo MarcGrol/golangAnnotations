@@ -89,7 +89,6 @@ func doGenerate(targetDir, packageName string, eventServices []model.Struct, dat
 
 var customTemplateFuncs = template.FuncMap{
 	"IsEventService":                  IsEventService,
-	"IsAsync":                         IsAsync,
 	"IsEventServiceNoTest":            IsEventServiceNoTest,
 	"IsEventOperation":                IsEventOperation,
 	"GetInputArgType":                 GetInputArgType,
@@ -102,7 +101,6 @@ var customTemplateFuncs = template.FuncMap{
 	"IsAnyEventOperationDelayed":      IsAnyEventOperationDelayed,
 	"GetEventOperationQueueGroups":    GetEventOperationQueueGroups,
 	"GetEventOperationProducesEvents": GetEventOperationProducesEvents,
-	"IsAsyncAsString":                 IsAsyncAsString,
 	"IsEventNotTransient":             IsEventNotTransient,
 	"ToFirstUpper":                    ToFirstUpper,
 }
@@ -111,24 +109,6 @@ func IsEventService(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService)
 	return ok
-}
-
-func IsAsync(s model.Struct) bool {
-	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
-	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventServiceAnnotation.TypeEventService); ok {
-		syncString, found := ann.Attributes[eventServiceAnnotation.ParamAsync]
-		if found && syncString == "true" {
-			return true
-		}
-	}
-	return false
-}
-
-func IsAsyncAsString(s model.Struct) string {
-	if IsAsync(s) {
-		return "Async"
-	}
-	return ""
 }
 
 func IsEventNotTransient(o model.Operation) bool {

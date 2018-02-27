@@ -22,29 +22,13 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 	{{ $serviceName := GetEventServiceSelfName $service }}
 	{{range GetEventServiceTopics . -}}
 	{
-		// Subscribe to topic "{{.}}"
-	    bus.Subscribe("{{.}}", subscriber, es.handleEvent)
-		{{if IsAsync $service -}}
-			router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.httpHandleEventAsync()).Methods("POST")
-		{{end -}}
+	    bus.Subscribe("{{.}}", subscriber, es.enqueueEventToBackground)
+		router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.handleHttpBackgroundEvent()).Methods("POST")
 	}
 	{{end -}}
 }
 
-{{if IsAsync . -}}
-
-func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
-	switch envlp.EventTypeName {
-		{{range $queueGroup := (GetEventOperationQueueGroups .) -}}
-		case  {{range $idx, $event := $queueGroup.Events -}}
-		{{if $idx}},{{end}}{{$event}}EventName{{end}}:
-			return myqueue.ProcessType{{$queueGroup.Process}}
-		{{end -}}
-		default: return myqueue.ProcessTypeDefault
-	}
-}
-
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $oper := .Operations -}}
 			{{if IsEventOperation $oper -}}
@@ -90,7 +74,19 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 	return nil
 }
 
-func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
+
+func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
+	switch envlp.EventTypeName {
+		{{range $queueGroup := (GetEventOperationQueueGroups .) -}}
+		case  {{range $idx, $event := $queueGroup.Events -}}
+		{{if $idx}},{{end}}{{$event}}EventName{{end}}:
+			return myqueue.ProcessType{{$queueGroup.Process}}
+		{{end -}}
+		default: return myqueue.ProcessTypeDefault
+	}
+}
+
+func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
@@ -108,7 +104,7 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 		    request.SessionUID( envlp.SessionUID ),
 		    request.RequestUID(envlp.UUID)) // pas a stable identifyer that make writing of resulting events idempotent
 
-		err = es.handleEventAsync(c, rc, envlp.AggregateName, envlp)
+		err = es.handleEvent(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
 			errorh.HandleHttpError(c, rc, err, w, r)
 			return
@@ -116,10 +112,7 @@ func (es *{{$eventServiceName}}) httpHandleEventAsync() http.HandlerFunc {
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEventAsync(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
-{{else -}}
 func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
-{{end -}}
 	const subscriber = "{{GetEventServiceSelfName .}}"
 
     {{range $idxOper, $oper := .Operations -}}
