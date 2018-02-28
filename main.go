@@ -10,6 +10,7 @@ import (
 
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
+	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/repository"
@@ -29,7 +30,7 @@ var (
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^[^»][^_]+\\.go$")
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, filegen.MatchPattern())
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
@@ -39,7 +40,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	targetFilename := *inputDir + "/»" + "ast.json"
+	targetFilename := filegen.Prefixed(*inputDir + "/" + "ast.json")
 	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
 	if err != nil {
 		panic(err)

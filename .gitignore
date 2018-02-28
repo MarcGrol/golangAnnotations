@@ -2,17 +2,15 @@
 .idea
 
 examples/event/
-examples/rest/»httpTestTourService.go
-examples/rest/»httpTourService.go
-examples/rest/»httpTourServiceHelpers_test.go
-examples/rest/»httpClientForTourService.go
+examples/rest/gen_httpTestTourService.go
+examples/rest/gen_httpTourService.go
+examples/rest/gen_httpTourServiceHelpers_test.go
+examples/rest/gen_httpClientForTourService.go
 examples/rest/restTestLog/
-examples/store/»structExampleEventStore.go
-examples/structExample/»aggregates.go
-examples/structExample/»wrappers.go
-examples/structExample/»wrappers_test.go
-examples/structExample/»structExample_json.go
-examples/structExample/»enumExample_json.go
+examples/store/gen_structExampleEventStore.go
 generator/rest/testData/
 projectFilesBackup/
-\»ast.json
+gen_aggregates.json
+gen_wrappers.json
+gen_wrappers_test.json
+gen_ast.json

@@ -76,7 +76,7 @@ A regular golang struct definition with our own "RestService" and "RestOperation
         ...
     }        
 
-Observe that ./examples/rest/»tourService.go have been generated.
+Observe that ./examples/rest/gen_tourService.go have been generated.
 
 [Example](https://github.com/MarcGrol/golangAnnotations/wiki/example-of-generated-code) of the generated http handler.
 
@@ -89,7 +89,7 @@ A regular golang struct definition with our own "Event"-annotation.
         ...
     }        
 
-Observe that ./examples/event/»wrappers.go and ./examples/event/»aggregates.go have been created in ./examples/structExample.
+Observe that ./examples/event/gen_wrappers.go and ./examples/event/gen_aggregates.go have been created in ./examples/structExample.
 
 ### Command to trigger code-generation:
 

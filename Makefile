@@ -68,7 +68,7 @@ coverage:
 	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
 
 clean:
-	find . -name '»*.go' -exec rm -rfv {} +
+	find . -name 'gen_*.go' -exec rm -rfv {} +
 	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
 	$(GO) clean ./...
 

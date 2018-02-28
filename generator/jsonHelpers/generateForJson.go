@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
@@ -74,7 +75,7 @@ func doGenerate(packageName string, jsonEnums []model.Enum, jsonStructs []model.
 
 	for fn := range filenameMap {
 		targetFilename := strings.Replace(fn, ".", "_json.", 1)
-		target := fmt.Sprintf("%s/»%s", targetDir, targetFilename)
+		target := filegen.Prefixed(fmt.Sprintf("%s/%s", targetDir, targetFilename))
 
 		data := jsonContext{
 			PackageName: packageName,

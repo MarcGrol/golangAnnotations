@@ -8,6 +8,7 @@ import (
 	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/repository/repositoryAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"
@@ -40,7 +41,7 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 	}
 	for _, repository := range structs {
 		if IsRepository(repository) {
-			target := fmt.Sprintf("%s/»%s.go", targetDir, toFirstLower(repository.Name))
+			target := filegen.Prefixed(fmt.Sprintf("%s/%s.go", targetDir, toFirstLower(repository.Name)))
 			err = generationUtil.GenerateFileFromTemplate(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", repositoryTemplate, customTemplateFuncs, target)
 			if err != nil {
 				log.Fatalf("Error generating repository %s: %s", repository.Name, err)

@@ -5,13 +5,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func cleanup() {
-	os.Remove("./testData/»ast.json")
-	os.Remove("./testData/»example_json.go")
+	os.Remove(filegen.Prefixed("./testData/ast.json"))
+	os.Remove(filegen.Prefixed("./testData/example_json.go"))
 }
 
 func TestGenerateForJson(t *testing.T) {
@@ -68,12 +69,12 @@ func TestGenerateForJson(t *testing.T) {
 	err := NewGenerator().Generate("./testData/", ps)
 	assert.Nil(t, err)
 
-	// check that generated files exisst
-	_, err = os.Stat("./testData/»example_json.go")
+	// check that generated files exists
+	_, err = os.Stat(filegen.Prefixed("./testData/example_json.go"))
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile("./testData/»example_json.go")
+	data, err := ioutil.ReadFile(filegen.Prefixed("./testData/example_json.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `func (r *ColorType) UnmarshalJSON(data []byte) error {`)
 	assert.Contains(t, string(data), `func (r ColorType) MarshalJSON() ([]byte, error) {`)
