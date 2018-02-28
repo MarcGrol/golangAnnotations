@@ -10,6 +10,7 @@ import (
 )
 
 func cleanup() {
+	os.Remove("./testData/»ast.json")
 	os.Remove("./testData/»aggregates.go")
 	os.Remove("./testData/»wrappers.go")
 	os.Remove("./store/testDataStore/»testDataEventStore.go")
@@ -59,6 +60,7 @@ func TestGenerateForEvents(t *testing.T) {
 	_, err = os.Stat("./testData/»wrappers.go")
 	assert.NoError(t, err)
 
+	os.Remove("./testData/»ast.json")
 	os.Remove("./testData/»aggregates.go")
 	os.Remove("./testData/»wrappers.go")
 	os.Remove("./testData/»wrappers_test.go")

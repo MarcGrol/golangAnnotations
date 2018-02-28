@@ -15,7 +15,6 @@ deps:
 	@echo "Performing dependency check"
 	@echo "---------------------------"
 	go get -u golang.org/x/tools/cmd/goimports
-	go get -u honnef.co/go/tools/cmd/staticcheck
 	go get -u -t ./...                                  # get the application with all its deps
 
 generate:
@@ -44,7 +43,6 @@ check:
 	@echo "---------------------"
 	$(GO) vet ./...
 	$(GO) vet --shadow ./...
-	staticcheck ./...
 
 test: clean check
 	@echo "---------------------"
@@ -70,7 +68,7 @@ coverage:
 	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
 
 clean:
-	find . -name '\$$*.go' -exec rm -rfv {} +
+	find . -name '»*.go' -exec rm -rfv {} +
 	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
 	$(GO) clean ./...
 

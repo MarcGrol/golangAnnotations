@@ -95,7 +95,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 		AggregateMap: aggregates,
 	}
 
-	target := fmt.Sprintf("%s/aggregates.go", targetDir)
+	target := fmt.Sprintf("%s/»aggregates.go", targetDir)
 	err := generationUtil.GenerateFileFromTemplate(data, packageName, "aggregates", aggregateTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating aggregates (%s)", err)

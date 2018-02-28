@@ -11,6 +11,7 @@ import (
 )
 
 func cleanup() {
+	os.Remove("./testData/»ast.json")
 	os.Remove("./testData/»httpMyService.go")
 	os.Remove("./testData/»httpMyServiceHelpers_test.go")
 	os.Remove("./testData/»httpClientForMyService.go")

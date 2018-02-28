@@ -10,6 +10,7 @@ import (
 )
 
 func cleanup() {
+	os.Remove("./testData/»ast.json")
 	os.Remove("./testData/»example_json.go")
 }
 
