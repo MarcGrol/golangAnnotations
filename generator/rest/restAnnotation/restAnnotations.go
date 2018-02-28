@@ -26,12 +26,12 @@ func Get() []annotation.AnnotationDescriptor {
 	return []annotation.AnnotationDescriptor{
 		{
 			Name:       TypeRestService,
-			ParamNames: []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath, ParamTransactional},
+			ParamNames: []string{ParamCredentials, ParamNoValidation, ParamProtected, ParamNoTest, ParamPath},
 			Validator:  validateRestServiceAnnotation,
 		},
 		{
 			Name:       TypeRestOperation,
-			ParamNames: []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents},
+			ParamNames: []string{ParamNoWrap, ParamAfter, ParamPath, ParamMethod, ParamTransactional, ParamForm, ParamFormat, ParamFilename, ParamOptional, ParamRoles, ParamProducesEvents},
 			Validator:  validateRestOperationAnnotation,
 		}}
 }

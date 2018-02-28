@@ -186,8 +186,8 @@ func IsRestService(s model.Struct) bool {
 
 func IsRestOperationTransactional(s model.Struct, o model.Operation) bool {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
-	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, restAnnotation.TypeRestService); ok {
-		return ann.Attributes[restAnnotation.ParamTransactional] == "true" && GetRestOperationMethod(o) != "GET"
+	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
+		return ann.Attributes[restAnnotation.ParamTransactional] == "true"
 	}
 	return false
 }
