@@ -8,7 +8,7 @@ import (
 )
 
 func TestInterfacesInDir(t *testing.T) {
-	parsedSources, err := New().ParseSourceDir("./interfaces", ".*")
+	parsedSources, err := New().ParseSourceDir("./interfaces", "^.*.go$", "gen_.*")
 	assert.Equal(t, nil, err)
 	assert.Len(t, parsedSources.Interfaces, 1)
 

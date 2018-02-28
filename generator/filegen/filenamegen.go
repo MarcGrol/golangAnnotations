@@ -6,8 +6,8 @@ import (
 
 const genfilePrefix = "gen_"
 
-func MatchPattern() string {
-	return "^[^" + genfilePrefix + "][^_]+\\.go$"
+func ExcludeMatchPattern() string {
+	return "^" + genfilePrefix + ".*.go$"
 }
 
 func Prefixed(filenamePath string) string {

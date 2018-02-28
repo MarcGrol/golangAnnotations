@@ -27,11 +27,11 @@ func New() parserUtil.Parser {
 	return &myParser{}
 }
 
-func (p *myParser) ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error) {
+func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRegex string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
 	}
-	packages, err := parseDir(dirName, filenameRegex)
+	packages, err := parseDir(dirName, includeRegex, excludeRegex)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return model.ParsedSources{}, err
@@ -166,17 +166,19 @@ func embedTypedefDocLinesInEnum(visitor *astVisitor) {
 	}
 }
 
-func parseDir(dirName string, filenameRegex string) (map[string]*ast.Package, error) {
-	var pattern = regexp.MustCompile(filenameRegex)
-
-	var err error
+func parseDir(dirName string, includeRegex string, excludeRegex string) (map[string]*ast.Package, error) {
+	var includePattern = regexp.MustCompile(includeRegex)
+	var excludePattern = regexp.MustCompile(excludeRegex)
 
 	fileSet := token.NewFileSet()
 	packageMap, err := parser.ParseDir(
 		fileSet,
 		dirName,
 		func(fi os.FileInfo) bool {
-			return pattern.MatchString(fi.Name())
+			if excludePattern.MatchString(fi.Name()) {
+				return false
+			}
+			return includePattern.MatchString(fi.Name())
 		},
 		parser.ParseComments)
 	if err != nil {

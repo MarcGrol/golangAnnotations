@@ -3,5 +3,5 @@ package parserUtil
 import "github.com/MarcGrol/golangAnnotations/model"
 
 type Parser interface {
-	ParseSourceDir(dirName string, filenameRegex string) (model.ParsedSources, error)
+	ParseSourceDir(dirName string, includeRegex string, excludeRegex string) (model.ParsedSources, error)
 }

@@ -30,7 +30,7 @@ var (
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, filegen.MatchPattern())
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", filegen.ExcludeMatchPattern())
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
