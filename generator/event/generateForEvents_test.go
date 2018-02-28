@@ -10,9 +10,9 @@ import (
 )
 
 func cleanup() {
-	os.Remove("./testData/$aggregates.go")
-	os.Remove("./testData/$wrappers.go")
-	os.Remove("./store/testDataStore/$testDataEventStore.go")
+	os.Remove("./testData/»aggregates.go")
+	os.Remove("./testData/»wrappers.go")
+	os.Remove("./store/testDataStore/»testDataEventStore.go")
 }
 
 func TestGenerateForEvents(t *testing.T) {
@@ -36,10 +36,10 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat("./testData/$aggregates.go")
+	_, err = os.Stat("./testData/»aggregates.go")
 	assert.NoError(t, err)
 
-	data, err := ioutil.ReadFile("./testData/$aggregates.go")
+	data, err := ioutil.ReadFile("./testData/»aggregates.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "type TestAggregate interface {")
 	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, event MyStruct)")
@@ -49,20 +49,20 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []envelope.Envelope) ([]envelope.Event, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err = ioutil.ReadFile("./testData/$wrappers.go")
+	data, err = ioutil.ReadFile("./testData/»wrappers.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func (s *MyStruct) Wrap(rc request.Context) (*envelope.Envelope,error) {")
 	assert.Contains(t, string(data), "func IsMyStruct(envelope *envelope.Envelope) bool {")
 	assert.Contains(t, string(data), "func GetIfIsMyStruct(envelope *envelope.Envelope) (*MyStruct, bool) {")
 	assert.Contains(t, string(data), "func UnWrapMyStruct(envelope *envelope.Envelope) (*MyStruct,error) {")
 
-	_, err = os.Stat("./testData/$wrappers.go")
+	_, err = os.Stat("./testData/»wrappers.go")
 	assert.NoError(t, err)
 
-	os.Remove("./testData/$aggregates.go")
-	os.Remove("./testData/$wrappers.go")
-	os.Remove("./testData/$wrappers_test.go")
-	os.Remove("./repository/$storeEvents.go")
+	os.Remove("./testData/»aggregates.go")
+	os.Remove("./testData/»wrappers.go")
+	os.Remove("./testData/»wrappers_test.go")
+	os.Remove("./repository/»storeEvents.go")
 
 }
 

@@ -11,9 +11,9 @@ import (
 )
 
 func cleanup() {
-	os.Remove("./testData/$httpMyEventService.go")
-	os.Remove("./testData/$eventHandler.go")
-	os.Remove("./testData/$eventHandlerHelpers_test.go")
+	os.Remove("./testData/»httpMyEventService.go")
+	os.Remove("./testData/»eventHandler.go")
+	os.Remove("./testData/»eventHandlerHelpers_test.go")
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -46,11 +46,11 @@ func TestGenerateForWeb(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat("./testData/$eventHandler.go")
+	_, err = os.Stat("./testData/»eventHandler.go")
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile("./testData/$eventHandler.go")
+	data, err := ioutil.ReadFile("./testData/»eventHandler.go")
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `bus.Subscribe("other", subscriber, es.enqueueEventToBackground)`)
 	assert.Contains(t, string(data), `func (es *MyEventService) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{`)

@@ -29,7 +29,7 @@ var (
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^[^\\$][^_]+\\.go$")
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^»[^_]+\\.go$")
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
@@ -39,7 +39,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	targetFilename := *inputDir + "/$" + "ast.json"
+	targetFilename := *inputDir + "/»" + "ast.json"
 	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
 	if err != nil {
 		panic(err)
