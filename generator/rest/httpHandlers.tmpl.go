@@ -176,10 +176,6 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 			if err != nil {
 				return err
 			}
-			err = bus.PublishStoredEnvelopes(c, rc)
-			if err != nil {
-				return err
-			}
 			return nil
 		})
         {{end -}}
@@ -187,10 +183,6 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
             errorh.HandleHttpError(c, rc, err, w, r)
             return
         }
-		{{if IsRestOperationTransactional $service . -}}
-		{{else -}}
-			bus.PublishStoredEnvelopes(c, rc)
-		{{end -}}
 
         {{if HasMetaOutput .}}
 			if meta != nil {
