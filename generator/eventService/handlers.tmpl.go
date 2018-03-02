@@ -17,7 +17,6 @@ import (
 {{ $eventServiceName := .Name -}}
 
 func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
-
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	{{ $serviceName := GetEventServiceSelfName $service }}
 	{{range GetEventServiceTopics . -}}
@@ -29,6 +28,7 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 }
 
 func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
+	const subscriber = "{{GetEventServiceSelfName .}}"
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $oper := .Operations -}}
 			{{if IsEventOperation $oper -}}
@@ -66,8 +66,7 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 				return err
 			}
 
-			mylog.New().Debug(c, "Subscriber %s.%s enqueued task on topic '%s' with event %s", 
-				"{{.PackageName}}", "{{$eventServiceName}}", topic, envlp.NiceName() )
+			mylog.New().Debug(c, "Subscriber '%s' enqueued task on topic '%s' with event '%s'", subscriber, topic, envlp.NiceName())
 
 			return nil
 	}
@@ -125,15 +124,15 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 		{
 			evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
 			if found {
-				mylog.New().Debug(c, "-->> As %s: Start handling '%s' (retry-count: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
+				mylog.New().Debug(c, "-->> As %s: Start handling '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
 				err := es.{{$oper.Name}}(c, rc, *evt)
 				if err != nil {
-					msg := fmt.Sprintf("As subscriber '%s': Failed to handle '%s' (retry-count: %d):%s", subscriber, envlp.NiceName(), rc.GetTaskRetryCount(), err)
+					msg := fmt.Sprintf("As subscriber '%s': Failed to handle '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
 					myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 					return err
 				}
 
-				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' (retry-count: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
+				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
 
 				return nil
 			}
