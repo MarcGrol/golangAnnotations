@@ -102,9 +102,8 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 		}
 
 		rc.Set(
-            request.RequestUID( envlp.UUID ),
-		    request.SessionUID( envlp.SessionUID ),
-		    request.RequestUID(envlp.UUID), // pas a stable identifyer that make writing of resulting events idempotent
+		    request.SessionUID(envlp.SessionUID),
+		    request.RequestUID(envlp.UUID), // pas a stable identifier that makes writing of resulting events idempotent
 			request.TaskRetryCount(retryCount),
 		) 
 
