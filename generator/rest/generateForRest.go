@@ -157,6 +157,9 @@ var customTemplateFuncs = template.FuncMap{
 	"IsMetaCallback":                        IsMetaCallback,
 	"IsPrimitiveArg":                        IsPrimitiveArg,
 	"IsNumberArg":                           IsNumberArg,
+	"IsBoolArg":                             IsBoolArg,
+	"IsStringArg":                           IsStringArg,
+	"IsStringSliceArg":                      IsStringSliceArg,
 	"RequiresParamValidation":               RequiresParamValidation,
 	"IsInputArgMandatory":                   IsInputArgMandatory,
 	"HasUpload":                             HasUpload,
@@ -678,7 +681,7 @@ func findArgInArray(array []string, toMatch string) bool {
 
 func RequiresParamValidation(o model.Operation) bool {
 	for _, field := range o.InputArgs {
-		if IsNumberArg(field) || IsStringArg(field) && IsInputArgMandatory(o, field) {
+		if (IsNumberArg(field) || IsBoolArg(field) || IsStringSliceArg(field) || IsStringArg(field)) && IsInputArgMandatory(o, field) {
 			return true
 		}
 	}
@@ -729,15 +732,23 @@ func IsMetaCallbackArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return IsNumberArg(f) || IsStringArg(f)
+	return IsBoolArg(f) || IsNumberArg(f) || IsStringArg(f) || IsStringSliceArg(f)
+}
+
+func IsBoolArg(f model.Field) bool {
+	return f.TypeName == "bool" && !f.IsSlice
 }
 
 func IsNumberArg(f model.Field) bool {
-	return f.TypeName == "int"
+	return f.TypeName == "int" && !f.IsSlice
 }
 
 func IsStringArg(f model.Field) bool {
-	return f.TypeName == "string"
+	return f.TypeName == "string" && !f.IsSlice
+}
+
+func IsStringSliceArg(f model.Field) bool {
+	return f.TypeName == "string" && f.IsSlice
 }
 
 func ToFirstUpper(in string) string {

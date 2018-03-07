@@ -64,71 +64,51 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         	}
         {{end -}}
 
-        {{if HasAnyPathParam $oper -}}
-        	pathParams := mux.Vars(r)
-        	if len(pathParams) > 0 {
-            	log.Printf("pathParams:%+v", pathParams)
-        	}
-        {{end -}}
-
-        {{if RequiresParamValidation . -}}
-        	// extract url-params
+		{{if RequiresParamValidation . -}}
+	        // start if parameter validation
         	validationErrors := []errorh.FieldError{}
         {{end -}}
 
         {{range .InputArgs -}}
-			{{if IsPrimitiveArg . -}}
+			{{if IsPrimitiveArg . }}
 				{{if IsNumberArg . -}}
-            		{{.Name}} := 0
-                    {{if IsRestOperationForm $oper -}}
-            			{{.Name}}String := r.FormValue("{{.Name}}")
-            			if {{.Name}}String == "" {
-                    {{else if IsQueryParam $oper . -}}
-                        {{if IsSliceParam . -}}
-                    	{{.Name}}String, ok := r.URL.Query()["{{.Name}}"]
-                		if !ok {
-					{{else -}}
-                		{{.Name}}String := r.URL.Query().Get("{{.Name}}")
-                		if {{.Name}}String == "" {
-					{{end -}}
-				{{else -}}
-					{{.Name}}String, exists := pathParams["{{.Name}}"]
-					if !exists {
-				{{end -}}
-
-				{{if IsInputArgMandatory $oper . -}}
-					validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
-				{{else -}}
-					// optional parameter
-				{{end -}}
-				} else {
-					{{.Name}}, err = strconv.Atoi({{.Name}}String)
-					if err != nil {
-						validationErrors = append(validationErrors, errorh.FieldErrorForInvalidParameter("{{.Name}}"))
-					}
-				}
-				{{else -}}
-					{{if IsRestOperationForm $oper -}}
-						{{.Name}} := r.FormValue("{{.Name}}")
-						if {{.Name}} == "" {
-					{{else if IsQueryParam $oper . -}}
-						{{if IsSliceParam . -}}
-							{{.Name}} := r.URL.Query()["{{.Name}}"]
-							if len({{.Name}}) == 0 {
-						{{else -}}
-							{{.Name}} := r.URL.Query().Get("{{.Name}}")
-							if {{.Name}} == "" {
-						{{end -}}
-					{{else -}}
-						{{.Name}}, exists := pathParams["{{.Name}}"]
-						if !exists {
-					{{end -}}
 					{{if IsInputArgMandatory $oper . -}}
-						validationErrors = append(validationErrors, errorh.FieldErrorForMissingParameter("{{.Name}}"))
+						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{.Name}}", true)
+						if err != nil {
+							validationErrors = append(validationErrors, *fieldError)
+						}
 					{{else -}}
-						// optional parameter
+						{{.Name}}, _ := httpparser.ExtractNumber(r, "{{.Name}}",false)
 					{{end -}}
-					}
+				{{else if IsBoolArg . -}}
+					{{if IsInputArgMandatory $oper . -}}
+						{{.Name}}, fieldError := httpparser.ExtractBool(r, "{{.Name}}", true)
+						if err != nil {
+							validationErrors = append(validationErrors, *fieldError)
+						}
+					{{else -}}
+						{{.Name}}, _ := httpparser.ExtractBool(r, "{{.Name}}", false)
+					{{end -}}
+				{{else if IsStringArg . -}}
+					{{if IsInputArgMandatory $oper . -}}
+						{{.Name}}, fieldError := httpparser.ExtractString(r, "{{.Name}}", true)
+						if err != nil {
+							validationErrors = append(validationErrors, *fieldError)
+						}
+					{{else -}}
+						{{.Name}}, _ := httpparser.ExtractString(r, "{{.Name}}", false)
+					{{end -}}
+				{{else if IsStringSliceArg . -}}
+					{{if IsInputArgMandatory $oper . -}}
+						{{.Name}}, fieldError := httpparser.ExtractStringSlice(r, "{{.Name}}", true)
+						if err != nil {
+							validationErrors = append(validationErrors, *fieldError)
+						}
+					{{else -}}
+						{{.Name}}, _ := httpparser.ExtractStringSlice(r, "{{.Name}}", false)
+					{{end -}}
+				{{else}}
+					Force compile error: Input arg {{.}} has unsupported primitive type
 				{{end -}}
 			{{end -}}
 		{{end -}}
@@ -138,6 +118,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
 				return
 			}
+	        // end of parameter validation 
 		{{end -}}
 
 		{{if HasUpload . -}}
