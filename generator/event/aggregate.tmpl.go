@@ -20,7 +20,7 @@ const (
 var AggregateEvents = map[string][]string{
 {{range $aggr, $events := .AggregateMap -}}
 	{{$aggr}}AggregateName: []string {
-		{{range $aggregName, $event := $events -}}
+		{{range $aggregName, $event := $events.Events -}}
 			{{$event.Name}}EventName,
 		{{end -}}
 	},
@@ -32,13 +32,14 @@ var AggregateEvents = map[string][]string{
 // {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
 	idempotency.Checker
-	{{range $aggregName, $event := $events -}}
+	{{range $aggregName, $event := $events.Events -}}
     	{{if $event.IsPersistent -}}
 			Apply{{$event.Name}}(c context.Context, event {{$event.Name}})
 		{{end -}}
 	{{end -}}
 }
 
+{{if $events.IsAnyPersistent -}}
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	if aggregateRoot.IsEventProcessed(envelope.UUID){
@@ -47,7 +48,7 @@ func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregat
 	}
 
 	switch envelope.EventTypeName {
-		{{range $aggregName, $event := $events -}}{{if $event.IsPersistent -}}
+		{{range $aggregName, $event := $events.Events -}}{{if $event.IsPersistent -}}
 			case {{$event.Name}}EventName:
 			event, err :=    UnWrap{{$event.Name}}(&envelope)
 			if err != nil {
@@ -75,11 +76,12 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggr
 	}
 	return err
 }
+{{end -}}
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
 func UnWrap{{$aggr}}Event(envelope *envelope.Envelope) (envelope.Event, error) {
 	switch envelope.EventTypeName {
-		{{range $aggregName, $event := $events -}}
+		{{range $aggregName, $event := $events.Events -}}
 			case {{$event.Name}}EventName:
 				event, err := UnWrap{{$event.Name}}(envelope)
 				if err != nil {

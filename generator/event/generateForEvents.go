@@ -12,6 +12,11 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
+type eventMap struct {
+	Events          map[string]event
+	IsAnyPersistent bool
+}
+
 type event struct {
 	Name         string
 	IsPersistent bool
@@ -19,7 +24,7 @@ type event struct {
 
 type aggregateMap struct {
 	PackageName  string
-	AggregateMap map[string]map[string]event
+	AggregateMap map[string]eventMap
 }
 
 type structures struct {
@@ -78,19 +83,25 @@ func generate(inputDir string, structs []model.Struct) error {
 
 func generateAggregates(targetDir, packageName string, structs []model.Struct) error {
 
-	aggregates := make(map[string]map[string]event)
+	aggregates := make(map[string]eventMap)
 	eventCount := 0
 	for _, s := range structs {
 		if isEvent(s) {
 			events, ok := aggregates[getAggregateName(s)]
 			if !ok {
-				events = make(map[string]event)
+				events = eventMap{
+					Events:          make(map[string]event),
+					IsAnyPersistent: false,
+				}
 			}
 			evt := event{
 				Name:         s.Name,
 				IsPersistent: isPersistent(s),
 			}
-			events[s.Name] = evt
+			if evt.IsPersistent {
+				events.IsAnyPersistent = true
+			}
+			events.Events[s.Name] = evt
 			aggregates[getAggregateName(s)] = events
 			eventCount++
 		}
