@@ -57,19 +57,44 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         rc := {{ $extractRequestContextMethod }}(c, r)
 
         {{if (not $noValidation) and (HasRequestContext $oper) -}}
+
         	err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
         	if err != nil {
             	errorh.HandleHttpError(c, rc, err, w, r)
             	return
         	}
+
         {{end -}}
 
+		{{if HasUpload . -}}
+
+			// Note: blobstore.ParseUpload must be called before parsing request POST-params
+			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
+			if err != nil {
+				errorh.HandleHttpError(c, rc, err, w, r)
+				return
+			}
+
+		{{else if HasInput . -}}
+
+			// read and parse request body
+			var {{GetInputArgName . }} {{GetInputArgType . }}
+			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
+			if err != nil {
+				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
+				return
+			}
+
+		{{end -}}
+
 		{{if RequiresParamValidation . -}}
-	        // start if parameter validation
+
+	        // start parameter validation
         	validationErrors := []errorh.FieldError{}
         {{end -}}
 
         {{range .InputArgs -}}
+
 			{{if IsPrimitiveArg . }}
 				{{if IsNumberArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
@@ -114,29 +139,14 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 		{{end -}}
 
 		{{if RequiresParamValidation . -}}
+
 			if len(validationErrors) > 0 {
 				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
 				return
 			}
-	        // end of parameter validation 
+	        // end of parameter validation
+
 		{{end -}}
-
-		{{if HasUpload . -}}
-			{{GetInputArgName . }}, err := service.{{$oper.Name}}GetUpload({{GetContextName $oper }}, r)
-			if err != nil {
-				errorh.HandleHttpError(c, rc, err, w, r)
-				return
-			}
-		{{else if HasInput . -}}
-
-			// read and parse request body
-			var {{GetInputArgName . }} {{GetInputArgType . }}
-			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
-			if err != nil {
-				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
-				return
-			}
-		{{end}}
 
         // call business logic
         rc.Set(request.Transactional({{ IsRestOperationTransactional $service .}}))
