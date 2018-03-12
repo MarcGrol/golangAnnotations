@@ -73,6 +73,11 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 
+	err = generateEventPublisher(targetDir, packageName, structs)
+	if err != nil {
+		return err
+	}
+
 	err = generateWrappersTest(targetDir, packageName, structs)
 	if err != nil {
 		return err
@@ -96,7 +101,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 			}
 			evt := event{
 				Name:         s.Name,
-				IsPersistent: isPersistent(s),
+				IsPersistent: isPersistentEvent(s),
 			}
 			if evt.IsPersistent {
 				events.IsAnyPersistent = true
@@ -127,7 +132,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 
 func generateWrappers(targetDir, packageName string, structs []model.Struct) error {
 
-	if !hasEvents(structs) {
+	if !containsAny(structs, isEvent) {
 		return nil
 	}
 
@@ -144,22 +149,18 @@ func generateWrappers(targetDir, packageName string, structs []model.Struct) err
 	return nil
 }
 
-func hasEvents(structs []model.Struct) bool {
-	eventCount := 0
+func containsAny(structs []model.Struct, predicate func(_ model.Struct) bool) bool {
 	for _, s := range structs {
-		if isEvent(s) {
-			eventCount++
+		if predicate(s) {
+			return true
 		}
 	}
-	if eventCount == 0 {
-		return false
-	}
-	return true
+	return false
 }
 
 func generateEventStore(targetDir, packageName string, structs []model.Struct) error {
 
-	if !hasEvents(structs) {
+	if !containsAny(structs, isPersistentEvent) {
 		return nil
 	}
 
@@ -167,10 +168,29 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	target := filegen.Prefixed(fmt.Sprintf("%s/../store/%sStore/%sEventStore.go", targetDir, packageName, packageName))
-	err := generationUtil.GenerateFileFromTemplate(data, packageName, "store-events", eventStoreTemplate, customTemplateFuncs, target)
+	target := filegen.Prefixed(fmt.Sprintf("%s/../store/%sStore/%sStore.go", targetDir, packageName, packageName))
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-store", eventStoreTemplate, customTemplateFuncs, target)
 	if err != nil {
-		log.Fatalf("Error generating store-events for structures (%s)", err)
+		log.Fatalf("Error generating event-store for structures (%s)", err)
+		return err
+	}
+	return nil
+}
+
+func generateEventPublisher(targetDir, packageName string, structs []model.Struct) error {
+
+	if !containsAny(structs, isTransient) {
+		return nil
+	}
+
+	data := structures{
+		PackageName: packageName,
+		Structs:     structs,
+	}
+	target := filegen.Prefixed(fmt.Sprintf("%s/../publisher/%sPublisher/%sPublisher.go", targetDir, packageName, packageName))
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-publisher", eventPublisherTemplate, customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating event-publisher for structures (%s)", err)
 		return err
 	}
 	return nil
@@ -178,7 +198,7 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 
 func generateWrappersTest(targetDir, packageName string, structs []model.Struct) error {
 
-	if !hasEvents(structs) {
+	if !containsAny(structs, isEvent) {
 		return nil
 	}
 
@@ -196,13 +216,13 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEvent":          isEvent,
-	"IsRootEvent":      isRootEvent,
-	"IsPersistent":     isPersistent,
-	"IsTransient":      isTransient,
-	"GetAggregateName": getAggregateName,
-	"HasValueForField": hasValueForField,
-	"ValueForField":    valueForField,
+	"IsEvent":           isEvent,
+	"IsRootEvent":       isRootEvent,
+	"IsPersistentEvent": isPersistentEvent,
+	"IsTransientEvent":  isTransientEvent,
+	"GetAggregateName":  getAggregateName,
+	"HasValueForField":  hasValueForField,
+	"ValueForField":     valueForField,
 }
 
 func isEvent(s model.Struct) bool {
@@ -227,8 +247,12 @@ func isRootEvent(s model.Struct) bool {
 	return false
 }
 
-func isPersistent(s model.Struct) bool {
-	return !isTransient(s)
+func isPersistentEvent(s model.Struct) bool {
+	return isEvent(s) && !isTransient(s)
+}
+
+func isTransientEvent(s model.Struct) bool {
+	return isEvent(s) && isTransient(s)
 }
 
 func isTransient(s model.Struct) bool {

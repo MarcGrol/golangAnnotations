@@ -4,13 +4,11 @@ const eventStoreTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}Store
 
-import (
-    "golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 {{range .Structs -}}
 
-    {{if and (IsEvent .) (IsPersistent .) -}}
+    {{if IsPersistentEvent . -}}
 
 func StoreAndApplyEvent{{.Name}}(c context.Context, rc request.Context, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, event {{.PackageName}}.{{.Name}}) error {
         err := StoreEvent{{.Name}}(c, rc, &event)
