@@ -123,7 +123,6 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 		{
 			evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
 			if found {
-				mylog.New().Debug(c, "-->> As %s: Start handling '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
 				err := es.{{$oper.Name}}(c, rc, *evt)
 				if err != nil {
 					msg := fmt.Sprintf("As subscriber '%s': Failed to handle '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
@@ -131,7 +130,9 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 					return err
 				}
 
-				mylog.New().Debug(c, "<<--As %s: Successfully handled '%s' (retry: %d)", subscriber, envlp.NiceName(), rc.GetTaskRetryCount())
+				if rc.GetTaskRetryCount() > 0 {
+					myerrorhandling.HandleEventClearError(c, rc, topic, envlp, fmt.Sprintf("As subscriber '%s': Retry %d of '%s' succeeded", subscriber, rc.GetTaskRetryCount(), envlp.NiceName() ))
+				}
 
 				return nil
 			}
