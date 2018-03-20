@@ -91,8 +91,8 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 	aggregates := make(map[string]eventMap)
 	eventCount := 0
 	for _, s := range structs {
-		if isEvent(s) {
-			events, ok := aggregates[getAggregateName(s)]
+		if IsEvent(s) {
+			events, ok := aggregates[GetAggregateName(s)]
 			if !ok {
 				events = eventMap{
 					Events:          make(map[string]event),
@@ -101,13 +101,13 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 			}
 			evt := event{
 				Name:         s.Name,
-				IsPersistent: isPersistentEvent(s),
+				IsPersistent: IsPersistentEvent(s),
 			}
 			if evt.IsPersistent {
 				events.IsAnyPersistent = true
 			}
 			events.Events[s.Name] = evt
-			aggregates[getAggregateName(s)] = events
+			aggregates[GetAggregateName(s)] = events
 			eventCount++
 		}
 	}
@@ -132,7 +132,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 
 func generateWrappers(targetDir, packageName string, structs []model.Struct) error {
 
-	if !containsAny(structs, isEvent) {
+	if !containsAny(structs, IsEvent) {
 		return nil
 	}
 
@@ -160,7 +160,7 @@ func containsAny(structs []model.Struct, predicate func(_ model.Struct) bool) bo
 
 func generateEventStore(targetDir, packageName string, structs []model.Struct) error {
 
-	if !containsAny(structs, isPersistentEvent) {
+	if !containsAny(structs, IsPersistentEvent) {
 		return nil
 	}
 
@@ -198,7 +198,7 @@ func generateEventPublisher(targetDir, packageName string, structs []model.Struc
 
 func generateWrappersTest(targetDir, packageName string, structs []model.Struct) error {
 
-	if !containsAny(structs, isEvent) {
+	if !containsAny(structs, IsEvent) {
 		return nil
 	}
 
@@ -216,22 +216,22 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"IsEvent":           isEvent,
-	"IsRootEvent":       isRootEvent,
-	"IsPersistentEvent": isPersistentEvent,
-	"IsTransientEvent":  isTransientEvent,
-	"GetAggregateName":  getAggregateName,
+	"IsEvent":           IsEvent,
+	"IsRootEvent":       IsRootEvent,
+	"IsPersistentEvent": IsPersistentEvent,
+	"IsTransientEvent":  IsTransientEvent,
+	"GetAggregateName":  GetAggregateName,
 	"HasValueForField":  hasValueForField,
 	"ValueForField":     valueForField,
 }
 
-func isEvent(s model.Struct) bool {
+func IsEvent(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
 	return ok
 }
 
-func getAggregateName(s model.Struct) string {
+func GetAggregateName(s model.Struct) string {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamAggregate]
@@ -239,7 +239,7 @@ func getAggregateName(s model.Struct) string {
 	return ""
 }
 
-func isRootEvent(s model.Struct) bool {
+func IsRootEvent(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
@@ -247,12 +247,12 @@ func isRootEvent(s model.Struct) bool {
 	return false
 }
 
-func isPersistentEvent(s model.Struct) bool {
-	return isEvent(s) && !isTransient(s)
+func IsPersistentEvent(s model.Struct) bool {
+	return IsEvent(s) && !isTransient(s)
 }
 
-func isTransientEvent(s model.Struct) bool {
-	return isEvent(s) && isTransient(s)
+func IsTransientEvent(s model.Struct) bool {
+	return IsEvent(s) && isTransient(s)
 }
 
 func isTransient(s model.Struct) bool {
