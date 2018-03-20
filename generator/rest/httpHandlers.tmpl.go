@@ -211,19 +211,19 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
             {{if HasOutput . -}}
 				err = json.NewEncoder(w).Encode(result)
 				if err != nil {
-					mylog.New().Warning(c, "Error writng json-response: %s", err)
+					mylog.New().Warning(c, "Error writing json-response: %s", err)
 				}
 			{{end -}}
 		{{else if IsRestOperationHTML . -}}
 			{{if HasOutput . -}}
 				err = service.{{$oper.Name}}WriteHTML(w, result)
 				if err != nil {
-					mylog.New().Warning(c, "Error writng html-response: %s", err)
+					mylog.New().Warning(c, "Error writing html-response: %s", err)
 				}
 			{{else -}}
 				err = service.{{$oper.Name}}WriteHTML(w)
 				if err != nil {
-					mylog.New().Warning(c, "Error writng html-response: %s", err)
+					mylog.New().Warning(c, "Error writing html-response: %s", err)
 				}
 			{{end -}}
 		{{else if IsRestOperationCSV . -}}
