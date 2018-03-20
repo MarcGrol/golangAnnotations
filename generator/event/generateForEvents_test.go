@@ -74,7 +74,7 @@ func TestIsEvent(t *testing.T) {
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
 	}
-	assert.True(t, isEvent(s))
+	assert.True(t, IsEvent(s))
 }
 
 func TestGetAggregateName(t *testing.T) {
@@ -82,5 +82,5 @@ func TestGetAggregateName(t *testing.T) {
 		DocLines: []string{
 			`//@Event( aggregate = "person")`},
 	}
-	assert.Equal(t, "person", getAggregateName(s))
+	assert.Equal(t, "person", GetAggregateName(s))
 }
