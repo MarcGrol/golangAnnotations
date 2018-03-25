@@ -209,13 +209,22 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         {{end -}}
         {{if IsRestOperationJSON . -}}
             {{if HasOutput . -}}
-				json.NewEncoder(w).Encode(result) 
+				err = json.NewEncoder(w).Encode(result)
+				if err != nil {
+					mylog.New().Warning(c, "Error writing json-response: %s", err)
+				}
 			{{end -}}
 		{{else if IsRestOperationHTML . -}}
 			{{if HasOutput . -}}
-				service.{{$oper.Name}}WriteHTML(w, result)
+				err = service.{{$oper.Name}}WriteHTML(w, result)
+				if err != nil {
+					mylog.New().Warning(c, "Error writing html-response: %s", err)
+				}
 			{{else -}}
-				service.{{$oper.Name}}WriteHTML(w)
+				err = service.{{$oper.Name}}WriteHTML(w)
+				if err != nil {
+					mylog.New().Warning(c, "Error writing html-response: %s", err)
+				}
 			{{end -}}
 		{{else if IsRestOperationCSV . -}}
         	w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
