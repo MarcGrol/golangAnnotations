@@ -6,10 +6,7 @@ const testHelpersTemplate = `// +build !appengine
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-	"github.com/Duxxie/platform/backend/lib/request"
-)
+import "golang.org/x/net/context"
 
 var (
     setCookieHook = func(r *http.Request, headers map[string]string) {}
@@ -240,8 +237,8 @@ func defaultAfterAll() {
 
 func fetchEvents(c context.Context) []string {
     found := []string{}
-    eventStore.Mocked().IterateAll(c, request.NewEmptyContext(), func(e envelope.Envelope) error {
-        found = append(found, fmt.Sprintf("%s.%s", e.AggregateName, e.EventTypeName))
+    eventStore.Mocked().IterateAll(c, request.NewEmptyContext(), func(envlp envelope.Envelope) error {
+        found = append(found, fmt.Sprintf("%s.%s", envlp.AggregateName, envlp.EventTypeName))
         return nil
     })
     return found

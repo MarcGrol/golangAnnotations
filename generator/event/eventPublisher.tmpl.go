@@ -11,15 +11,15 @@ import "golang.org/x/net/context"
 	{{if IsTransientEvent . -}}
 
 // PublishEvent{{.Name}} is used to publish event of type {{.Name}}
-func Publish{{.Name}}(c context.Context, rc request.Context, event *{{.PackageName}}.{{.Name}}) error {
-    envelope, err := event.Wrap(rc)
+func Publish{{.Name}}(c context.Context, rc request.Context, evt *{{.PackageName}}.{{.Name}}) error {
+    envlp, err := evt.Wrap(rc)
     if err != nil {
-        return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
+        return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
     }
 
-    err = publisher.PublishEnvelope(c, rc, envelope)
+    err = publisher.PublishEnvelope(c, rc, envlp)
     if err != nil {
-        return errorh.NewInternalErrorf(0, "Error publishing %s event %s: %s", envelope.EventTypeName, event.GetUID(), err)
+        return errorh.NewInternalErrorf(0, "Error publishing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
     }
 
     return nil

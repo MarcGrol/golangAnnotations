@@ -8,8 +8,6 @@ import (
     "encoding/json"
     "fmt"
     "log"
-
-    "github.com/Duxxie/platform/backend/lib/request"
 )
 
 const (
@@ -31,7 +29,7 @@ func (s *{{.Name}}) Wrap(rc request.Context) (*envelope.Envelope,error) {
         log.Printf("Error marshalling {{.Name}} payload %+v", err)
         return nil, err
     }
-    envelope := envelope.Envelope{
+    envlp := envelope.Envelope{
         IsRootEvent:{{if IsRootEvent .}}true{{else}}false{{end}},
         SequenceNumber: int64(0), // Set later by event-store
         SessionUID: rc.GetSessionUID(),
@@ -47,48 +45,48 @@ func (s *{{.Name}}) Wrap(rc request.Context) (*envelope.Envelope,error) {
 	if requestUID == "" {	
 		requestUID, _ = myuuid.NewV1({{GetAggregateName . }}AggregateName)
 	}
-	envelope.UUID = envelope.CreateRequestUID(requestUID)
+	envlp.UUID = envlp.CreateRequestUID(requestUID)
 
-    return &envelope, nil
+    return &envlp, nil
 }
 
 // Is{{.Name}} detects of envelope carries event of type {{.Name}}
-func Is{{.Name}}(envelope *envelope.Envelope) bool {
-    return envelope.EventTypeName == {{.Name}}EventName
+func Is{{.Name}}(envlp *envelope.Envelope) bool {
+    return envlp.EventTypeName == {{.Name}}EventName
 }
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
-func GetIfIs{{.Name}}(envelope *envelope.Envelope) (*{{.Name}}, bool) {
-    if Is{{.Name}}(envelope) == false {
+func GetIfIs{{.Name}}(envlp *envelope.Envelope) (*{{.Name}}, bool) {
+    if Is{{.Name}}(envlp) == false {
         return nil, false
     }
-    event,err := UnWrap{{.Name}}(envelope)
+    evt,err := UnWrap{{.Name}}(envlp)
     if err != nil {
         return nil, false
     }
-    return event, true
+    return evt, true
 }
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
-func UnWrap{{.Name}}(envelope *envelope.Envelope) (*{{.Name}},error) {
-    if Is{{.Name}}(envelope) == false {
+func UnWrap{{.Name}}(envlp *envelope.Envelope) (*{{.Name}},error) {
+    if Is{{.Name}}(envlp) == false {
         return nil, fmt.Errorf("Not a {{.Name}}")
     }
-    var event {{.Name}}
-    err := json.Unmarshal([]byte(envelope.EventData), &event)
+    var evt {{.Name}}
+    err := json.Unmarshal([]byte(envlp.EventData), &evt)
     if err != nil {
         log.Printf("Error unmarshalling {{.Name}} payload %+v", err)
         return nil, err
     }
 
-    event.Metadata = Metadata{
-        UUID:          envelope.UUID,
-		AdminUserUID:  envelope.AdminUserUID,
-        Timestamp:     envelope.Timestamp.In(mytime.DutchLocation),
-        EventTypeName: envelope.EventTypeName,
+    evt.Metadata = Metadata{
+        UUID:          envlp.UUID,
+		AdminUserUID:  envlp.AdminUserUID,
+        Timestamp:     envlp.Timestamp.In(mytime.DutchLocation),
+        EventTypeName: envlp.EventTypeName,
     }
 
-    return &event, nil
+    return &evt, nil
 }
 
     {{end -}}
