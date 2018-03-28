@@ -14,12 +14,12 @@ import "golang.org/x/net/context"
 func Publish{{.Name}}(c context.Context, rc request.Context, evt *{{.PackageName}}.{{.Name}}) error {
     envlp, err := evt.Wrap(rc)
     if err != nil {
-        return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+        return errorh.NewInternalErrorf(0, "Error wrapping %s event %s: %s", envlp.EventTypeName, evt.GetUID(), err)
     }
 
     err = publisher.PublishEnvelope(c, rc, envlp)
     if err != nil {
-        return errorh.NewInternalErrorf(0, "Error publishing %s event %s: %s", envlp.EventTypeName, event.GetUID(), err)
+        return errorh.NewInternalErrorf(0, "Error publishing %s event %s: %s", envlp.EventTypeName, evt.GetUID(), err)
     }
 
     return nil
