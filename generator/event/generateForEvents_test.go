@@ -14,7 +14,9 @@ func cleanup() {
 	os.Remove(filegen.Prefixed("./testData/ast.json"))
 	os.Remove(filegen.Prefixed("./testData/aggregates.go"))
 	os.Remove(filegen.Prefixed("./testData/wrappers.go"))
-	os.Remove(filegen.Prefixed("./store/testDataStore/testDataEventStore.go"))
+	os.Remove(filegen.Prefixed("./testData/wrappers_test.go"))
+	os.Remove(filegen.Prefixed("./store/testDataStore/testDataStore.go"))
+	os.Remove(filegen.Prefixed("./repository/storeEvents.go"))
 }
 
 func TestGenerateForEvents(t *testing.T) {
@@ -61,12 +63,7 @@ func TestGenerateForEvents(t *testing.T) {
 	_, err = os.Stat(filegen.Prefixed("./testData/wrappers.go"))
 	assert.NoError(t, err)
 
-	os.Remove(filegen.Prefixed("./testData/ast.json"))
-	os.Remove(filegen.Prefixed("./testData/aggregates.go"))
-	os.Remove(filegen.Prefixed("./testData/wrappers.go"))
-	os.Remove(filegen.Prefixed("./testData/wrappers_test.go"))
-	os.Remove(filegen.Prefixed("./repository/storeEvents.go"))
-
+	cleanup()
 }
 
 func TestIsEvent(t *testing.T) {

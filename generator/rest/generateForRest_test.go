@@ -17,6 +17,7 @@ func cleanup() {
 	os.Remove(filegen.Prefixed("./testData/httpMyServiceHelpers_test.go"))
 	os.Remove(filegen.Prefixed("./testData/httpClientForMyService.go"))
 	os.Remove(filegen.Prefixed("./testData/httpMyServiceHelpers_test.go"))
+	os.Remove(filegen.Prefixed("./testData/testDataTestLog/httpTestMyService.go"))
 }
 
 func TestGenerateForWeb(t *testing.T) {
