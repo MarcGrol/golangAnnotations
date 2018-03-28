@@ -44,11 +44,11 @@ func TestGenerateForEvents(t *testing.T) {
 	data, err := ioutil.ReadFile(filegen.Prefixed("./testData/aggregates.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "type TestAggregate interface {")
-	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, event MyStruct)")
+	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, evt MyStruct)")
 	assert.Contains(t, string(data), "func ApplyTestEvent(c context.Context, envlp envelope.Envelope, aggregateRoot TestAggregate) error {")
-	assert.Contains(t, string(data), "func ApplyTestEvents(c context.Context, envlps []envelope.Envelope, aggregateRoot TestAggregate) error {")
+	assert.Contains(t, string(data), "func ApplyTestEvents(c context.Context, envelopes []envelope.Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func UnWrapTestEvent(envlp *envelope.Envelope) (envelope.Event, error) {")
-	assert.Contains(t, string(data), "func UnWrapTestEvents(envlps []envelope.Envelope) ([]envelope.Event, error) {")
+	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []envelope.Envelope) ([]envelope.Event, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
 	data, err = ioutil.ReadFile(filegen.Prefixed("./testData/wrappers.go"))
