@@ -21,7 +21,7 @@ import (
        {{range $idxOper, $oper := .Operations -}}
 		   {{if IsEventOperation $oper -}}
 
-func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, evt {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
 	{{if IsEventNotTransient $oper -}}
 	{
 		err := store.StoreEvent(c, rc, &evt)
