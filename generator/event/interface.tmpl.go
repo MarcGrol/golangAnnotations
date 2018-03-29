@@ -25,7 +25,7 @@ type EventHandlerInterface interface {
 
 {{range .Structs -}}
     {{if IsEvent .}}
-func (es *{{GetAggregateNameLowerCase .}}EventService)On{{.Name}}( _ context.Context, rc request.Context, _ {{$packageName}}.{{.Name}}) error {
+func (es *{{GetAggregateNameLowerCase .}}EventService)On{{.Name}}( _ context.Context, _ request.Context, _ {{$packageName}}.{{.Name}}) error {
 	return nil
 }
     {{end -}}
