@@ -58,7 +58,7 @@ func printUsage() {
 }
 
 func printVersion() {
-	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", VERSION)
+	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", version)
 	os.Exit(1)
 }
 
