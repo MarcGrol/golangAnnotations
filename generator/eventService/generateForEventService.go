@@ -93,6 +93,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsEventServiceNoTest":            IsEventServiceNoTest,
 	"IsEventOperation":                IsEventOperation,
 	"GetInputArgType":                 GetInputArgType,
+	"GetFullEventNames":               GetFullEventNames,
 	"GetInputArgPackage":              GetInputArgPackage,
 	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           GetEventServiceTopics,
@@ -182,6 +183,21 @@ operations:
 		}
 	}
 	return topics
+}
+
+func GetFullEventNames(s model.Struct) []string {
+	eventMap := map[string]bool{}
+	for _, o := range s.Operations {
+		if IsEventOperation(*o) {
+			eventMap[fmt.Sprintf("%sEvents.%sEventName", GetEventOperationTopic(*o), GetInputArgType(*o))] = true
+		}
+	}
+
+	eventSlice := []string{}
+	for e, _ := range eventMap {
+		eventSlice = append(eventSlice, e)
+	}
+	return eventSlice
 }
 
 func IsEventOperation(o model.Operation) bool {

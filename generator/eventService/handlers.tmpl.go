@@ -30,10 +30,7 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	switch envlp.EventTypeName {
-		case {{range $idxOper, $oper := .Operations -}}
-			{{if IsEventOperation $oper -}}
-				{{if $idxOper}},{{end -}}{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName{{end -}}
-			{{end -}}:
+		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}},{{end -}}{{$evtName}}{{end -}}:
 
 			var delay time.Duration = 0
 			{{if IsAnyEventOperationDelayed . -}}

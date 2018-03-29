@@ -15,15 +15,17 @@ import (
 type EventHandlerInterface interface {
 {{range .Structs -}}
     {{if IsEvent . -}}
-        on{{.Name}}( c context.Context, rc request.Context, event {{.Name}})
+        On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
     {{end -}}
 {{end -}}
 }
 
 /*
+// Copy these empty implementations to your package to be able to easily detect missing methods
+
 {{range .Structs -}}
     {{if IsEvent .}}
-func (es *{{GetAggregateNameLowerCase .}}EventService)on{{.Name}}( c context.Context, rc request.Context, event {{$packageName}}.{{.Name}}) error {
+func (es *{{GetAggregateNameLowerCase .}}EventService)On{{.Name}}( _ context.Context, rc request.Context, _ {{$packageName}}.{{.Name}}) error {
 	return nil
 }
     {{end -}}
