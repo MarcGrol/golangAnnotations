@@ -20,12 +20,10 @@ import (
 )
 
 const (
-	version = "0.8"
+	version = "0.7"
 )
 
-var (
-	inputDir *string
-)
+var inputDir *string
 
 func main() {
 	processArgs()
@@ -60,7 +58,7 @@ func printUsage() {
 }
 
 func printVersion() {
-	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", version)
+	fmt.Fprintf(os.Stderr, "\nVersion: %s\n", VERSION)
 	os.Exit(1)
 }
 

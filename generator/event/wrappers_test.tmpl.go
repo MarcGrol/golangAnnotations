@@ -23,14 +23,14 @@ func Test{{.Name}}Wrapper(t *testing.T) {
     mytime.SetMockNow()
 	myuuid.SetMockV1({{GetAggregateName . }}AggregateName, "1234321")
 
-    event := {{.Name}}{
+    evt := {{.Name}}{
         {{range .Fields -}}
 			{{if HasValueForField . -}}
 				{{.Name}}: {{ValueForField .}},
 			{{end -}}
 		{{end -}}
     }
-    wrapped, err := event.Wrap(request.New(request.SessionUID("test_session")))
+    wrapped, err := evt.Wrap(request.New(request.SessionUID("test_session")))
     assert.NoError(t, err)
     assert.True(t, Is{{.Name}}(wrapped))
     assert.Equal(t, {{GetAggregateName . }}AggregateName, wrapped.AggregateName)
@@ -43,7 +43,7 @@ func Test{{.Name}}Wrapper(t *testing.T) {
     again, ok := GetIfIs{{.Name}}(wrapped)
     assert.True(t, ok)
     assert.NotNil(t,again)
-    reflect.DeepEqual(event, *again)
+    reflect.DeepEqual(evt, *again)
 }
         {{end -}}
 {{end -}}

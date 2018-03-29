@@ -1,13 +1,14 @@
 package eventService
 
-const testHandlersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
+const testHandlersTemplate = `// +build !appengine
+
+// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
 import (
     "golang.org/x/net/context"
     "github.com/gorilla/mux"
-	"github.com/Duxxie/platform/backend/lib/request"
 )
 
 {{range $idxService, $service := .Services -}}
@@ -20,17 +21,17 @@ import (
        {{range $idxOper, $oper := .Operations -}}
 		   {{if IsEventOperation $oper -}}
 
-func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, event {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
+func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, evt {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}} ) []envelope.Envelope{
 	{{if IsEventNotTransient $oper -}}
 	{
-		err := store.StoreEvent(c, rc, &event)
+		err := store.StoreEvent(c, rc, &evt)
 		if err != nil {
 			t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 		}
 	}
 	{{end -}}
 
-	envlp, err := event.Wrap(rc)
+	envlp, err := evt.Wrap(rc)
 	if err != nil {
 		t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 	}

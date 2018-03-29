@@ -34,42 +34,42 @@ type {{$aggr}}Aggregate interface {
 	idempotency.Checker
 	{{range $aggregName, $event := $events.Events -}}
     	{{if $event.IsPersistent -}}
-			Apply{{$event.Name}}(c context.Context, event {{$event.Name}})
+			Apply{{$event.Name}}(c context.Context, evt {{$event.Name}})
 		{{end -}}
 	{{end -}}
 }
 
 {{if $events.IsAnyPersistent -}}
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envelope envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	if aggregateRoot.IsEventProcessed(envelope.UUID){
-		 mylog.New().Warning(c, "Event %+v already processed", envelope)
+func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+	if aggregateRoot.IsEventProcessed(envlp.UUID){
+		 mylog.New().Warning(c, "Event %+v already processed", envlp)
 		 return nil
 	}
 
-	switch envelope.EventTypeName {
+	switch envlp.EventTypeName {
 		{{range $aggregName, $event := $events.Events -}}{{if $event.IsPersistent -}}
 			case {{$event.Name}}EventName:
-			event, err :=    UnWrap{{$event.Name}}(&envelope)
+			evt, err :=    UnWrap{{$event.Name}}(&envlp)
 			if err != nil {
 					return err
 			}
-			aggregateRoot.Apply{{$event.Name}}(c, *event)
+			aggregateRoot.Apply{{$event.Name}}(c, *evt)
 			break
 		{{end -}}{{end -}}
 		default:
-		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
+		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 
-	aggregateRoot.MarkEventProcessed(envelope.UUID)
+	aggregateRoot.MarkEventProcessed(envlp.UUID)
 	return nil
 }
 
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
 func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
-	for _, envelope := range envelopes {
-		err = Apply{{$aggr}}Event(c, envelope, aggregateRoot)
+	for _, envlp := range envelopes {
+		err = Apply{{$aggr}}Event(c, envlp, aggregateRoot)
 		if err != nil {
 				break
 		}
@@ -79,30 +79,30 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggr
 {{end -}}
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
-func UnWrap{{$aggr}}Event(envelope *envelope.Envelope) (envelope.Event, error) {
-	switch envelope.EventTypeName {
+func UnWrap{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
+	switch envlp.EventTypeName {
 		{{range $aggregName, $event := $events.Events -}}
 			case {{$event.Name}}EventName:
-				event, err := UnWrap{{$event.Name}}(envelope)
+				evt, err := UnWrap{{$event.Name}}(envlp)
 				if err != nil {
 					return nil, err
 				}
-				return event, nil
+				return evt, nil
 		{{end -}}
 		default:
-		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envelope.EventTypeName)
+		return nil, fmt.Errorf("UnWrap{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 }
 
 // UnWrap{{$aggr}}Events extracts the events from multiple envelopes
 func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, error) {
 	events := make([]envelope.Event, 0, len(envelopes))
-	for _, envelope := range envelopes {
-		event, err := UnWrap{{$aggr}}Event(&envelope)
+	for _, envlp := range envelopes {
+		evt, err := UnWrap{{$aggr}}Event(&envlp)
 		if err != nil {
 				return nil, err
 		}
-		events = append(events, event)
+		events = append(events, evt)
 	}
 	return events, nil
 }

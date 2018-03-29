@@ -4,11 +4,7 @@ const repositoryTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}
 
-import (
-    "golang.org/x/net/context"
-
-    "github.com/Duxxie/platform/backend/lib/envelope"
-)
+import "golang.org/x/net/context"
 
 {{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID
