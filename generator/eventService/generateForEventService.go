@@ -3,6 +3,7 @@ package eventService
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"text/template"
 	"time"
@@ -197,6 +198,7 @@ func GetFullEventNames(s model.Struct) []string {
 	for e, _ := range eventMap {
 		eventSlice = append(eventSlice, e)
 	}
+	sort.Strings(eventSlice)
 	return eventSlice
 }
 
