@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"text/template"
+	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
@@ -79,6 +80,11 @@ func generate(inputDir string, structs []model.Struct) error {
 	}
 
 	err = generateWrappersTest(targetDir, packageName, structs)
+	if err != nil {
+		return err
+	}
+
+	err = generateHandlerInterface(targetDir, packageName, structs)
 	if err != nil {
 		return err
 	}
@@ -215,14 +221,34 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 	return nil
 }
 
+func generateHandlerInterface(targetDir, packageName string, structs []model.Struct) error {
+
+	if !containsAny(structs, IsEvent) {
+		return nil
+	}
+
+	data := structures{
+		PackageName: packageName,
+		Structs:     structs,
+	}
+	target := filegen.Prefixed(fmt.Sprintf("%s/interface.go", targetDir))
+	err := generationUtil.GenerateFileFromTemplate(data, packageName, "interface", interfaceTemplate, customTemplateFuncs, target)
+	if err != nil {
+		log.Fatalf("Error generating interface for event-handlers (%s)", err)
+		return err
+	}
+	return nil
+}
+
 var customTemplateFuncs = template.FuncMap{
-	"IsEvent":           IsEvent,
-	"IsRootEvent":       IsRootEvent,
-	"IsPersistentEvent": IsPersistentEvent,
-	"IsTransientEvent":  IsTransientEvent,
-	"GetAggregateName":  GetAggregateName,
-	"HasValueForField":  hasValueForField,
-	"ValueForField":     valueForField,
+	"IsEvent":                   IsEvent,
+	"IsRootEvent":               IsRootEvent,
+	"IsPersistentEvent":         IsPersistentEvent,
+	"IsTransientEvent":          IsTransientEvent,
+	"GetAggregateName":          GetAggregateName,
+	"GetAggregateNameLowerCase": GetAggregateNameLowerCase,
+	"HasValueForField":          hasValueForField,
+	"ValueForField":             valueForField,
 }
 
 func IsEvent(s model.Struct) bool {
@@ -239,6 +265,9 @@ func GetAggregateName(s model.Struct) string {
 	return ""
 }
 
+func GetAggregateNameLowerCase(s model.Struct) string {
+	return toFirstLower(GetAggregateName(s))
+}
 func IsRootEvent(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
@@ -290,4 +319,10 @@ func valueForField(field model.Field) string {
 		return "true"
 	}
 	return ""
+}
+
+func toFirstLower(in string) string {
+	a := []rune(in)
+	a[0] = unicode.ToLower(a[0])
+	return string(a)
 }
