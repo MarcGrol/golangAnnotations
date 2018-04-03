@@ -12,7 +12,7 @@ import (
 
 {{$packageName := .PackageName}}
 
-type EventHandlerInterface interface {
+type Handler interface {
 {{range .Structs -}}
     {{if IsEvent . -}}
         On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
@@ -21,7 +21,7 @@ type EventHandlerInterface interface {
 }
 
 /*
-// Copy these empty implementations to your package to be able to easily detect missing methods
+// These empty implementations can help to easily detect missing methods
 
 {{range .Structs -}}
     {{if IsEvent .}}

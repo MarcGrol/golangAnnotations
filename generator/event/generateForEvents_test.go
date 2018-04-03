@@ -13,6 +13,7 @@ import (
 func cleanup() {
 	os.Remove(filegen.Prefixed("./testData/ast.json"))
 	os.Remove(filegen.Prefixed("./testData/aggregates.go"))
+	os.Remove(filegen.Prefixed("./testData/interface.go"))
 	os.Remove(filegen.Prefixed("./testData/wrappers.go"))
 	os.Remove(filegen.Prefixed("./testData/wrappers_test.go"))
 	os.Remove(filegen.Prefixed("./store/testDataStore/testDataStore.go"))
@@ -62,6 +63,10 @@ func TestGenerateForEvents(t *testing.T) {
 
 	_, err = os.Stat(filegen.Prefixed("./testData/wrappers.go"))
 	assert.NoError(t, err)
+
+	data, err = ioutil.ReadFile(filegen.Prefixed("./testData/interface.go"))
+	assert.NoError(t, err)
+	assert.Contains(t, string(data), "type Handler interface {")
 
 	cleanup()
 }

@@ -195,7 +195,7 @@ func GetFullEventNames(s model.Struct) []string {
 	}
 
 	eventSlice := []string{}
-	for e, _ := range eventMap {
+	for e := range eventMap {
 		eventSlice = append(eventSlice, e)
 	}
 	sort.Strings(eventSlice)
