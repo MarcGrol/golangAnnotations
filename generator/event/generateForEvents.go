@@ -241,6 +241,7 @@ func generateHandlerInterface(targetDir, packageName string, structs []model.Str
 }
 
 var customTemplateFuncs = template.FuncMap{
+	"GetEvents":                 GetEvents,
 	"IsEvent":                   IsEvent,
 	"IsRootEvent":               IsRootEvent,
 	"IsPersistentEvent":         IsPersistentEvent,
@@ -249,6 +250,16 @@ var customTemplateFuncs = template.FuncMap{
 	"GetAggregateNameLowerCase": GetAggregateNameLowerCase,
 	"HasValueForField":          hasValueForField,
 	"ValueForField":             valueForField,
+}
+
+func GetEvents(thecontext structures) []model.Struct {
+	eventsOnly := []model.Struct{}
+	for _, s := range thecontext.Structs {
+		if IsEvent(s) {
+			eventsOnly = append(eventsOnly, s)
+		}
+	}
+	return eventsOnly
 }
 
 func IsEvent(s model.Struct) bool {

@@ -13,22 +13,24 @@ import (
 {{$packageName := .PackageName}}
 
 type Handler interface {
-{{range .Structs -}}
-    {{if IsEvent . -}}
-        On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
-    {{end -}}
+{{range GetEvents . -}}
+    On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
 {{end -}}
 }
 
 /*
 // These empty implementations can help to easily detect missing methods
 
-{{range .Structs -}}
-    {{if IsEvent .}}
-func (es *{{GetAggregateNameLowerCase .}}EventService)On{{.Name}}( _ context.Context, _ request.Context, _ {{$packageName}}.{{.Name}}) error {
-	return nil
+{{range $idx, $event := GetEvents . -}}
+{{if eq $idx 0 }} 
+func forceImplements{{GetAggregateName $event}}EventHandler( specific *{{GetAggregateNameLowerCase $event}}EventService) {{$packageName}}.Handler {
+	return specific
 }
-    {{end -}}
+{{end}}
+
+func (es *{{GetAggregateNameLowerCase $event}}EventService)On{{$event.Name}}( c context.Context, rc request.Context, event {{$packageName}}.{{$event.Name}}) error {
+	return es.on{{$event.Name}}(c, rc, event)
+}
 {{end -}}
 */
 
