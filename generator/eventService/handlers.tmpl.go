@@ -86,13 +86,21 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 
-		retryCount, _ := strconv.Atoi(r.Header.Get("X-AppEngine-TaskRetryCount"))
+		retryCount, err := strconv.Atoi(r.Header.Get("X-AppEngine-TaskRetryCount"))
+		if err != nil {
+			mylog.New().Error(c, "Error parsing 'X-AppEngine-TaskRetryCount': %s", err)
+		}
+
+		if retryCount > 0 && !environ.GetEnvironment(c).RetryFailedEvents(c) {
+			mylog.New().Info(c, "Stop retry %d because of env-setting", retryCount)
+			return
+		}
 
 		rc := request.NewMinimalContext(c,r)
 
 		// read and parse request body
 		var envlp envelope.Envelope
-		err := json.NewDecoder(r.Body).Decode(&envlp)
+		err = json.NewDecoder(r.Body).Decode(&envlp)
 		if err != nil {
 			errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body (retry-count:%d): %s", retryCount, err), w, r)
 			return
