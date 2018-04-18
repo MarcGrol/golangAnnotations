@@ -92,7 +92,7 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 		}
 
 		if retryCount > 0 && !environ.GetEnvironment(c).RetryFailedEvents(c) {
-			mylog.New().Info(c, "Stop retry %d because of env-setting", retryCount)
+			mylog.New().Info(c, "Abort retry scheme after %d rertries because of env-setting", retryCount)
 			return
 		}
 
