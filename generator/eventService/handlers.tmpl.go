@@ -88,7 +88,7 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 
 		retryCount, err := strconv.Atoi(r.Header.Get("X-AppEngine-TaskRetryCount"))
 		if err != nil {
-			mylog.New().Error(c, "Error parsing 'X-AppEngine-TaskRetryCount': %s", err)
+			mylog.New().Warning(c, "Error parsing 'X-AppEngine-TaskRetryCount': %s", err)
 		}
 
 		if retryCount > 0 && !environ.GetEnvironment(c).RetryFailedEvents(c) {
