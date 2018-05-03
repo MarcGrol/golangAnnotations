@@ -160,6 +160,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsBoolArg":                             IsBoolArg,
 	"IsStringArg":                           IsStringArg,
 	"IsStringSliceArg":                      IsStringSliceArg,
+	"IsDateArg":                             IsDateArg,
 	"RequiresParamValidation":               RequiresParamValidation,
 	"IsInputArgMandatory":                   IsInputArgMandatory,
 	"HasUpload":                             HasUpload,
@@ -732,7 +733,7 @@ func IsMetaCallbackArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return IsBoolArg(f) || IsNumberArg(f) || IsStringArg(f) || IsStringSliceArg(f)
+	return IsBoolArg(f) || IsNumberArg(f) || IsStringArg(f) || IsStringSliceArg(f) || IsDateArg(f)
 }
 
 func IsBoolArg(f model.Field) bool {
@@ -749,6 +750,10 @@ func IsStringArg(f model.Field) bool {
 
 func IsStringSliceArg(f model.Field) bool {
 	return f.TypeName == "string" && f.IsSlice
+}
+
+func IsDateArg(f model.Field) bool {
+	return f.TypeName == "mydate.MyDate" && !f.IsSlice
 }
 
 func ToFirstUpper(in string) string {

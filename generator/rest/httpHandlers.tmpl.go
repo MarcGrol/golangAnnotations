@@ -114,6 +114,15 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 					{{else -}}
 						{{.Name}}, _ := httpparser.ExtractBool(r, "{{.Name}}", false)
 					{{end -}}
+				{{else if IsDateArg . -}}
+					{{if IsInputArgMandatory $oper . -}}
+						{{.Name}}, fieldError := httpparser.ExtractDate(r, "{{.Name}}", true)
+						if err != nil {
+							validationErrors = append(validationErrors, *fieldError)
+						}
+					{{else -}}
+						{{.Name}}, _ := httpparser.ExtractDate(r, "{{.Name}}", false)
+					{{end -}}
 				{{else if IsStringArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractString(r, "{{.Name}}", true)
