@@ -18,7 +18,7 @@ func DefaultFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context,
 }
 
 {{if HasMethodFilterByEvent . -}}
-func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, {{LowerModelName .}}UID string, metadata eventMetaData.MetaData) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, {{LowerModelName .}}UID string, metadata eventMetaData.Metadata) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
     return {{LowerModelName .}}, err
 }
