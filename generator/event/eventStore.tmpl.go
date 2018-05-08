@@ -30,7 +30,7 @@ func StoreEvent{{.Name}}(c context.Context, rc request.Context, evt *{{.PackageN
         return errorh.NewInternalErrorf(0, "Error storing %s event %s: %s", envlp.EventTypeName, evt.GetUID(), err)
     }
 
-    evt.Metadata = {{.PackageName}}.Metadata{
+    evt.Metadata = eventMetaData.Metadata{
         UUID:          envlp.UUID,
         Timestamp:     envlp.Timestamp.In(mytime.DutchLocation),
         EventTypeName: envlp.EventTypeName,

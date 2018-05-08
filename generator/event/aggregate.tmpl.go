@@ -32,6 +32,7 @@ var AggregateEvents = map[string][]string{
 // {{$aggr}}Aggregate provides an interface that forces all events related to an aggregate are handled
 type {{$aggr}}Aggregate interface {
 	idempotency.Checker
+	eventMetaData.AcceptMetaData
 	{{range $aggregName, $event := $events.Events -}}
     	{{if $event.IsPersistent -}}
 			Apply{{$event.Name}}(c context.Context, evt {{$event.Name}})
@@ -62,6 +63,16 @@ func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRo
 	}
 
 	aggregateRoot.MarkEventProcessed(envlp.UUID)
+	aggregateRoot.AcceptMetaData(eventMetaData.Metadata{
+		UUID:          envlp.UUID,
+		SessionUID:    envlp.SessionUID,
+		AdminUserUID:  envlp.AdminUserUID,
+		Timestamp:     envlp.Timestamp,
+		AggregateName: envlp.AggregateName,
+		AggregateUID:  envlp.AggregateUID,
+		EventTypeName: envlp.EventTypeName,
+	})
+
 	return nil
 }
 

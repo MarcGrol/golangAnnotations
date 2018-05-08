@@ -79,7 +79,7 @@ func UnWrap{{.Name}}(envlp *envelope.Envelope) (*{{.Name}},error) {
         return nil, err
     }
 
-    evt.Metadata = Metadata{
+    evt.Metadata = eventMetaData.Metadata{
         UUID:          envlp.UUID,
 		AdminUserUID:  envlp.AdminUserUID,
         Timestamp:     envlp.Timestamp.In(mytime.DutchLocation),

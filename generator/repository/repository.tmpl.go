@@ -4,7 +4,10 @@ const repositoryTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}
 
-import "golang.org/x/net/context"
+import (
+    "golang.org/x/net/context"
+	"github.com/Duxxie/platform/backend/lib/eventMetaData"
+)
 
 {{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID
@@ -15,7 +18,7 @@ func DefaultFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context,
 }
 
 {{if HasMethodFilterByEvent . -}}
-func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, {{LowerModelName .}}UID string, metadata {{GetPackageName .}}.Metadata) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, {{LowerModelName .}}UID string, metadata eventMetaData.MetaData) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
     {{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
     return {{LowerModelName .}}, err
 }

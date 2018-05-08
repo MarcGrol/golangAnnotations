@@ -174,7 +174,7 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	target := filegen.Prefixed(fmt.Sprintf("%s/../store/%sStore/%sStore.go", targetDir, packageName, packageName))
+	target := filegen.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", targetDir, packageName, packageName))
 	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-store", eventStoreTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating event-store for structures (%s)", err)
@@ -193,7 +193,7 @@ func generateEventPublisher(targetDir, packageName string, structs []model.Struc
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	target := filegen.Prefixed(fmt.Sprintf("%s/../publisher/%sPublisher/%sPublisher.go", targetDir, packageName, packageName))
+	target := filegen.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", targetDir, packageName, packageName))
 	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-publisher", eventPublisherTemplate, customTemplateFuncs, target)
 	if err != nil {
 		log.Fatalf("Error generating event-publisher for structures (%s)", err)
