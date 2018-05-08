@@ -14,7 +14,11 @@ import (
 
 type Handler interface {
 {{range GetEvents . -}}
-    On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
+	{{if IsPersistentEvent . -}}
+        On{{.Name}}( c context.Context, rc request.Context, event {{.Name}}) error
+	{{else -}}
+        On{{.Name}}Transient( c context.Context, rc request.Context, event {{.Name}}) error
+	{{end -}}
 {{end -}}
 }
 
@@ -29,7 +33,7 @@ func forceImplements{{GetAggregateName $event}}EventHandler( specific *{{GetAggr
 {{end}}
 
 func (es *{{GetAggregateNameLowerCase $event}}EventService)On{{$event.Name}}( c context.Context, rc request.Context, event {{$packageName}}.{{$event.Name}}) error {
-	return es.on{{$event.Name}}(c, rc, event)
+	return es.on{{$event.Name}}{{if IsTransientEvent . -}}Transient{{end -}}(c, rc, event)
 }
 {{end -}}
 */
