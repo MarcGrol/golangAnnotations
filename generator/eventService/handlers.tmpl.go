@@ -85,10 +85,11 @@ func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqu
 func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
+		rc := request.NewMinimalContext(c,r)
 
 		retryCount, err := strconv.Atoi(r.Header.Get("X-AppEngine-TaskRetryCount"))
 		if err != nil {
-			mylog.New().Warning(c, "Error parsing 'X-AppEngine-TaskRetryCount': %s", err)
+			mylog.New().Error(c, rc, request"Error parsing 'X-AppEngine-TaskRetryCount': %s", err)
 		}
 
 		if retryCount > 0 && !environ.GetEnvironment(c).RetryFailedEvents(c) {
@@ -96,7 +97,6 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 			return
 		}
 
-		rc := request.NewMinimalContext(c,r)
 
 		// read and parse request body
 		var envlp envelope.Envelope

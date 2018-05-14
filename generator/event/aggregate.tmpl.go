@@ -44,7 +44,7 @@ type {{$aggr}}Aggregate interface {
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	if aggregateRoot.IsEventProcessed(envlp.UUID){
-		 mylog.New().Warning(c, "Event %+v already processed", envlp)
+		 mylog.New().Error(c, request.NewEmptyContext(), "Event %+v already processed", envlp)
 		 return nil
 	}
 
