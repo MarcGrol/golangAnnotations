@@ -8,7 +8,7 @@ const (
 	ParamSelf           = "self"
 	ParamTopic          = "topic"
 	ParamProcess        = "process"
-	ParamDelay          = "delay"
+	ParamDelayed        = "delayed"
 	ParamNoTest         = "notest"
 	ParamProducesEvents = "producesevents"
 )
@@ -22,7 +22,7 @@ func Get() []annotation.AnnotationDescriptor {
 		},
 		{
 			Name:       TypeEventOperation,
-			ParamNames: []string{ParamTopic, ParamProcess, ParamDelay},
+			ParamNames: []string{ParamTopic, ParamProcess, ParamDelayed},
 			Validator:  validateEventOperationAnnotation,
 		}}
 }

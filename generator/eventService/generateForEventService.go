@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	"time"
 	"unicode"
 
 	"github.com/MarcGrol/golangAnnotations/annotation"
@@ -99,7 +98,6 @@ var customTemplateFuncs = template.FuncMap{
 	"GetEventServiceSelfName":         GetEventServiceSelfName,
 	"GetEventServiceTopics":           GetEventServiceTopics,
 	"GetEventOperationTopic":          GetEventOperationTopic,
-	"GetEventOperationDelay":          GetEventOperationDelay,
 	"IsEventOperationDelayed":         IsEventOperationDelayed,
 	"IsAnyEventOperationDelayed":      IsAnyEventOperationDelayed,
 	"GetEventOperationQueueGroups":    GetEventOperationQueueGroups,
@@ -255,10 +253,6 @@ func GetEventOperationProcess(o model.Operation) string {
 	return "Default"
 }
 
-func IsEventOperationDelayed(o model.Operation) bool {
-	return GetEventOperationDelay(o) > 0
-}
-
 func IsAnyEventOperationDelayed(s model.Struct) bool {
 	for _, oper := range s.Operations {
 		if IsEventOperationDelayed(*oper) {
@@ -268,16 +262,12 @@ func IsAnyEventOperationDelayed(s model.Struct) bool {
 	return false
 }
 
-func GetEventOperationDelay(o model.Operation) float64 {
+func IsEventOperationDelayed(o model.Operation) bool {
 	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
-		delay := ann.Attributes[eventServiceAnnotation.ParamDelay]
-		duration, err := time.ParseDuration(delay)
-		if err == nil {
-			return duration.Seconds()
-		}
+		return ann.Attributes[eventServiceAnnotation.ParamDelayed] == "true"
 	}
-	return 0
+	return false
 }
 
 func GetInputArgType(o model.Operation) string {
