@@ -53,7 +53,7 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 			switch envlp.EventTypeName {
 			{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
 			case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
-				delay, eta = get{{GetInputArgType $oper}}DelayOrETA()
+				delay, eta = get{{GetInputArgType $oper}}DelayOrETA(envlp)
 			{{end -}}{{end -}}
 			}
 			task.Delay = delay
