@@ -32,16 +32,6 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}},{{end -}}{{$evtName}}{{end -}}:
 
-			var delay time.Duration = 0
-			{{if IsAnyEventOperationDelayed . -}}
-			switch envlp.EventTypeName {
-			{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
-			case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
-				delay = {{GetEventOperationDelay $oper}} * time.Second
-			{{end -}}{{end -}}
-			}	
-			{{end}}
-
 			taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
 
 			asJson, err := json.Marshal(envlp)
@@ -51,12 +41,26 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 				return err
 			}
 
-			err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), queue.Task{
+			task := queue.Task{
 				Method:  "POST",
 				URL:     taskUrl,
 				Payload: asJson,
-				Delay:   delay,
-			})
+			}
+
+			{{if IsAnyEventOperationDelayed . -}}
+			var delay time.Duration
+			var eta time.Time
+			switch envlp.EventTypeName {
+			{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
+			case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
+				delay, eta := get{{GetInputArgType $oper}}DelayOrETA()
+			{{end -}}{{end -}}
+			}
+			task.Delay = delay
+			task.ETA = eta
+			{{end -}}
+
+			err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), task)
 			if err != nil {
 				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
 				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
