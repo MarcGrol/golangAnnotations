@@ -110,14 +110,12 @@ func GetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, op
 func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, optOffset time.Time) ([]{{ModelPackageName .}}.{{UpperModelName .}}, map[string][]envelope.Envelope, error) {
             {{LowerModelName .}}Map := map[string][]envelope.Envelope{}
     err := eventStoreInstance.IterateWithOffset(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, optOffset, func(envlp envelope.Envelope) error {
-        if envlp.IsRootEvent {
-            {{LowerModelName .}}Map[envlp.AggregateUID] = []envelope.Envelope{envlp}
-        } else {
-            if envelopes, ok := {{LowerModelName .}}Map[envlp.AggregateUID]; ok {
-                {{LowerModelName .}}Map[envlp.AggregateUID] = append(envelopes, envlp)
-            }
-        }
-        return nil
+		envlps, exists := {{LowerModelName .}}Map[envlp.AggregateUID]
+		if !exists {
+			envlps = []envelope.Envelope{}
+		}
+		{{LowerModelName .}}Map[envlp.AggregateUID] = append(envlps, envlp)
+		return nil
     })
     if err != nil {
         return nil, nil, err
@@ -125,6 +123,11 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, 
 
     {{LowerModelName .}}s := make([]{{ModelPackageName .}}.{{UpperModelName .}}, 0, len({{LowerModelName .}}Map))
     for _, {{LowerAggregateName .}}Envelopes := range {{LowerModelName .}}Map {
+		// Sort events of aggregate on order of arrival (because appengine returns undeterministic order)
+		sort.Slice({{LowerModelName .}}Envelopes, func(i, j int) bool {
+			return {{LowerModelName .}}Envelopes[i].Timestamp.Before({{LowerModelName .}}Envelopes[j].Timestamp)
+		})
+
         {{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
         {{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, {{LowerAggregateName .}}Envelopes, {{LowerModelName .}})
         {{LowerModelName .}}s = append({{LowerModelName .}}s, *{{LowerModelName .}})
