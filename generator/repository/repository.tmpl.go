@@ -124,8 +124,8 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, 
     {{LowerModelName .}}s := make([]{{ModelPackageName .}}.{{UpperModelName .}}, 0, len({{LowerModelName .}}Map))
     for _, {{LowerAggregateName .}}Envelopes := range {{LowerModelName .}}Map {
 		// Sort events of aggregate on order of arrival (because appengine returns undeterministic order)
-		sort.Slice({{LowerModelName .}}Envelopes, func(i, j int) bool {
-			return {{LowerModelName .}}Envelopes[i].Timestamp.Before({{LowerModelName .}}Envelopes[j].Timestamp)
+		sort.Slice({{LowerAggregateName .}}Envelopes, func(i, j int) bool {
+			return {{LowerAggregateName .}}Envelopes[i].Timestamp.Before({{LowerAggregateName .}}Envelopes[j].Timestamp)
 		})
 
         {{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
