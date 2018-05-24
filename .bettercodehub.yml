@@ -3,6 +3,7 @@ languages:
 - go
 
 exclude:
+- /main.go
 - /examples/myrest/.*
 - /examples/store/.*
 - /examples/structExample/.*
