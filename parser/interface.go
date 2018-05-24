@@ -1,4 +1,4 @@
-package parserUtil
+package parser
 
 import "github.com/MarcGrol/golangAnnotations/model"
 

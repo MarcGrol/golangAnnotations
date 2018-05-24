@@ -8,14 +8,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
-
-type Generator interface {
-	GetAnnotations() []annotation.AnnotationDescriptor
-	Generate(inputDir string, parsedSources model.ParsedSources) error
-}
 
 func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	if len(structs) == 0 {

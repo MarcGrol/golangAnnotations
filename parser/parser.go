@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
-	"github.com/MarcGrol/golangAnnotations/parser/parserUtil"
 )
 
 var (
@@ -23,7 +22,7 @@ var (
 type myParser struct {
 }
 
-func New() parserUtil.Parser {
+func New() Parser {
 	return &myParser{}
 }
 

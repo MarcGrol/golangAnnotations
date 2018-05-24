@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/Duxxie/platform/backend/lib/filegen"
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
-	"github.com/MarcGrol/golangAnnotations/generator/filegen"
-	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 type Generator struct {
 }
 
-func NewGenerator() generationUtil.Generator {
+func NewGenerator() generator.Generator {
 	return &Generator{}
 }
 

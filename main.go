@@ -10,7 +10,6 @@ import (
 	"github.com/MarcGrol/golangAnnotations/generator/ast"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
-	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/repository"
 	"github.com/MarcGrol/golangAnnotations/generator/rest"
@@ -20,6 +19,8 @@ import (
 
 const (
 	version = "0.7"
+
+	excludeMatchPattern = "^" + generator.GenfilePrefix + ".*.go$"
 )
 
 var inputDir *string
@@ -27,7 +28,7 @@ var inputDir *string
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", excludeMatchPattern())
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", excludeMatchPattern)
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
@@ -36,6 +37,23 @@ func main() {
 	runAllGenerators(*inputDir, parsedSources)
 
 	os.Exit(0)
+}
+
+func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
+	for name, g := range map[string]generator.Generator{
+		"ast":           ast.NewGenerator(),
+		"event":         event.NewGenerator(),
+		"event-service": eventService.NewGenerator(),
+		"json-helpers":  jsonHelpers.NewGenerator(),
+		"rest":          rest.NewGenerator(),
+		"repository":    repository.NewGenerator(),
+	} {
+		err := g.Generate(inputDir, parsedSources)
+		if err != nil {
+			return fmt.Errorf("Error generating module %s: %s", name, err)
+		}
+	}
+	return nil
 }
 
 func printUsage() {
@@ -67,25 +85,4 @@ func processArgs() {
 	if inputDir == nil || *inputDir == "" {
 		printUsage()
 	}
-}
-
-func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
-	for name, g := range map[string]generationUtil.Generator{
-		"ast":           ast.NewGenerator(),
-		"event":         event.NewGenerator(),
-		"event-service": eventService.NewGenerator(),
-		"json-helpers":  jsonHelpers.NewGenerator(),
-		"rest":          rest.NewGenerator(),
-		"repository":    repository.NewGenerator(),
-	} {
-		err := g.Generate(inputDir, parsedSources)
-		if err != nil {
-			return fmt.Errorf("Error generating module %s: %s", name, err)
-		}
-	}
-	return nil
-}
-
-func excludeMatchPattern() string {
-	return "^" + generator.GenfilePrefix + ".*.go$"
 }

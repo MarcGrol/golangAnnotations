@@ -1,4 +1,4 @@
-package filegen
+package generationUtil
 
 import (
 	"path"
