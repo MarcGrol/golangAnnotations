@@ -69,7 +69,7 @@ coverage:
 
 clean:
 	find . -name 'gen_*.go' -exec rm -rfv {} +
-	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/
+	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/ ./generator/event/testDataStore/
 	$(GO) clean ./...
 
 install: clean

@@ -7,8 +7,8 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/MarcGrol/golangAnnotations/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers/jsonAnnotation"
 	"github.com/MarcGrol/golangAnnotations/model"

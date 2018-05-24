@@ -1,17 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/MarcGrol/golangAnnotations/filegen"
-	"github.com/MarcGrol/golangAnnotations/filtering"
+	"github.com/MarcGrol/golangAnnotations/generator/ast"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
+	"github.com/MarcGrol/golangAnnotations/generator/filtering"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/repository"
@@ -33,16 +31,6 @@ func main() {
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
-	}
-
-	marshalled, err := json.MarshalIndent(parsedSources, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-	targetFilename := filegen.Prefixed(*inputDir + "/" + "ast.json")
-	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
-	if err != nil {
-		panic(err)
 	}
 
 	runAllGenerators(*inputDir, parsedSources)
@@ -83,6 +71,7 @@ func processArgs() {
 
 func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
 	for name, g := range map[string]generationUtil.Generator{
+		"ast":           ast.NewGenerator(),
 		"event":         event.NewGenerator(),
 		"event-service": eventService.NewGenerator(),
 		"json-helpers":  jsonHelpers.NewGenerator(),
