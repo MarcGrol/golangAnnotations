@@ -61,10 +61,10 @@ func generate(inputDir string, structs []model.Struct) error {
 		PackageName: packageName,
 		Services:    eventServices,
 	}
-	return doGenerate(targetDir, packageName, eventServices, data)
+	return doGenerate(targetDir, packageName, data)
 }
 
-func doGenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
+func doGenerate(targetDir, packageName string, data templateData) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
 		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/eventHandler.go", targetDir)),
@@ -78,7 +78,7 @@ func doGenerate(targetDir, packageName string, eventServices []model.Struct, dat
 		return err
 	}
 
-	for _, eventService := range eventServices {
+	for _, eventService := range data.Services {
 		if !IsEventServiceNoTest(eventService) {
 			err = generationUtil.Generate(generationUtil.Info{
 				Src:            packageName,

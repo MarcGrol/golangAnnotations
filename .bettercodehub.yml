@@ -1,12 +1,14 @@
-component_depth: 1
+component_depth: 3
 languages:
 - go
 
 exclude:
-- examples/.*/.*
-- parser/enums/.*
-- parser/interfaces/.*
-- parser/operations/.*
-- parser/structs/.*
+- /examples/myrest/.*
+- /examples/store/.*
+- /examples/structExample/.*
+- /parser/enums/.*
+- /parser/interfaces/.*
+- /parser/operations/.*
+- /parser/structs/.*
 - .*/testData/.*
 
