@@ -26,8 +26,9 @@ func TestInterfacesInDir(t *testing.T) {
 				assert.Equal(t, []string{"// docline for interface method doit"}, m.DocLines)
 				assert.Equal(t, "doit", m.Name)
 				assert.Nil(t, m.RelatedStruct)
-				assert.Equal(t, 1, len(m.InputArgs))
-				assertField(t, model.Field{Name: "req", TypeName: "Req", IsSlice: false}, m.InputArgs[0])
+				assert.Equal(t, 2, len(m.InputArgs))
+				assertField(t, model.Field{Name: "c", PackageName: "golang.org/x/net/context", TypeName: "context.Context", IsSlice: false}, m.InputArgs[0])
+				assertField(t, model.Field{Name: "req", TypeName: "Req", IsSlice: false}, m.InputArgs[1])
 
 				assert.Equal(t, 2, len(m.OutputArgs))
 				assertField(t, model.Field{TypeName: "Resp", IsSlice: false}, m.OutputArgs[0])
