@@ -1,3 +1,5 @@
+// +build !appengine
+
 package interfaces
 
 import "golang.org/x/net/context"

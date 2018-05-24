@@ -358,15 +358,15 @@ func hasValueForField(field model.Field) bool {
 
 func valueForField(field model.Field) string {
 	if field.TypeName == "int" {
-		valueForIntField(field)
+		return valueForIntField(field)
 	}
 
 	if field.TypeName == "string" {
-		valueForStringField(field)
+		return valueForStringField(field)
 	}
 
 	if field.TypeName == "bool" {
-		valueForBoolField(field)
+		return valueForBoolField(field)
 	}
 	return ""
 }
