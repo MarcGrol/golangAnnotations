@@ -3,13 +3,14 @@ package parser
 import (
 	"testing"
 
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStructOperationsInDir(t *testing.T) {
 	dumpFilesInDir("./operations")
-	parsedSources, err := New().ParseSourceDir("./operations", "^.*.go$", "gen_.*")
+	parsedSources, err := New().ParseSourceDir("./operations", "^.*.go$", generator.GenfileExcludeRegex)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 4, len(parsedSources.Operations))
 

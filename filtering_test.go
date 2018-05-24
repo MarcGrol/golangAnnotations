@@ -1,4 +1,4 @@
-package filtering
+package main
 
 import (
 	"regexp"
@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFilenameMatch(t *testing.T) {
-	var excludePattern = regexp.MustCompile(ExcludeMatchPattern())
+func TestFilenameFiltering(t *testing.T) {
+	var excludePattern = regexp.MustCompile(excludeMatchPattern())
 	assert.False(t, excludePattern.MatchString("a.go"))
 	assert.False(t, excludePattern.MatchString("a.txt"))
 	assert.True(t, excludePattern.MatchString("gen_a.go"))

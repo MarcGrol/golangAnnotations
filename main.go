@@ -6,10 +6,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/ast"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
-	"github.com/MarcGrol/golangAnnotations/generator/filtering"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/repository"
@@ -27,7 +27,7 @@ var inputDir *string
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", filtering.ExcludeMatchPattern())
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", excludeMatchPattern())
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
@@ -84,4 +84,8 @@ func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error 
 		}
 	}
 	return nil
+}
+
+func excludeMatchPattern() string {
+	return "^" + generator.GenfilePrefix + ".*.go$"
 }

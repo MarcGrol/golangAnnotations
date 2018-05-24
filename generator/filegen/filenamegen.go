@@ -2,11 +2,11 @@ package filegen
 
 import (
 	"path"
-)
 
-const genfilePrefix = "gen_"
+	"github.com/MarcGrol/golangAnnotations/generator"
+)
 
 func Prefixed(filenamePath string) string {
 	dir, filename := path.Split(filenamePath)
-	return dir + genfilePrefix + filename
+	return dir + generator.GenfilePrefix + filename
 }

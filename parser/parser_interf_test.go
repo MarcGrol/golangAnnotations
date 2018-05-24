@@ -3,12 +3,13 @@ package parser
 import (
 	"testing"
 
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInterfacesInDir(t *testing.T) {
-	parsedSources, err := New().ParseSourceDir("./interfaces", "^.*.go$", "gen_.*")
+	parsedSources, err := New().ParseSourceDir("./interfaces", "^.*.go$", generator.GenfileExcludeRegex)
 	assert.Equal(t, nil, err)
 	assert.Len(t, parsedSources.Interfaces, 1)
 
