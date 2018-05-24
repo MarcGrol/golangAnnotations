@@ -40,23 +40,7 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 		Imports: map[string]string{},
 	}
 	for _, aPackage := range packages {
-		for _, fileEntry := range sortedFileEntries(aPackage.Files) {
-			v.CurrentFilename = fileEntry.key
-
-			appEngineOnly := true
-			for _, commentGroup := range fileEntry.file.Comments {
-				if commentGroup != nil {
-					for _, comment := range commentGroup.List {
-						if comment != nil && comment.Text == "// +build !appengine" {
-							appEngineOnly = false
-						}
-					}
-				}
-			}
-			if appEngineOnly {
-				ast.Walk(v, &fileEntry.file)
-			}
-		}
+		parsePackage(aPackage, v)
 	}
 
 	embedOperationsInStructs(v)
@@ -72,15 +56,55 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 	}, nil
 }
 
+func parsePackage(aPackage *ast.Package, v *astVisitor) {
+	for _, fileEntry := range sortedFileEntries(aPackage.Files) {
+		v.CurrentFilename = fileEntry.key
+
+		appEngineOnly := true
+		for _, commentGroup := range fileEntry.file.Comments {
+			if commentGroup != nil {
+				for _, comment := range commentGroup.List {
+					if comment != nil && comment.Text == "// +build !appengine" {
+						appEngineOnly = false
+					}
+				}
+			}
+		}
+		if appEngineOnly {
+			ast.Walk(v, &fileEntry.file)
+		}
+	}
+}
+
 func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	if debugAstOfSources {
 		dumpFile(srcFilename)
 	}
-	fileSet := token.NewFileSet()
-	file, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
+
+	v, err := doParseFile(srcFilename)
 	if err != nil {
 		log.Printf("error parsing src %s: %s", srcFilename, err.Error())
 		return model.ParsedSources{}, err
+	}
+
+	embedOperationsInStructs(v)
+	embedTypedefDocLinesInEnum(v)
+
+	return model.ParsedSources{
+		Structs:    v.Structs,
+		Operations: v.Operations,
+		Interfaces: v.Interfaces,
+		Typedefs:   v.Typedefs,
+		Enums:      v.Enums,
+	}, nil
+}
+
+func doParseFile(srcFilename string) (*astVisitor, error) {
+	fileSet := token.NewFileSet()
+	file, err := parser.ParseFile(fileSet, srcFilename, nil, parser.ParseComments)
+	if err != nil {
+		log.Printf("error parsing src-file %s: %s", srcFilename, err.Error())
+		return nil, err
 	}
 	v := &astVisitor{
 		Imports: map[string]string{},
@@ -88,18 +112,7 @@ func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
 	v.CurrentFilename = srcFilename
 	ast.Walk(v, file)
 
-	embedOperationsInStructs(v)
-
-	embedTypedefDocLinesInEnum(v)
-
-	result := model.ParsedSources{
-		Structs:    v.Structs,
-		Operations: v.Operations,
-		Interfaces: v.Interfaces,
-		Typedefs:   v.Typedefs,
-		Enums:      v.Enums,
-	}
-	return result, nil
+	return v, nil
 }
 
 type fileEntry struct {

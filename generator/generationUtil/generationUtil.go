@@ -102,21 +102,29 @@ type Info struct {
 func Generate(twd Info) error {
 	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", twd.TargetFilename, twd.Src)
 
-	err := os.MkdirAll(filepath.Dir(twd.TargetFilename), 0777)
+	w, err := createFile(twd.TargetFilename)
 	if err != nil {
 		return err
 	}
-	w, err := os.Create(twd.TargetFilename)
-	if err != nil {
-		return err
-	}
+	defer w.Close()
 
 	t := template.New(twd.TemplateName).Funcs(twd.FuncMap)
 	t, err = t.Parse(twd.TemplateString)
 	if err != nil {
 		return err
 	}
-	defer w.Close()
 
 	return t.Execute(w, twd.Data)
+}
+
+func createFile(filename string) (*os.File, error) {
+	err := os.MkdirAll(filepath.Dir(filename), 0777)
+	if err != nil {
+		return nil, err
+	}
+	w, err := os.Create(filename)
+	if err != nil {
+		return nil, err
+	}
+	return w, nil
 }

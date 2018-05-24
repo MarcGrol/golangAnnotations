@@ -358,24 +358,36 @@ func hasValueForField(field model.Field) bool {
 
 func valueForField(field model.Field) string {
 	if field.TypeName == "int" {
-		if field.IsSlice {
-			return "[]int{1,2}"
-		}
-		return "42"
+		valueForIntField(field)
 	}
 
 	if field.TypeName == "string" {
-		if field.IsSlice {
-			return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
-				fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
-		}
-		return fmt.Sprintf("\"Example3%s\"", field.Name)
+		valueForStringField(field)
 	}
 
 	if field.TypeName == "bool" {
-		return "true"
+		valueForBoolField(field)
 	}
 	return ""
+}
+
+func valueForIntField(field model.Field) string {
+	if field.IsSlice {
+		return "[]int{1,2}"
+	}
+	return "42"
+}
+
+func valueForStringField(field model.Field) string {
+	if field.IsSlice {
+		return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
+			fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
+	}
+	return fmt.Sprintf("\"Example3%s\"", field.Name)
+}
+
+func valueForBoolField(field model.Field) string {
+	return "true"
 }
 
 func toFirstLower(in string) string {
