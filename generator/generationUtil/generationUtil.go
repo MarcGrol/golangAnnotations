@@ -96,24 +96,33 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	return fmt.Sprintf("%s/%s", inputDir, packageName), nil
 }
 
-func GenerateFileFromTemplate(data interface{}, srcName string, templateName string, templateString string, funcMap template.FuncMap, targetFileName string) error {
-	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", targetFileName, srcName)
+type Info struct {
+	Src            string
+	TargetFilename string
+	TemplateName   string
+	TemplateString string
+	FuncMap        template.FuncMap
+	Data           interface{}
+}
 
-	err := os.MkdirAll(filepath.Dir(targetFileName), 0777)
+func Generate(twd Info) error {
+	fmt.Fprintf(os.Stderr, "%s: Generated go file '%s' based on source '%s'\n", "golangAnnotations", twd.TargetFilename, twd.Src)
+
+	err := os.MkdirAll(filepath.Dir(twd.TargetFilename), 0777)
 	if err != nil {
 		return err
 	}
-	w, err := os.Create(targetFileName)
+	w, err := os.Create(twd.TargetFilename)
 	if err != nil {
 		return err
 	}
 
-	t := template.New(templateName).Funcs(funcMap)
-	t, err = t.Parse(templateString)
+	t := template.New(twd.TemplateName).Funcs(twd.FuncMap)
+	t, err = t.Parse(twd.TemplateString)
 	if err != nil {
 		return err
 	}
 	defer w.Close()
 
-	return t.Execute(w, data)
+	return t.Execute(w, twd.Data)
 }

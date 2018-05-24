@@ -41,8 +41,14 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 	}
 	for _, repository := range structs {
 		if IsRepository(repository) {
-			target := filegen.Prefixed(fmt.Sprintf("%s/%s.go", targetDir, toFirstLower(repository.Name)))
-			err = generationUtil.GenerateFileFromTemplate(repository, fmt.Sprintf("%s.%s", repository.PackageName, repository.Name), "repository", repositoryTemplate, customTemplateFuncs, target)
+			err = generationUtil.Generate(generationUtil.Info{
+				Src:            fmt.Sprintf("%s.%s", repository.PackageName, repository.Name),
+				TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/%s.go", targetDir, toFirstLower(repository.Name))),
+				TemplateName:   "repository",
+				TemplateString: repositoryTemplate,
+				FuncMap:        customTemplateFuncs,
+				Data:           repository,
+			})
 			if err != nil {
 				log.Fatalf("Error generating repository %s: %s", repository.Name, err)
 				return err

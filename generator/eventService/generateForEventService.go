@@ -65,9 +65,14 @@ func generate(inputDir string, structs []model.Struct) error {
 }
 
 func doGenerate(targetDir, packageName string, eventServices []model.Struct, data templateData) error {
-
-	target := filegen.Prefixed(fmt.Sprintf("%s/eventHandler.go", targetDir))
-	err := generationUtil.GenerateFileFromTemplate(data, packageName, "event-handlers", handlersTemplate, customTemplateFuncs, target)
+	err := generationUtil.Generate(generationUtil.Info{
+		Src:            packageName,
+		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/eventHandler.go", targetDir)),
+		TemplateName:   "event-handlers",
+		TemplateString: handlersTemplate,
+		FuncMap:        customTemplateFuncs,
+		Data:           data,
+	})
 	if err != nil {
 		log.Fatalf("Error generating handlers for event-services in package %s: %s", packageName, err)
 		return err
@@ -75,8 +80,14 @@ func doGenerate(targetDir, packageName string, eventServices []model.Struct, dat
 
 	for _, eventService := range eventServices {
 		if !IsEventServiceNoTest(eventService) {
-			target = filegen.Prefixed(fmt.Sprintf("%s/eventHandlerHelpers_test.go", targetDir))
-			err = generationUtil.GenerateFileFromTemplate(data, packageName, "test-handlers", testHandlersTemplate, customTemplateFuncs, target)
+			err = generationUtil.Generate(generationUtil.Info{
+				Src:            packageName,
+				TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/eventHandlerHelpers_test.go", targetDir)),
+				TemplateName:   "test-handlers",
+				TemplateString: testHandlersTemplate,
+				FuncMap:        customTemplateFuncs,
+				Data:           data,
+			})
 			if err != nil {
 				log.Fatalf("Error generating test-handlers for event-services in package %s: %s", packageName, err)
 				return err

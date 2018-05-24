@@ -65,12 +65,15 @@ func TestGenerateFileFromTemplate(t *testing.T) {
 	var fm = template.FuncMap{
 		"CommentedPackageName": CommentedPackageName,
 	}
-	err := GenerateFileFromTemplate(
-		model.Struct{PackageName: "testit"}, "testsrc",
-		"testtemplate",
-		"{{.PackageName}}\n{{CommentedPackageName .}}",
-		fm,
-		"test/doit.txt")
+
+	err := Generate(Info{
+		Src:            "testsrc",
+		TargetFilename: "test/doit.txt",
+		TemplateName:   "testtemplate",
+		TemplateString: "{{.PackageName}}\n{{CommentedPackageName .}}",
+		FuncMap:        fm,
+		Data:           model.Struct{PackageName: "testit"},
+	})
 	assert.Nil(t, err)
 
 	data, err := ioutil.ReadFile("test/doit.txt")
