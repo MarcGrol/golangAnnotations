@@ -48,6 +48,12 @@ func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources)
 	return generate(inputDir, parsedSource.Structs)
 }
 
+type generateContext struct {
+	targetDir   string
+	packageName string
+	structs     []model.Struct
+}
+
 func generate(inputDir string, structs []model.Struct) error {
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
@@ -59,32 +65,38 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 
-	err = generateAggregates(targetDir, packageName, structs)
+	ctx := generateContext{
+		targetDir:   targetDir,
+		packageName: packageName,
+		structs:     structs,
+	}
+
+	err = generateAggregates(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = generateWrappers(targetDir, packageName, structs)
+	err = generateWrappers(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = generateEventStore(targetDir, packageName, structs)
+	err = generateEventStore(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = generateEventPublisher(targetDir, packageName, structs)
+	err = generateEventPublisher(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = generateWrappersTest(targetDir, packageName, structs)
+	err = generateWrappersTest(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = generateHandlerInterface(targetDir, packageName, structs)
+	err = generateHandlerInterface(ctx)
 	if err != nil {
 		return err
 	}
@@ -92,22 +104,22 @@ func generate(inputDir string, structs []model.Struct) error {
 	return nil
 }
 
-func generateAggregates(targetDir, packageName string, structs []model.Struct) error {
+func generateAggregates(ctx generateContext) error {
 
-	aggregates := getAggregates(structs)
+	aggregates := getAggregates(ctx.structs)
 
 	if len(aggregates) == 0 {
 		return nil
 	}
 
 	data := aggregateMap{
-		PackageName:  packageName,
+		PackageName:  ctx.packageName,
 		AggregateMap: aggregates,
 	}
 
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/aggregates.go", targetDir)),
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/aggregates.go", ctx.targetDir)),
 		TemplateName:   "aggregates",
 		TemplateString: aggregateTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -147,20 +159,19 @@ func getAggregates(structs []model.Struct) map[string]eventMap {
 	return aggregates
 }
 
-func generateWrappers(targetDir, packageName string, structs []model.Struct) error {
+func generateWrappers(ctx generateContext) error {
 
-	if !containsAny(structs, IsEvent) {
+	if !containsAny(ctx.structs, IsEvent) {
 		return nil
 	}
 
 	data := structures{
-		PackageName: packageName,
-		Structs:     structs,
+		PackageName: ctx.packageName,
+		Structs:     ctx.structs,
 	}
-	target := generationUtil.Prefixed(fmt.Sprintf("%s/wrappers.go", targetDir))
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: target,
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers.go", ctx.targetDir)),
 		TemplateName:   "wrappers",
 		TemplateString: wrappersTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -182,19 +193,19 @@ func containsAny(structs []model.Struct, predicate func(_ model.Struct) bool) bo
 	return false
 }
 
-func generateEventStore(targetDir, packageName string, structs []model.Struct) error {
+func generateEventStore(ctx generateContext) error {
 
-	if !containsAny(structs, IsPersistentEvent) {
+	if !containsAny(ctx.structs, IsPersistentEvent) {
 		return nil
 	}
 
 	data := structures{
-		PackageName: packageName,
-		Structs:     structs,
+		PackageName: ctx.packageName,
+		Structs:     ctx.structs,
 	}
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", targetDir, packageName, packageName)),
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", ctx.targetDir, ctx.packageName, ctx.packageName)),
 		TemplateName:   "event-store",
 		TemplateString: eventStoreTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -207,19 +218,19 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 	return nil
 }
 
-func generateEventPublisher(targetDir, packageName string, structs []model.Struct) error {
+func generateEventPublisher(ctx generateContext) error {
 
-	if !containsAny(structs, isTransient) {
+	if !containsAny(ctx.structs, isTransient) {
 		return nil
 	}
 
 	data := structures{
-		PackageName: packageName,
-		Structs:     structs,
+		PackageName: ctx.packageName,
+		Structs:     ctx.structs,
 	}
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", targetDir, packageName, packageName)),
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", ctx.targetDir, ctx.packageName, ctx.packageName)),
 		TemplateName:   "event-publisher",
 		TemplateString: eventPublisherTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -232,19 +243,19 @@ func generateEventPublisher(targetDir, packageName string, structs []model.Struc
 	return nil
 }
 
-func generateWrappersTest(targetDir, packageName string, structs []model.Struct) error {
+func generateWrappersTest(ctx generateContext) error {
 
-	if !containsAny(structs, IsEvent) {
+	if !containsAny(ctx.structs, IsEvent) {
 		return nil
 	}
 
 	data := structures{
-		PackageName: packageName,
-		Structs:     structs,
+		PackageName: ctx.packageName,
+		Structs:     ctx.structs,
 	}
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers_test.go", targetDir)),
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers_test.go", ctx.targetDir)),
 		TemplateName:   "wrappers-test",
 		TemplateString: wrappersTestTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -257,19 +268,19 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 	return nil
 }
 
-func generateHandlerInterface(targetDir, packageName string, structs []model.Struct) error {
+func generateHandlerInterface(ctx generateContext) error {
 
-	if !containsAny(structs, IsEvent) {
+	if !containsAny(ctx.structs, IsEvent) {
 		return nil
 	}
 
 	data := structures{
-		PackageName: packageName,
-		Structs:     structs,
+		PackageName: ctx.packageName,
+		Structs:     ctx.structs,
 	}
 	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/interface.go", targetDir)),
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/interface.go", ctx.targetDir)),
 		TemplateName:   "interface",
 		TemplateString: interfaceTemplate,
 		FuncMap:        customTemplateFuncs,

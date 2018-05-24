@@ -25,17 +25,15 @@ func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
 	return jsonAnnotation.Get()
 }
 
-func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
-	return generate(inputDir, parsedSource.Enums, parsedSource.Structs)
-}
-
 type jsonContext struct {
 	PackageName string
 	Enums       []model.Enum
 	Structs     []model.Struct
 }
 
-func generate(inputDir string, enums []model.Enum, structs []model.Struct) error {
+func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
+	enums := parsedSource.Enums
+	structs := parsedSource.Structs
 
 	packageName, err := generationUtil.GetPackageNameForEnumsOrStructs(enums, structs)
 	if err != nil {

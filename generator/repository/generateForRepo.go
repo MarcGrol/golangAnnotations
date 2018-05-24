@@ -26,10 +26,7 @@ func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
 }
 
 func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources) error {
-	return generateRepo(inputDir, parsedSource.Structs)
-}
-
-func generateRepo(inputDir string, structs []model.Struct) error {
+	structs := parsedSource.Structs
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
 	if err != nil {
