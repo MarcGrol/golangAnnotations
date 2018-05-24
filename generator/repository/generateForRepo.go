@@ -7,7 +7,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -44,7 +43,7 @@ func generateRepo(inputDir string, structs []model.Struct) error {
 		if IsRepository(repository) {
 			err = generationUtil.Generate(generationUtil.Info{
 				Src:            fmt.Sprintf("%s.%s", repository.PackageName, repository.Name),
-				TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/%s.go", targetDir, toFirstLower(repository.Name))),
+				TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/%s.go", targetDir, toFirstLower(repository.Name))),
 				TemplateName:   "repository",
 				TemplateString: repositoryTemplate,
 				FuncMap:        customTemplateFuncs,

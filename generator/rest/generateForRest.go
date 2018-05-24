@@ -8,7 +8,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -71,7 +70,7 @@ func generate(inputDir string, structs []model.Struct) error {
 func generateHttpService(targetDir, packageName string, service model.Struct) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)),
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/http%s.go", targetDir, ToFirstUpper(service.Name))),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/http%s.go", targetDir, ToFirstUpper(service.Name))),
 		TemplateName:   "http-handlers",
 		TemplateString: httpHandlersTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -87,7 +86,7 @@ func generateHttpService(targetDir, packageName string, service model.Struct) er
 func generateHttpTestHelpers(targetDir, packageName string, service model.Struct) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)),
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, ToFirstUpper(service.Name))),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/http%sHelpers_test.go", targetDir, ToFirstUpper(service.Name))),
 		TemplateName:   "http-test-helpers",
 		TemplateString: testHelpersTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -105,7 +104,7 @@ func generateHttpTestService(targetDir, packageName string, service model.Struct
 	packageName = packageName + "TestLog"
 
 	service.PackageName = packageName
-	target := filegen.Prefixed(fmt.Sprintf("%s/%s/httpTest%s.go", targetDir, packageName, ToFirstUpper(service.Name)))
+	target := generationUtil.Prefixed(fmt.Sprintf("%s/%s/httpTest%s.go", targetDir, packageName, ToFirstUpper(service.Name)))
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)),
 		TargetFilename: target,
@@ -124,7 +123,7 @@ func generateHttpTestService(targetDir, packageName string, service model.Struct
 func generateHttpClient(targetDir, packageName string, service model.Struct) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", service.PackageName, ToFirstUpper(service.Name)),
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/httpClientFor%s.go", targetDir, ToFirstUpper(service.Name))),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/httpClientFor%s.go", targetDir, ToFirstUpper(service.Name))),
 		TemplateName:   "http-client",
 		TemplateString: httpClientTemplate,
 		FuncMap:        customTemplateFuncs,

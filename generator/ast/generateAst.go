@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
@@ -28,7 +28,7 @@ func (eg *Generator) Generate(inputDir string, parsedSources model.ParsedSources
 	if err != nil {
 		panic(err)
 	}
-	targetFilename := filegen.Prefixed(inputDir + "/" + "ast.json")
+	targetFilename := generationUtil.Prefixed(inputDir + "/" + "ast.json")
 	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
 	if err != nil {
 		panic(err)

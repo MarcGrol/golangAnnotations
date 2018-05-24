@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func cleanup() {
-	os.Remove(filegen.Prefixed("./testData/ast.json"))
-	os.Remove(filegen.Prefixed("./testData/userRepo.go"))
+	os.Remove(generationUtil.Prefixed("./testData/ast.json"))
+	os.Remove(generationUtil.Prefixed("./testData/userRepo.go"))
 }
 
 func TestGenerateForRepo(t *testing.T) {
@@ -31,11 +31,11 @@ func TestGenerateForRepo(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat(filegen.Prefixed("./testData/userRepo.go"))
+	_, err = os.Stat(generationUtil.Prefixed("./testData/userRepo.go"))
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile(filegen.Prefixed("./testData/userRepo.go"))
+	data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/userRepo.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `func DefaultFindEndUserOnUID(c context.Context, rc request.Context, endUserUID string) (*endUserModel.EndUser, error) {
 `)

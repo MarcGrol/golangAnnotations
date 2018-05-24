@@ -7,7 +7,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
@@ -76,7 +75,7 @@ func doGenerate(packageName string, jsonEnums []model.Enum, jsonStructs []model.
 
 	for fn := range filenameMap {
 		targetFilename := strings.Replace(fn, ".", "_json.", 1)
-		target := filegen.Prefixed(fmt.Sprintf("%s/%s", targetDir, targetFilename))
+		target := generationUtil.Prefixed(fmt.Sprintf("%s/%s", targetDir, targetFilename))
 
 		data := jsonContext{
 			PackageName: packageName,

@@ -6,7 +6,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/event/eventAnnotation"
@@ -95,6 +94,33 @@ func generate(inputDir string, structs []model.Struct) error {
 
 func generateAggregates(targetDir, packageName string, structs []model.Struct) error {
 
+	aggregates := getAggregates(structs)
+
+	if len(aggregates) == 0 {
+		return nil
+	}
+
+	data := aggregateMap{
+		PackageName:  packageName,
+		AggregateMap: aggregates,
+	}
+
+	err := generationUtil.Generate(generationUtil.Info{
+		Src:            packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/aggregates.go", targetDir)),
+		TemplateName:   "aggregates",
+		TemplateString: aggregateTemplate,
+		FuncMap:        customTemplateFuncs,
+		Data:           data,
+	})
+	if err != nil {
+		log.Fatalf("Error generating aggregates (%s)", err)
+		return err
+	}
+	return nil
+}
+
+func getAggregates(structs []model.Struct) map[string]eventMap {
 	aggregates := make(map[string]eventMap)
 	eventCount := 0
 	for _, s := range structs {
@@ -118,29 +144,7 @@ func generateAggregates(targetDir, packageName string, structs []model.Struct) e
 			eventCount++
 		}
 	}
-
-	if eventCount == 0 {
-		return nil
-	}
-
-	data := aggregateMap{
-		PackageName:  packageName,
-		AggregateMap: aggregates,
-	}
-
-	err := generationUtil.Generate(generationUtil.Info{
-		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/aggregates.go", targetDir)),
-		TemplateName:   "aggregates",
-		TemplateString: aggregateTemplate,
-		FuncMap:        customTemplateFuncs,
-		Data:           data,
-	})
-	if err != nil {
-		log.Fatalf("Error generating aggregates (%s)", err)
-		return err
-	}
-	return nil
+	return aggregates
 }
 
 func generateWrappers(targetDir, packageName string, structs []model.Struct) error {
@@ -153,7 +157,7 @@ func generateWrappers(targetDir, packageName string, structs []model.Struct) err
 		PackageName: packageName,
 		Structs:     structs,
 	}
-	target := filegen.Prefixed(fmt.Sprintf("%s/wrappers.go", targetDir))
+	target := generationUtil.Prefixed(fmt.Sprintf("%s/wrappers.go", targetDir))
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
 		TargetFilename: target,
@@ -190,7 +194,7 @@ func generateEventStore(targetDir, packageName string, structs []model.Struct) e
 	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", targetDir, packageName, packageName)),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", targetDir, packageName, packageName)),
 		TemplateName:   "event-store",
 		TemplateString: eventStoreTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -215,7 +219,7 @@ func generateEventPublisher(targetDir, packageName string, structs []model.Struc
 	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", targetDir, packageName, packageName)),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", targetDir, packageName, packageName)),
 		TemplateName:   "event-publisher",
 		TemplateString: eventPublisherTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -240,7 +244,7 @@ func generateWrappersTest(targetDir, packageName string, structs []model.Struct)
 	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/wrappers_test.go", targetDir)),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers_test.go", targetDir)),
 		TemplateName:   "wrappers-test",
 		TemplateString: wrappersTestTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -265,7 +269,7 @@ func generateHandlerInterface(targetDir, packageName string, structs []model.Str
 	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/interface.go", targetDir)),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/interface.go", targetDir)),
 		TemplateName:   "interface",
 		TemplateString: interfaceTemplate,
 		FuncMap:        customTemplateFuncs,

@@ -5,19 +5,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func cleanup() {
-	os.Remove(filegen.Prefixed("./testData/ast.json"))
-	os.Remove(filegen.Prefixed("./testData/aggregates.go"))
-	os.Remove(filegen.Prefixed("./testData/interface.go"))
-	os.Remove(filegen.Prefixed("./testData/wrappers.go"))
-	os.Remove(filegen.Prefixed("./testData/wrappers_test.go"))
-	os.Remove(filegen.Prefixed("./store/testDataStore/testDataStore.go"))
-	os.Remove(filegen.Prefixed("./repository/storeEvents.go"))
+	os.Remove(generationUtil.Prefixed("./testData/ast.json"))
+	os.Remove(generationUtil.Prefixed("./testData/aggregates.go"))
+	os.Remove(generationUtil.Prefixed("./testData/interface.go"))
+	os.Remove(generationUtil.Prefixed("./testData/wrappers.go"))
+	os.Remove(generationUtil.Prefixed("./testData/wrappers_test.go"))
+	os.Remove(generationUtil.Prefixed("./store/testDataStore/testDataStore.go"))
+	os.Remove(generationUtil.Prefixed("./repository/storeEvents.go"))
 }
 
 func TestGenerateForEvents(t *testing.T) {
@@ -41,10 +41,10 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exisst
-	_, err = os.Stat(filegen.Prefixed("./testData/aggregates.go"))
+	_, err = os.Stat(generationUtil.Prefixed("./testData/aggregates.go"))
 	assert.NoError(t, err)
 
-	data, err := ioutil.ReadFile(filegen.Prefixed("./testData/aggregates.go"))
+	data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/aggregates.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "type TestAggregate interface {")
 	assert.Contains(t, string(data), "ApplyMyStruct(c context.Context, evt MyStruct)")
@@ -54,17 +54,17 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []envelope.Envelope) ([]envelope.Event, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err = ioutil.ReadFile(filegen.Prefixed("./testData/wrappers.go"))
+	data, err = ioutil.ReadFile(generationUtil.Prefixed("./testData/wrappers.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "func (s *MyStruct) Wrap(rc request.Context) (*envelope.Envelope,error) {")
 	assert.Contains(t, string(data), "func IsMyStruct(envlp *envelope.Envelope) bool {")
 	assert.Contains(t, string(data), "func GetIfIsMyStruct(envlp *envelope.Envelope) (*MyStruct, bool) {")
 	assert.Contains(t, string(data), "func UnWrapMyStruct(envlp *envelope.Envelope) (*MyStruct,error) {")
 
-	_, err = os.Stat(filegen.Prefixed("./testData/wrappers.go"))
+	_, err = os.Stat(generationUtil.Prefixed("./testData/wrappers.go"))
 	assert.NoError(t, err)
 
-	data, err = ioutil.ReadFile(filegen.Prefixed("./testData/interface.go"))
+	data, err = ioutil.ReadFile(generationUtil.Prefixed("./testData/interface.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "type Handler interface {")
 

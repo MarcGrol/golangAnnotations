@@ -8,7 +8,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
@@ -68,7 +67,7 @@ func generate(inputDir string, structs []model.Struct) error {
 func doGenerate(targetDir, packageName string, data templateData) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            packageName,
-		TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/eventHandler.go", targetDir)),
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/eventHandler.go", targetDir)),
 		TemplateName:   "event-handlers",
 		TemplateString: handlersTemplate,
 		FuncMap:        customTemplateFuncs,
@@ -83,7 +82,7 @@ func doGenerate(targetDir, packageName string, data templateData) error {
 		if !IsEventServiceNoTest(eventService) {
 			err = generationUtil.Generate(generationUtil.Info{
 				Src:            packageName,
-				TargetFilename: filegen.Prefixed(fmt.Sprintf("%s/eventHandlerHelpers_test.go", targetDir)),
+				TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/eventHandlerHelpers_test.go", targetDir)),
 				TemplateName:   "test-handlers",
 				TemplateString: testHandlersTemplate,
 				FuncMap:        customTemplateFuncs,

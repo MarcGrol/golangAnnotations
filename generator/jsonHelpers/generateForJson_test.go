@@ -5,14 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func cleanup() {
-	os.Remove(filegen.Prefixed("./testData/ast.json"))
-	os.Remove(filegen.Prefixed("./testData/example_json.go"))
+	os.Remove(generationUtil.Prefixed("./testData/ast.json"))
+	os.Remove(generationUtil.Prefixed("./testData/example_json.go"))
 }
 
 func TestGenerateForJson(t *testing.T) {
@@ -70,11 +70,11 @@ func TestGenerateForJson(t *testing.T) {
 	assert.Nil(t, err)
 
 	// check that generated files exists
-	_, err = os.Stat(filegen.Prefixed("./testData/example_json.go"))
+	_, err = os.Stat(generationUtil.Prefixed("./testData/example_json.go"))
 	assert.NoError(t, err)
 
 	// check that generate code has 4 helper functions for MyStruct
-	data, err := ioutil.ReadFile(filegen.Prefixed("./testData/example_json.go"))
+	data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/example_json.go"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), `func (r *ColorType) UnmarshalJSON(data []byte) error {`)
 	assert.Contains(t, string(data), `func (r ColorType) MarshalJSON() ([]byte, error) {`)

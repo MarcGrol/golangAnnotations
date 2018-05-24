@@ -6,18 +6,18 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Duxxie/platform/backend/lib/filegen"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func cleanup() {
-	os.Remove(filegen.Prefixed("./testData/ast.json"))
-	os.Remove(filegen.Prefixed("./testData/httpMyService.go"))
-	os.Remove(filegen.Prefixed("./testData/httpMyServiceHelpers_test.go"))
-	os.Remove(filegen.Prefixed("./testData/httpClientForMyService.go"))
-	os.Remove(filegen.Prefixed("./testData/httpMyServiceHelpers_test.go"))
-	os.Remove(filegen.Prefixed("./testData/testDataTestLog/httpTestMyService.go"))
+	os.Remove(generationUtil.Prefixed("./testData/ast.json"))
+	os.Remove(generationUtil.Prefixed("./testData/httpMyService.go"))
+	os.Remove(generationUtil.Prefixed("./testData/httpMyServiceHelpers_test.go"))
+	os.Remove(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
+	os.Remove(generationUtil.Prefixed("./testData/httpMyServiceHelpers_test.go"))
+	os.Remove(generationUtil.Prefixed("./testData/testDataTestLog/httpTestMyService.go"))
 }
 
 func TestGenerateForWeb(t *testing.T) {
@@ -54,12 +54,12 @@ func TestGenerateForWeb(t *testing.T) {
 	{
 		{
 			// check that generated files exists
-			_, err := os.Stat(filegen.Prefixed("./testData/httpMyService.go"))
+			_, err := os.Stat(generationUtil.Prefixed("./testData/httpMyService.go"))
 			assert.NoError(t, err)
 		}
 		{
 			// check that generate code has 4 helper functions for MyStruct
-			data, err := ioutil.ReadFile(filegen.Prefixed("./testData/httpMyService.go"))
+			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpMyService.go"))
 			assert.NoError(t, err)
 			assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
 			assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
@@ -68,12 +68,12 @@ func TestGenerateForWeb(t *testing.T) {
 	{
 		{
 			// check that generated files exists
-			_, err := os.Stat(filegen.Prefixed("./testData/httpMyService.go"))
+			_, err := os.Stat(generationUtil.Prefixed("./testData/httpMyService.go"))
 			assert.NoError(t, err)
 		}
 		{
 			// check that generate code has 4 helper functions for MyStruct
-			data, err := ioutil.ReadFile(filegen.Prefixed("./testData/httpMyServiceHelpers_test.go"))
+			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpMyServiceHelpers_test.go"))
 			assert.NoError(t, err)
 			assert.Contains(t, string(data), "func doitTestHelper")
 		}
@@ -82,12 +82,12 @@ func TestGenerateForWeb(t *testing.T) {
 	{
 		{
 			// check that generated files exists
-			_, err := os.Stat(filegen.Prefixed("./testData/httpClientForMyService.go"))
+			_, err := os.Stat(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
 			assert.NoError(t, err)
 		}
 		{
 			// check that generate code has 4 helper functions for MyStruct
-			data, err := ioutil.ReadFile(filegen.Prefixed("./testData/httpClientForMyService.go"))
+			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
 			assert.NoError(t, err)
 			assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie, requestUID string, timeout time.Duration)  (int ,*errorh.Error,error) {")
 		}
