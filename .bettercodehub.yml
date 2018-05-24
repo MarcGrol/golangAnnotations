@@ -3,7 +3,7 @@ languages:
 - go
 
 exclude:
-- examples/.*
+- examples/.*/.*
 - parser/enums/.*
 - parser/interfaces/.*
 - parser/operations/.*
