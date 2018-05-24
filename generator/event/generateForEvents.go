@@ -112,18 +112,16 @@ func generateAggregates(ctx generateContext) error {
 		return nil
 	}
 
-	data := aggregateMap{
-		PackageName:  ctx.packageName,
-		AggregateMap: aggregates,
-	}
-
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/aggregates.go", ctx.targetDir)),
 		TemplateName:   "aggregates",
 		TemplateString: aggregateTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: aggregateMap{
+			PackageName:  ctx.packageName,
+			AggregateMap: aggregates,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating aggregates (%s)", err)
@@ -165,17 +163,16 @@ func generateWrappers(ctx generateContext) error {
 		return nil
 	}
 
-	data := structures{
-		PackageName: ctx.packageName,
-		Structs:     ctx.structs,
-	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers.go", ctx.targetDir)),
 		TemplateName:   "wrappers",
 		TemplateString: wrappersTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating wrappers for structures (%s)", err)
@@ -199,17 +196,16 @@ func generateEventStore(ctx generateContext) error {
 		return nil
 	}
 
-	data := structures{
-		PackageName: ctx.packageName,
-		Structs:     ctx.structs,
-	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sStore/%sStore.go", ctx.targetDir, ctx.packageName, ctx.packageName)),
 		TemplateName:   "event-store",
 		TemplateString: eventStoreTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating event-store for structures (%s)", err)
@@ -224,17 +220,16 @@ func generateEventPublisher(ctx generateContext) error {
 		return nil
 	}
 
-	data := structures{
-		PackageName: ctx.packageName,
-		Structs:     ctx.structs,
-	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/../%sPublisher/%sPublisher.go", ctx.targetDir, ctx.packageName, ctx.packageName)),
 		TemplateName:   "event-publisher",
 		TemplateString: eventPublisherTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating event-publisher for structures (%s)", err)
@@ -249,17 +244,16 @@ func generateWrappersTest(ctx generateContext) error {
 		return nil
 	}
 
-	data := structures{
-		PackageName: ctx.packageName,
-		Structs:     ctx.structs,
-	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/wrappers_test.go", ctx.targetDir)),
 		TemplateName:   "wrappers-test",
 		TemplateString: wrappersTestTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating wrappers-test for structures (%s)", err)
@@ -274,17 +268,16 @@ func generateHandlerInterface(ctx generateContext) error {
 		return nil
 	}
 
-	data := structures{
-		PackageName: ctx.packageName,
-		Structs:     ctx.structs,
-	}
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            ctx.packageName,
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/interface.go", ctx.targetDir)),
 		TemplateName:   "interface",
 		TemplateString: interfaceTemplate,
 		FuncMap:        customTemplateFuncs,
-		Data:           data,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
 	})
 	if err != nil {
 		log.Fatalf("Error generating interface for event-handlers (%s)", err)

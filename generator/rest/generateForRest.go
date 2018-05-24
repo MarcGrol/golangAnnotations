@@ -293,24 +293,27 @@ func isImportToBeIgnored(imp string) bool {
 }
 
 func ExtractImports(s model.Struct) []string {
-	importsMap := map[string]string{}
+	importsMap := map[string]bool{}
 	for _, o := range s.Operations {
 		for _, ia := range o.InputArgs {
 			if isImportToBeIgnored(ia.PackageName) == false {
-				importsMap[ia.PackageName] = ia.PackageName
+				importsMap[ia.PackageName] = true
 			}
 		}
 		for _, oa := range o.OutputArgs {
 			if isImportToBeIgnored(oa.PackageName) == false {
-				importsMap[oa.PackageName] = oa.PackageName
+				importsMap[oa.PackageName] = true
 			}
 		}
 	}
-	importsList := []string{}
-	for _, v := range importsMap {
-		importsList = append(importsList, v)
-	}
+	return mapToSlice(importsMap)
+}
 
+func mapToSlice(importsMap map[string]bool) []string {
+	importsList := []string{}
+	for k := range importsMap {
+		importsList = append(importsList, k)
+	}
 	return importsList
 }
 

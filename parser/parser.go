@@ -168,16 +168,12 @@ func parseDir(dirName string, includeRegex string, excludeRegex string) (map[str
 	var excludePattern = regexp.MustCompile(excludeRegex)
 
 	fileSet := token.NewFileSet()
-	packageMap, err := parser.ParseDir(
-		fileSet,
-		dirName,
-		func(fi os.FileInfo) bool {
-			if excludePattern.MatchString(fi.Name()) {
-				return false
-			}
-			return includePattern.MatchString(fi.Name())
-		},
-		parser.ParseComments)
+	packageMap, err := parser.ParseDir(fileSet, dirName, func(fi os.FileInfo) bool {
+		if excludePattern.MatchString(fi.Name()) {
+			return false
+		}
+		return includePattern.MatchString(fi.Name())
+	}, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return packageMap, err
