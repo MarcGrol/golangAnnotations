@@ -63,15 +63,13 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 
 	embedTypedefDocLinesInEnum(v)
 
-	result := model.ParsedSources{
+	return model.ParsedSources{
 		Structs:    v.Structs,
 		Operations: v.Operations,
 		Interfaces: v.Interfaces,
 		Typedefs:   v.Typedefs,
 		Enums:      v.Enums,
-	}
-
-	return result, nil
+	}, nil
 }
 
 func parseSourceFile(srcFilename string) (model.ParsedSources, error) {
@@ -595,7 +593,7 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		return mField, true
 	}
 
-	log.Printf("*** Could not understand field '%+v'", field.Type)
+	log.Printf("*** Could not understand field %+v: '%+v'", mField, field.Type)
 
 	return mField, false
 }
