@@ -1,6 +1,6 @@
 package eventServiceAnnotation
 
-import "github.com/MarcGrol/golangAnnotations/annotation"
+import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
 	TypeEventService    = "EventService"

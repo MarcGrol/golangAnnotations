@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 

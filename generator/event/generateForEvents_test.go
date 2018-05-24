@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/generator/filegen"
+	"github.com/MarcGrol/golangAnnotations/filegen"
 	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )

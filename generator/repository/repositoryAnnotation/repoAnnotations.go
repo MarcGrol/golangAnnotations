@@ -1,6 +1,6 @@
 package repositoryAnnotation
 
-import "github.com/MarcGrol/golangAnnotations/annotation"
+import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
 	TypeRepository = "Repository"

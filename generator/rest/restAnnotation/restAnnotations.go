@@ -1,6 +1,6 @@
 package restAnnotation
 
-import "github.com/MarcGrol/golangAnnotations/annotation"
+import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
 	TypeRestOperation   = "RestOperation"

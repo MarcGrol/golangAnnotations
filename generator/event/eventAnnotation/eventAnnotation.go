@@ -1,6 +1,6 @@
 package eventAnnotation
 
-import "github.com/MarcGrol/golangAnnotations/annotation"
+import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
 	TypeEvent        = "Event"

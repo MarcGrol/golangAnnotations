@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/MarcGrol/golangAnnotations/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/annotation"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -8,9 +8,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/MarcGrol/golangAnnotations/filegen"
+	"github.com/MarcGrol/golangAnnotations/filtering"
 	"github.com/MarcGrol/golangAnnotations/generator/event"
 	"github.com/MarcGrol/golangAnnotations/generator/eventService"
-	"github.com/MarcGrol/golangAnnotations/generator/filegen"
 	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
 	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
 	"github.com/MarcGrol/golangAnnotations/generator/repository"
@@ -28,7 +29,7 @@ var inputDir *string
 func main() {
 	processArgs()
 
-	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", filegen.ExcludeMatchPattern())
+	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", filtering.ExcludeMatchPattern())
 	if err != nil {
 		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
 		os.Exit(1)
