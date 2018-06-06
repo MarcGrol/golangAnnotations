@@ -9,11 +9,15 @@ type Person struct {
 	// Before nice comment
 	Nice *bool // After Nice comment
 	// Before Color comment
-	Color         ColorType `json:"COLOR_TYPE"`
-	OptionalColor *ColorType
-	Father        *Person
-	Uncles        []*Person
-	Children      []Person
+	Color              ColorType `json:"COLOR_TYPE"`
+	OptionalColor      *ColorType
+	Father             *Person
+	Uncles             []*Person
+	Children           []Person
+	ChildMap           map[string]Person
+	ChildPointerMap    map[string]*Person
+	ChildrenMap        map[string][]Person
+	ChildrenPointerMap map[string][]*Person
 }
 
 type ColorType int

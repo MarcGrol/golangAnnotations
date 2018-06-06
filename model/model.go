@@ -52,6 +52,7 @@ type Field struct {
 	TypeName     string   `json:"typeName,omitempty"`
 	IsSlice      bool     `json:"isSlice,omitempty"`
 	IsPointer    bool     `json:"isPointer,omitempty"`
+	IsMap        bool     `json:"isMap,omitempty"`
 	Tag          string   `json:"tag,omitempty"`
 	CommentLines []string `json:"commentLines,omitempty"`
 }

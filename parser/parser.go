@@ -602,7 +602,7 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		return mField, true
 	}
 
-	log.Printf("*** Could not understand field %+v: '%+v'", mField, field.Type)
+	log.Printf("*** Could not understand field %+v: '%+v (%s)'", field, field.Names, field.Type)
 
 	return mField, false
 }
@@ -672,21 +672,60 @@ func extractMapField(field *ast.Field, mField *model.Field, imports map[string]s
 
 	mapType, ok := field.Type.(*ast.MapType)
 	if ok {
-		{
-			key, ok := mapType.Key.(*ast.Ident)
-			if ok {
-				mapKey = key.Name
-			}
+		key, ok := mapType.Key.(*ast.Ident)
+		if ok {
+			mapKey = key.Name
 		}
+
 		{
 			value, ok := mapType.Value.(*ast.Ident)
 			if ok {
 				mapValue = value.Name
 			}
 		}
+		{
+			value, ok := mapType.Value.(*ast.StarExpr)
+			if ok {
+				ident, ok := value.X.(*ast.Ident)
+				if ok {
+					mapValue = fmt.Sprintf("*%s", ident.Name)
+				}
+			}
+		}
+		{
+			value, ok := mapType.Value.(*ast.ArrayType)
+			if ok {
+				{
+					ident, ok := value.Elt.(*ast.Ident)
+					if ok {
+						mapValue = fmt.Sprintf("[]%s", ident.Name)
+					}
+				}
+				{
+					selectorExpr, ok := value.Elt.(*ast.SelectorExpr)
+					if ok {
+						ident, ok := selectorExpr.X.(*ast.Ident)
+						if ok {
+							mapValue = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+						}
+					}
+				}
+				{
+					starExpr, ok := value.Elt.(*ast.StarExpr)
+					if ok {
+						ident, ok := starExpr.X.(*ast.Ident)
+						if ok {
+							mapValue = fmt.Sprintf("[]*%s", ident.Name)
+						}
+					}
+				}
+			}
+		}
+
 	}
 	if mapKey != "" && mapValue != "" {
 		mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+		mField.IsMap = true
 		return true
 	}
 
