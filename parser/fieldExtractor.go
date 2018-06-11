@@ -45,23 +45,23 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		Tag:          extractTag(field.Tag),
 	}
 
-	if extractSliceField(field, &mField, imports) {
+	if extractSliceField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
-	if extractMapField(field, &mField, imports) {
+	if extractMapField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
-	if extractPointerField(field, &mField, imports) {
+	if extractPointerField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
-	if extractIdentField(field, &mField, imports) {
+	if extractIdentField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
-	if extractSelectorField(field, &mField, imports) {
+	if extractSelectorField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
@@ -70,8 +70,8 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 	return mField, false
 }
 
-func extractSliceField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
-	if arrayType, ok := field.Type.(*ast.ArrayType); ok {
+func extractSliceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
 		mField.IsSlice = true
 		if extractSliceSelectorField(arrayType, mField, imports) {
 			return true
@@ -119,11 +119,11 @@ func extractSlicePointerField(arrayType *ast.ArrayType, mField *model.Field, imp
 	return false
 }
 
-func extractMapField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	mapKey := ""
 	mapValue := ""
 
-	if mapType, ok := field.Type.(*ast.MapType); ok {
+	if mapType, ok := fieldType.(*ast.MapType); ok {
 		if key, ok := mapType.Key.(*ast.Ident); ok {
 			mapKey = key.Name
 		}
@@ -167,9 +167,9 @@ func extractMapField(field *ast.Field, mField *model.Field, imports map[string]s
 	return false
 }
 
-func extractPointerField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
+func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	{
-		if starExpr, ok := field.Type.(*ast.StarExpr); ok {
+		if starExpr, ok := fieldType.(*ast.StarExpr); ok {
 			if ident, ok := starExpr.X.(*ast.Ident); ok {
 				mField.TypeName = ident.Name
 				mField.IsPointer = true
@@ -189,16 +189,16 @@ func extractPointerField(field *ast.Field, mField *model.Field, imports map[stri
 	return false
 }
 
-func extractIdentField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
-	if ident, ok := field.Type.(*ast.Ident); ok {
+func extractIdentField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if ident, ok := fieldType.(*ast.Ident); ok {
 		mField.TypeName = ident.Name
 		return true
 	}
 	return false
 }
 
-func extractSelectorField(field *ast.Field, mField *model.Field, imports map[string]string) bool {
-	if selectorExpr, ok := field.Type.(*ast.SelectorExpr); ok {
+func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
 			mField.Name = ident.Name
 			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
