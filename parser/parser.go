@@ -218,6 +218,8 @@ func dumpFilesInDir(dirName string) {
 	}
 }
 
+// =====================================================================================================================
+
 type astVisitor struct {
 	CurrentFilename string
 	PackageName     string
@@ -293,7 +295,7 @@ func (v *astVisitor) parseAsEnum(node ast.Node) {
 
 func (v *astVisitor) parseAsInterFace(node ast.Node) {
 	// if interfaces, get its methods
-	if mInterface := extractGenDecForInterface(node, v.Imports); mInterface != nil {
+	if mInterface := extractInterface(node, v.Imports); mInterface != nil {
 		mInterface.PackageName = v.PackageName
 		mInterface.Filename = v.CurrentFilename
 		v.Interfaces = append(v.Interfaces, *mInterface)
@@ -309,6 +311,20 @@ func (v *astVisitor) parseAsOperation(node ast.Node) {
 	}
 }
 
+// =====================================================================================================================
+
+func extractPackageName(node ast.Node) (string, bool) {
+	if file, ok := node.(*ast.File); ok {
+		if file.Name != nil {
+			return file.Name.Name, true
+		}
+		return "", true
+	}
+	return "", false
+}
+
+// ------------------------------------------------------ STRUCT -------------------------------------------------------
+
 func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.Struct {
 	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it a struct
@@ -317,26 +333,6 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.St
 			mStruct.DocLines = extractComments(genDecl.Doc)
 			return mStruct
 		}
-	}
-	return nil
-}
-
-func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
-	if genDecl, ok := node.(*ast.GenDecl); ok {
-		// Continue parsing to see if it a struct
-		if mTypedef := extractSpecsForTypedef(genDecl.Specs); mTypedef != nil {
-			mTypedef.DocLines = extractComments(genDecl.Doc)
-			return mTypedef
-		}
-	}
-	return nil
-}
-
-func extractGenDeclForEnum(node ast.Node) *model.Enum {
-	if genDecl, ok := node.(*ast.GenDecl); ok {
-		// Continue parsing to see if it is an enum
-		// Docs live in the related typedef
-		return extractSpecsForEnum(genDecl.Specs)
 	}
 	return nil
 }
@@ -351,6 +347,45 @@ func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.S
 				}
 			}
 		}
+	}
+	return nil
+}
+
+// ------------------------------------------------------ TYPEDEF ------------------------------------------------------
+
+func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
+		// Continue parsing to see if it a struct
+		if mTypedef := extractSpecsForTypedef(genDecl.Specs); mTypedef != nil {
+			mTypedef.DocLines = extractComments(genDecl.Doc)
+			return mTypedef
+		}
+	}
+	return nil
+}
+
+func extractSpecsForTypedef(specs []ast.Spec) *model.Typedef {
+	if len(specs) >= 1 {
+		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
+			mTypedef := model.Typedef{
+				Name: typeSpec.Name.Name,
+			}
+			if ident, ok := typeSpec.Type.(*ast.Ident); ok {
+				mTypedef.Type = ident.Name
+			}
+			return &mTypedef
+		}
+	}
+	return nil
+}
+
+// ------------------------------------------------------- ENUM --------------------------------------------------------
+
+func extractGenDeclForEnum(node ast.Node) *model.Enum {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
+		// Continue parsing to see if it is an enum
+		// Docs live in the related typedef
+		return extractSpecsForEnum(genDecl.Specs)
 	}
 	return nil
 }
@@ -397,15 +432,52 @@ func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 	return "", false
 }
 
-func extractPackageName(node ast.Node) (string, bool) {
-	if file, ok := node.(*ast.File); ok {
-		if file.Name != nil {
-			return file.Name.Name, true
+// ----------------------------------------------------- INTERFACE -----------------------------------------------------
+
+func extractInterface(node ast.Node, imports map[string]string) *model.Interface {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
+		// Continue parsing to see if it an interface
+		if mInterface := extractSpecsForInterface(genDecl.Specs, imports); mInterface != nil {
+			// Docline of interface (that could contain annotations) appear far before the details of the struct
+			mInterface.DocLines = extractComments(genDecl.Doc)
+			return mInterface
 		}
-		return "", true
 	}
-	return "", false
+	return nil
 }
+
+func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *model.Interface {
+	if len(specs) >= 1 {
+		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
+			if interfaceType, ok := typeSpec.Type.(*ast.InterfaceType); ok {
+				return &model.Interface{
+					Name:    typeSpec.Name.Name,
+					Methods: extractInterfaceMethods(interfaceType.Methods, imports),
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
+	methods := []model.Operation{}
+	for _, field := range fieldList.List {
+		if len(field.Names) > 0 {
+			if funcType, ok := field.Type.(*ast.FuncType); ok {
+				methods = append(methods, model.Operation{
+					DocLines:   extractComments(field.Doc),
+					Name:       field.Names[0].Name,
+					InputArgs:  extractFieldList(funcType.Params, imports),
+					OutputArgs: extractFieldList(funcType.Results, imports),
+				})
+			}
+		}
+	}
+	return methods
+}
+
+// ----------------------------------------------------- OPERATION -----------------------------------------------------
 
 func extractOperation(node ast.Node, imports map[string]string) *model.Operation {
 	if funcDecl, ok := node.(*ast.FuncDecl); ok {
@@ -436,51 +508,4 @@ func extractOperation(node ast.Node, imports map[string]string) *model.Operation
 	return nil
 }
 
-func extractSpecsForTypedef(specs []ast.Spec) *model.Typedef {
-	if len(specs) >= 1 {
-		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
-			mTypedef := model.Typedef{
-				Name: typeSpec.Name.Name,
-			}
-			if ident, ok := typeSpec.Type.(*ast.Ident); ok {
-				mTypedef.Type = ident.Name
-			}
-			return &mTypedef
-		}
-	}
-	return nil
-}
-
-func extractComments(commentGroup *ast.CommentGroup) []string {
-	lines := []string{}
-	if commentGroup != nil {
-		for _, comment := range commentGroup.List {
-			lines = append(lines, comment.Text)
-		}
-	}
-	return lines
-}
-
-func extractTag(basicLit *ast.BasicLit) string {
-	if basicLit != nil {
-		return basicLit.Value
-	}
-	return ""
-}
-
-func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
-	methods := []model.Operation{}
-	for _, field := range fieldList.List {
-		if len(field.Names) > 0 {
-			if funcType, ok := field.Type.(*ast.FuncType); ok {
-				methods = append(methods, model.Operation{
-					DocLines:   extractComments(field.Doc),
-					Name:       field.Names[0].Name,
-					InputArgs:  extractFieldList(funcType.Params, imports),
-					OutputArgs: extractFieldList(funcType.Results, imports),
-				})
-			}
-		}
-	}
-	return methods
-}
+// ---------------------------------------------------------------------------------------------------------------------
