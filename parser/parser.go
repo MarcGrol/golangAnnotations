@@ -14,9 +14,7 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-var (
-	debugAstOfSources = false
-)
+var debugAstOfSources = false
 
 type myParser struct {
 }
@@ -155,8 +153,7 @@ func embedOperationsInStructs(visitor *astVisitor) {
 	for idx := range visitor.Operations {
 		mOperation := visitor.Operations[idx]
 		if mOperation.RelatedStruct != nil {
-			mStruct, ok := mStructMap[(*mOperation.RelatedStruct).TypeName]
-			if ok {
+			if mStruct, ok := mStructMap[(*mOperation.RelatedStruct).TypeName]; ok {
 				mStruct.Operations = append(mStruct.Operations, &mOperation)
 			}
 		}
@@ -237,8 +234,7 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 	if node != nil {
 
 		// package-name is in isolated node
-		packageName, ok := extractPackageName(node)
-		if ok {
+		if packageName, ok := extractPackageName(node); ok {
 			v.PackageName = packageName
 		}
 
@@ -256,11 +252,9 @@ func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
 }
 
 func (v *astVisitor) extractGenDeclImports(node ast.Node) {
-	genDecl, ok := node.(*ast.GenDecl)
-	if ok {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
 		for _, spec := range genDecl.Specs {
-			importSpec, ok := spec.(*ast.ImportSpec)
-			if ok {
+			if importSpec, ok := spec.(*ast.ImportSpec); ok {
 				quotedImport := importSpec.Path.Value
 				unquotedImport := strings.Trim(quotedImport, "\"")
 				init, last := filepath.Split(unquotedImport)
@@ -274,8 +268,7 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 }
 
 func (v *astVisitor) parseAsStruct(node ast.Node) {
-	mStruct := extractGenDeclForStruct(node, v.Imports)
-	if mStruct != nil {
+	if mStruct := extractGenDeclForStruct(node, v.Imports); mStruct != nil {
 		mStruct.PackageName = v.PackageName
 		mStruct.Filename = v.CurrentFilename
 		v.Structs = append(v.Structs, *mStruct)
@@ -283,8 +276,7 @@ func (v *astVisitor) parseAsStruct(node ast.Node) {
 }
 
 func (v *astVisitor) parseAsTypedef(node ast.Node) {
-	mTypedef := extractGenDeclForTypedef(node)
-	if mTypedef != nil {
+	if mTypedef := extractGenDeclForTypedef(node); mTypedef != nil {
 		mTypedef.PackageName = v.PackageName
 		mTypedef.Filename = v.CurrentFilename
 		v.Typedefs = append(v.Typedefs, *mTypedef)
@@ -292,8 +284,7 @@ func (v *astVisitor) parseAsTypedef(node ast.Node) {
 }
 
 func (v *astVisitor) parseAsEnum(node ast.Node) {
-	mEnum := extractGenDeclForEnum(node)
-	if mEnum != nil {
+	if mEnum := extractGenDeclForEnum(node); mEnum != nil {
 		mEnum.PackageName = v.PackageName
 		mEnum.Filename = v.CurrentFilename
 		v.Enums = append(v.Enums, *mEnum)
@@ -302,8 +293,7 @@ func (v *astVisitor) parseAsEnum(node ast.Node) {
 
 func (v *astVisitor) parseAsInterFace(node ast.Node) {
 	// if interfaces, get its methods
-	mInterface := extractGenDecForInterface(node, v.Imports)
-	if mInterface != nil {
+	if mInterface := extractGenDecForInterface(node, v.Imports); mInterface != nil {
 		mInterface.PackageName = v.PackageName
 		mInterface.Filename = v.CurrentFilename
 		v.Interfaces = append(v.Interfaces, *mInterface)
@@ -312,8 +302,7 @@ func (v *astVisitor) parseAsInterFace(node ast.Node) {
 
 func (v *astVisitor) parseAsOperation(node ast.Node) {
 	// if mOperation, get its signature
-	mOperation := extractOperation(node, v.Imports)
-	if mOperation != nil {
+	if mOperation := extractOperation(node, v.Imports); mOperation != nil {
 		mOperation.PackageName = v.PackageName
 		mOperation.Filename = v.CurrentFilename
 		v.Operations = append(v.Operations, *mOperation)
@@ -321,11 +310,9 @@ func (v *astVisitor) parseAsOperation(node ast.Node) {
 }
 
 func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.Struct {
-	genDecl, ok := node.(*ast.GenDecl)
-	if ok {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it a struct
-		mStruct := extractSpecsForStruct(genDecl.Specs, imports)
-		if mStruct != nil {
+		if mStruct := extractSpecsForStruct(genDecl.Specs, imports); mStruct != nil {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			mStruct.DocLines = extractComments(genDecl.Doc)
 			return mStruct
@@ -335,11 +322,9 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.St
 }
 
 func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
-	genDecl, ok := node.(*ast.GenDecl)
-	if ok {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it a struct
-		mTypedef := extractSpecsForTypedef(genDecl.Specs)
-		if mTypedef != nil {
+		if mTypedef := extractSpecsForTypedef(genDecl.Specs); mTypedef != nil {
 			mTypedef.DocLines = extractComments(genDecl.Doc)
 			return mTypedef
 		}
@@ -348,8 +333,7 @@ func extractGenDeclForTypedef(node ast.Node) *model.Typedef {
 }
 
 func extractGenDeclForEnum(node ast.Node) *model.Enum {
-	genDecl, ok := node.(*ast.GenDecl)
-	if ok {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it is an enum
 		// Docs live in the related typedef
 		return extractSpecsForEnum(genDecl.Specs)
@@ -358,11 +342,9 @@ func extractGenDeclForEnum(node ast.Node) *model.Enum {
 }
 
 func extractGenDecForInterface(node ast.Node, imports map[string]string) *model.Interface {
-	genDecl, ok := node.(*ast.GenDecl)
-	if ok {
+	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it an interface
-		mInterface := extractSpecsForInterface(genDecl.Specs, imports)
-		if mInterface != nil {
+		if mInterface := extractSpecsForInterface(genDecl.Specs, imports); mInterface != nil {
 			// Docline of interface (that could contain annotations) appear far before the details of the struct
 			mInterface.DocLines = extractComments(genDecl.Doc)
 			return mInterface
@@ -373,10 +355,8 @@ func extractGenDecForInterface(node ast.Node, imports map[string]string) *model.
 
 func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.Struct {
 	if len(specs) >= 1 {
-		typeSpec, ok := specs[0].(*ast.TypeSpec)
-		if ok {
-			structType, ok := typeSpec.Type.(*ast.StructType)
-			if ok {
+		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
+			if structType, ok := typeSpec.Type.(*ast.StructType); ok {
 				return &model.Struct{
 					Name:   typeSpec.Name.Name,
 					Fields: extractFieldList(structType.Fields, imports),
@@ -388,21 +368,18 @@ func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.S
 }
 
 func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
-	typeName, ok := extractEnumTypeName(specs)
-	if ok {
+	if typeName, ok := extractEnumTypeName(specs); ok {
 		mEnum := model.Enum{
 			Name:         typeName,
 			EnumLiterals: []model.EnumLiteral{},
 		}
 		for _, spec := range specs {
-			valueSpec, ok := spec.(*ast.ValueSpec)
-			if ok {
+			if valueSpec, ok := spec.(*ast.ValueSpec); ok {
 				enumLiteral := model.EnumLiteral{
 					Name: valueSpec.Names[0].Name,
 				}
 				for _, value := range valueSpec.Values {
-					basicLit, ok := value.(*ast.BasicLit)
-					if ok {
+					if basicLit, ok := value.(*ast.BasicLit); ok {
 						enumLiteral.Value = strings.Trim(basicLit.Value, "\"")
 						break
 					}
@@ -417,12 +394,10 @@ func extractSpecsForEnum(specs []ast.Spec) *model.Enum {
 
 func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 	for _, spec := range specs {
-		valueSpec, ok := spec.(*ast.ValueSpec)
-		if ok {
+		if valueSpec, ok := spec.(*ast.ValueSpec); ok {
 			if valueSpec.Type != nil {
 				for _, name := range valueSpec.Names {
-					ident, ok := valueSpec.Type.(*ast.Ident)
-					if ok {
+					if ident, ok := valueSpec.Type.(*ast.Ident); ok {
 						if name.Obj.Kind == ast.Con {
 							return ident.Name, true
 						}
@@ -436,10 +411,8 @@ func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 
 func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *model.Interface {
 	if len(specs) >= 1 {
-		typeSpec, ok := specs[0].(*ast.TypeSpec)
-		if ok {
-			interfaceType, ok := typeSpec.Type.(*ast.InterfaceType)
-			if ok {
+		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
+			if interfaceType, ok := typeSpec.Type.(*ast.InterfaceType); ok {
 				return &model.Interface{
 					Name:    typeSpec.Name.Name,
 					Methods: extractInterfaceMethods(interfaceType.Methods, imports),
@@ -451,18 +424,17 @@ func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *mode
 }
 
 func extractPackageName(node ast.Node) (string, bool) {
-	file, ok := node.(*ast.File)
-	if ok {
+	if file, ok := node.(*ast.File); ok {
 		if file.Name != nil {
 			return file.Name.Name, true
 		}
+		return "", true
 	}
-	return "", ok
+	return "", false
 }
 
 func extractOperation(node ast.Node, imports map[string]string) *model.Operation {
-	funcDecl, ok := node.(*ast.FuncDecl)
-	if ok {
+	if funcDecl, ok := node.(*ast.FuncDecl); ok {
 		mOperation := model.Operation{
 			DocLines: extractComments(funcDecl.Doc),
 		}
@@ -492,13 +464,11 @@ func extractOperation(node ast.Node, imports map[string]string) *model.Operation
 
 func extractSpecsForTypedef(specs []ast.Spec) *model.Typedef {
 	if len(specs) >= 1 {
-		typeSpec, ok := specs[0].(*ast.TypeSpec)
-		if ok {
+		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
 			mTypedef := model.Typedef{
 				Name: typeSpec.Name.Name,
 			}
-			ident, ok := typeSpec.Type.(*ast.Ident)
-			if ok {
+			if ident, ok := typeSpec.Type.(*ast.Ident); ok {
 				mTypedef.Type = ident.Name
 			}
 			return &mTypedef
@@ -528,8 +498,7 @@ func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string
 	methods := []model.Operation{}
 	for _, field := range fieldList.List {
 		if len(field.Names) > 0 {
-			funcType, ok := field.Type.(*ast.FuncType)
-			if ok {
+			if funcType, ok := field.Type.(*ast.FuncType); ok {
 				methods = append(methods, model.Operation{
 					DocLines:   extractComments(field.Doc),
 					Name:       field.Names[0].Name,

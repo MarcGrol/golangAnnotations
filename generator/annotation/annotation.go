@@ -34,8 +34,7 @@ type AnnotationDescriptor struct {
 func (ar *annotationRegistry) ResolveAnnotations(annotationDocline []string) []Annotation {
 	annotations := []Annotation{}
 	for _, line := range annotationDocline {
-		ann, ok := ar.ResolveAnnotation(strings.TrimSpace(line))
-		if ok {
+		if ann, ok := ar.ResolveAnnotation(strings.TrimSpace(line)); ok {
 			annotations = append(annotations, ann)
 		}
 	}
