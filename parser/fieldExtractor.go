@@ -198,7 +198,7 @@ func extractMapValueType(mapValueType ast.Expr) string {
 		}
 
 		if selectorExpr := formatSelectorExpr(arrayType.Elt); selectorExpr != "" {
-			return selectorExpr
+			return fmt.Sprintf("[]%s", selectorExpr)
 		}
 
 		if starExpr, ok := arrayType.Elt.(*ast.StarExpr); ok {
