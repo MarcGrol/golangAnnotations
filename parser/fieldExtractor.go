@@ -137,26 +137,17 @@ func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[s
 	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
 			mField.PackageName = imports[ident.Name]
-			mField.TypeName = formatSelectorExpr(selectorExpr)
+			mField.TypeName = formatExpression(selectorExpr)
 			return true
 		}
 	}
 	return false
 }
 
-func formatSelectorExpr(expr ast.Expr) string {
-	if selectorExpr, ok := expr.(*ast.SelectorExpr); ok {
-		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-			return fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-		}
-	}
-	return ""
-}
-
 func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if mapType, ok := fieldType.(*ast.MapType); ok {
-		if mapKey := extractMapKeyType(mapType.Key); mapKey != "" {
-			if mapValue := extractMapValueType(mapType.Value); mapValue != "" {
+		if mapKey := formatExpression(mapType.Key); mapKey != "" {
+			if mapValue := formatExpression(mapType.Value); mapValue != "" {
 				mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
 				mField.IsMap = true
 				return true
@@ -164,50 +155,6 @@ func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string
 		}
 	}
 	return false
-}
-
-func extractMapKeyType(mapKeyType ast.Expr) string {
-
-	if ident, ok := mapKeyType.(*ast.Ident); ok {
-		return ident.Name
-	}
-
-	if selectorExpr := formatSelectorExpr(mapKeyType); selectorExpr != "" {
-		return selectorExpr
-	}
-
-	return ""
-}
-
-func extractMapValueType(mapValueType ast.Expr) string {
-
-	if ident, ok := mapValueType.(*ast.Ident); ok {
-		return ident.Name
-	}
-
-	if starExpr, ok := mapValueType.(*ast.StarExpr); ok {
-		if ident, ok := starExpr.X.(*ast.Ident); ok {
-			return fmt.Sprintf("*%s", ident.Name)
-		}
-	}
-
-	if arrayType, ok := mapValueType.(*ast.ArrayType); ok {
-
-		if ident, ok := arrayType.Elt.(*ast.Ident); ok {
-			return fmt.Sprintf("[]%s", ident.Name)
-		}
-
-		if selectorExpr := formatSelectorExpr(arrayType.Elt); selectorExpr != "" {
-			return fmt.Sprintf("[]%s", selectorExpr)
-		}
-
-		if starExpr, ok := arrayType.Elt.(*ast.StarExpr); ok {
-			if ident, ok := starExpr.X.(*ast.Ident); ok {
-				return fmt.Sprintf("[]*%s", ident.Name)
-			}
-		}
-	}
-	return ""
 }
 
 func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
@@ -222,11 +169,37 @@ func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[s
 		results := make([]string, 0)
 		if funcType.Results != nil {
 			for _, result := range funcType.Results.List {
-				params = append(params, fmt.Sprintf("%s", result.Type))
+				params = append(params, formatExpression(result.Type))
 			}
 		}
 		mField.TypeName = fmt.Sprintf("func(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
 		return true
 	}
 	return false
+}
+
+func formatExpression(expr ast.Expr) string {
+
+	if arrayType, ok := expr.(*ast.ArrayType); ok {
+		if arrayElt := formatExpression(arrayType.Elt); arrayElt != "" {
+			return fmt.Sprintf("[]%s", arrayElt)
+		}
+	}
+
+	if starExpr, ok := expr.(*ast.StarExpr); ok {
+		if starX := formatExpression(starExpr.X); starX != "" {
+			return fmt.Sprintf("*%s", starX)
+		}
+	}
+
+	if ident, ok := expr.(*ast.Ident); ok {
+		return fmt.Sprintf("%s", ident.Name)
+	}
+
+	if selectorExpr, ok := expr.(*ast.SelectorExpr); ok {
+		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+			return fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+		}
+	}
+	return ""
 }
