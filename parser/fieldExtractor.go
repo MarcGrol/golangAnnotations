@@ -55,8 +55,6 @@ func extractField(field *ast.Field, imports map[string]string) *model.Field {
 				mField.IsSlice = true
 			case ExpressionType_pointer:
 				mField.IsPointer = true
-			case ExpressionType_map:
-				mField.IsMap = true
 			}
 		}
 		return mField

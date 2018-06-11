@@ -58,19 +58,19 @@ func TestParseStructsInFile(t *testing.T) {
 			s.Fields[8])
 
 		assertField(t,
-			model.Field{Name: "ChildMap", TypeName: "map[string]Person", IsPointer: false, IsSlice: false, IsMap: true},
+			model.Field{Name: "ChildMap", TypeName: "map[string]Person", IsPointer: false, IsSlice: false},
 			s.Fields[9])
 
 		assertField(t,
-			model.Field{Name: "ChildPointerMap", TypeName: "map[string]*Person", IsPointer: false, IsSlice: false, IsMap: true},
+			model.Field{Name: "ChildPointerMap", TypeName: "map[string]*Person", IsPointer: false, IsSlice: false},
 			s.Fields[10])
 
 		assertField(t,
-			model.Field{Name: "ChildrenMap", TypeName: "map[string][]Person", IsPointer: false, IsSlice: false, IsMap: true},
+			model.Field{Name: "ChildrenMap", TypeName: "map[string][]Person", IsPointer: false, IsSlice: false},
 			s.Fields[11])
 
 		assertField(t,
-			model.Field{Name: "ChildrenPointerMap", TypeName: "map[string][]*Person", IsPointer: false, IsSlice: false, IsMap: true},
+			model.Field{Name: "ChildrenPointerMap", TypeName: "map[string][]*Person", IsPointer: false, IsSlice: false},
 			s.Fields[12])
 	}
 }
@@ -111,7 +111,6 @@ func assertField(t *testing.T, expected model.Field, actual model.Field) {
 	assert.Equal(t, expected.TypeName, actual.TypeName)
 	assert.Equal(t, expected.IsPointer, actual.IsPointer)
 	assert.Equal(t, expected.IsSlice, actual.IsSlice)
-	assert.Equal(t, expected.IsMap, actual.IsMap)
 	assert.Equal(t, expected.Tag, actual.Tag)
 	assert.Equal(t, len(expected.CommentLines), len(actual.CommentLines))
 	assertStringSlice(t, expected.CommentLines, actual.CommentLines)

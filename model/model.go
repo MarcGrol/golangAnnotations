@@ -46,13 +46,12 @@ type Interface struct {
 
 // @JsonStruct()
 type Field struct {
-	PackageName  string   `json:"packageName,omitempty"`
-	DocLines     []string `json:"docLines,omitempty"`
-	Name         string   `json:"name,omitempty"`
-	TypeName     string   `json:"typeName,omitempty"`
-	IsSlice      bool     `json:"isSlice,omitempty"`
-	IsPointer    bool     `json:"isPointer,omitempty"`
-	IsMap        bool     `json:"isMap,omitempty"`
+	PackageName string   `json:"packageName,omitempty"`
+	DocLines    []string `json:"docLines,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	TypeName    string   `json:"typeName,omitempty"`
+	IsSlice     bool     `json:"isSlice,omitempty"`
+	IsPointer   bool     `json:"isPointer,omitempty"`
 	Tag          string   `json:"tag,omitempty"`
 	CommentLines []string `json:"commentLines,omitempty"`
 }
