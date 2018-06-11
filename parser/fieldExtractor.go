@@ -5,6 +5,8 @@ import (
 	"go/ast"
 	"log"
 
+	"strings"
+
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
@@ -62,6 +64,10 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 	}
 
 	if extractSelectorField(field.Type, &mField, imports) {
+		return mField, true
+	}
+
+	if extractFuncTypeField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
@@ -168,21 +174,19 @@ func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string
 }
 
 func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	{
-		if starExpr, ok := fieldType.(*ast.StarExpr); ok {
-			if ident, ok := starExpr.X.(*ast.Ident); ok {
-				mField.TypeName = ident.Name
-				mField.IsPointer = true
-				return true
-			}
+	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
+		if ident, ok := starExpr.X.(*ast.Ident); ok {
+			mField.TypeName = ident.Name
+			mField.IsPointer = true
+			return true
+		}
 
-			if selectorExpr, ok := starExpr.X.(*ast.SelectorExpr); ok {
-				if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-					mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-					mField.IsPointer = true
-					mField.PackageName = imports[ident.Name]
-					return true
-				}
+		if selectorExpr, ok := starExpr.X.(*ast.SelectorExpr); ok {
+			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+				mField.IsPointer = true
+				mField.PackageName = imports[ident.Name]
+				return true
 			}
 		}
 	}
@@ -205,6 +209,27 @@ func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[s
 			mField.PackageName = imports[ident.Name]
 			return true
 		}
+	}
+	return false
+}
+
+func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	funcType, ok := fieldType.(*ast.FuncType)
+	if ok {
+		params := make([]string, 0)
+		for _, param := range funcType.Params.List {
+			if f, ok := extractField(param, imports); ok {
+				params = append(params, f.Name)
+			}
+		}
+		results := make([]string, 0)
+		if funcType.Results != nil {
+			for _, result := range funcType.Results.List {
+				params = append(params, fmt.Sprintf("%s", result.Type))
+			}
+		}
+		mField.TypeName = fmt.Sprintf("func(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
+		return true
 	}
 	return false
 }
