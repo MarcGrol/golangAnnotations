@@ -23,16 +23,14 @@ func extractFieldList(fieldList *ast.FieldList, imports map[string]string) []mod
 func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 	mFields := make([]model.Field, 0)
 	if field != nil {
-		if len(field.Names) == 0 {
-			if f, ok := extractField(field, imports); ok {
-				mFields = append(mFields, f)
-			}
-		} else {
-			// A single field can refer to multiple: example: x,y int -> x int, y int
-			for _, name := range field.Names {
-				if field, ok := extractField(field, imports); ok {
-					field.Name = name.Name
-					mFields = append(mFields, field)
+		if mField := extractField(field, imports); mField != nil {
+			if len(field.Names) == 0 {
+				mFields = append(mFields, *mField)
+			} else {
+				// A single field can refer to multiple: example: x,y int -> x int, y int
+				for _, name := range field.Names {
+					mField.Name = name.Name
+					mFields = append(mFields, *mField)
 				}
 			}
 		}
@@ -40,240 +38,212 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 	return mFields
 }
 
-func extractField(field *ast.Field, imports map[string]string) (model.Field, bool) {
-	mField := model.Field{
-		DocLines:     extractComments(field.Doc),
-		CommentLines: extractComments(field.Comment),
-		Tag:          extractTag(field.Tag),
+func extractField(field *ast.Field, imports map[string]string) *model.Field {
+	if fieldType := processExpression(field.Type, imports); fieldType != nil {
+		mField := &model.Field{
+			PackageName:  fieldType.PackageName,
+			DocLines:     extractComments(field.Doc),
+			Name:         fieldType.Name,
+			TypeName:     fieldType.TypeName,
+			Tag:          extractTag(field.Tag),
+			CommentLines: extractComments(field.Comment),
+		}
+		//FIXME take expressionType order into account
+		for _, expressionType := range fieldType.ExpressionTypes {
+			switch expressionType {
+			case ExpressionType_slice:
+				mField.IsSlice = true
+			case ExpressionType_pointer:
+				mField.IsPointer = true
+			case ExpressionType_map:
+				mField.IsMap = true
+			}
+		}
+		return mField
 	}
-
-	if extractEllipsisField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	if extractSliceField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	if extractElementType(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	if extractMapField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	if extractFuncTypeField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	if extractInterfaceField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
-	log.Printf("*** Could not understand field %+v: '%+v (%s)'", field, field.Names, field.Type)
-
-	return mField, false
+	return nil
 }
 
-func extractEllipsisField(expr ast.Expr, mField *model.Field, imports map[string]string) bool {
+func processExpression(expr ast.Expr, imports map[string]string) *Expression {
+
+	if mExpr := processEllipsis(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processArrayType(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processStarExpr(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processIdent(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processSelectorExpr(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processMapType(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processFuncType(expr, imports); mExpr != nil {
+		return mExpr
+	}
+	if mExpr := processInterfaceType(expr, imports); mExpr != nil {
+		return mExpr
+	}
+
+	log.Printf("*** Could not understand expression %+v", reflect.TypeOf(expr))
+	return nil
+}
+
+func processEllipsis(expr ast.Expr, imports map[string]string) *Expression {
 	if ellipsisType, ok := expr.(*ast.Ellipsis); ok {
-
-		mField.IsEllipsis = true
-
-		if extractElementType(ellipsisType.Elt, mField, imports) {
-			return true
+		mExpr := &Expression{
+			ExpressionTypes: []ExpressionType{ExpressionType_variadic},
+			TypeName:        "...",
 		}
+		if ellipsisType.Elt != nil {
+			if elt := processExpression(ellipsisType.Elt, imports); elt != nil {
+				mExpr.ExpressionTypes = append(mExpr.ExpressionTypes, elt.ExpressionTypes...)
+				mExpr.PackageName = elt.PackageName
+				mExpr.TypeName = fmt.Sprintf("...%s", elt.Formatted)
+			}
+		}
+		mExpr.Formatted = mExpr.TypeName
+		return mExpr
 	}
-	return false
+	return nil
 }
 
-func extractSliceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
-
-		mField.IsSlice = true
-
-		if extractElementType(arrayType.Elt, mField, imports) {
-			return true
-		}
-	}
-	return false
-}
-
-func extractElementType(elt ast.Expr, mField *model.Field, imports map[string]string) bool {
-
-	if extractPointerField(elt, mField, imports) {
-		return true
-	}
-
-	if extractIdentField(elt, mField, imports) {
-		return true
-	}
-
-	if extractSelectorField(elt, mField, imports) {
-		return true
-	}
-
-	return false
-}
-
-func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
-
-		mField.IsPointer = true
-
-		if extractIdentField(starExpr.X, mField, imports) {
-			return true
-		}
-
-		if extractSelectorField(starExpr.X, mField, imports); ok {
-			return true
-		}
-	}
-	return false
-}
-
-func extractIdentField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	if ident, ok := fieldType.(*ast.Ident); ok {
-		mField.TypeName = ident.Name
-		return true
-	}
-	return false
-}
-
-func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
-		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-			mField.PackageName = imports[ident.Name]
-			mField.TypeName = formatExpression(selectorExpr, imports)
-			return true
-		}
-	}
-	return false
-}
-
-func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	if mapType, ok := fieldType.(*ast.MapType); ok {
-
-		mField.IsMap = true
-
-		if mapKey := formatExpression(mapType.Key, imports); mapKey != "" {
-			if mapValue := formatExpression(mapType.Value, imports); mapValue != "" {
-				mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
-				return true
+		if elt := processExpression(arrayType.Elt, imports); elt != nil {
+			return &Expression{
+				ExpressionTypes: append([]ExpressionType{ExpressionType_slice}, elt.ExpressionTypes...),
+				PackageName:     elt.PackageName,
+				TypeName:        elt.TypeName,
+				Formatted:       fmt.Sprintf("[]%s", elt.Formatted),
 			}
 		}
 	}
-	return false
+	return nil
 }
 
-func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+func processStarExpr(fieldType ast.Expr, imports map[string]string) *Expression {
+	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
+		if x := processExpression(starExpr.X, imports); x != nil {
+			return &Expression{
+				ExpressionTypes: append([]ExpressionType{ExpressionType_pointer}, x.ExpressionTypes...),
+				PackageName:     x.PackageName,
+				TypeName:        x.TypeName,
+				Formatted:       fmt.Sprintf("*%s", x.Formatted),
+			}
+		}
+	}
+	return nil
+}
+
+func processIdent(fieldType ast.Expr, imports map[string]string) *Expression {
+	if ident, ok := fieldType.(*ast.Ident); ok {
+		return &Expression{
+			TypeName:  ident.Name,
+			Formatted: ident.Name,
+		}
+	}
+	return nil
+}
+
+func processSelectorExpr(fieldType ast.Expr, imports map[string]string) *Expression {
+	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
+		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+			typeName := fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
+			return &Expression{
+				PackageName: imports[ident.Name],
+				TypeName:    typeName,
+				Formatted:   typeName,
+			}
+		}
+	}
+	return nil
+}
+
+func processMapType(fieldType ast.Expr, imports map[string]string) *Expression {
+	if mapType, ok := fieldType.(*ast.MapType); ok {
+		if key := processExpression(mapType.Key, imports); key != nil {
+			if value := processExpression(mapType.Value, imports); value != nil {
+				typeName := fmt.Sprintf("map[%s]%s", key.Formatted, value.Formatted)
+				return &Expression{
+					ExpressionTypes: []ExpressionType{ExpressionType_map},
+					TypeName:        typeName,
+					Formatted:       typeName,
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if funcType, ok := fieldType.(*ast.FuncType); ok {
 		params := make([]string, 0)
 		for _, param := range funcType.Params.List {
-			if paramField, ok := extractField(param, imports); ok {
+			if paramField := extractField(param, imports); paramField != nil {
 				formattedParam := paramField.TypeName
 				if paramField.Name != "" {
 					formattedParam = fmt.Sprintf("%s %s", paramField.Name, paramField.TypeName)
 				}
 				params = append(params, formattedParam)
-			} else {
-				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
 			}
 		}
 		results := make([]string, 0)
 		if funcType.Results != nil {
 			for _, result := range funcType.Results.List {
-				formattedResult := formatExpression(result.Type, imports)
-				if formattedResult != "" {
-					results = append(results, formattedResult)
-				} else {
-					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
+				if resultType := processExpression(result.Type, imports); resultType != nil {
+					results = append(results, resultType.Formatted)
 				}
 			}
 		}
-		mField.TypeName = fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
-		return true
+		typeName := fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
+		return &Expression{
+			ExpressionTypes: []ExpressionType{ExpressionType_func},
+			TypeName:        typeName,
+			Formatted:       typeName,
+		}
 	}
-	return false
+	return nil
 }
 
-func extractInterfaceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+func processInterfaceType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if interfaceType, ok := fieldType.(*ast.InterfaceType); ok {
 		methods := make([]string, 0)
 		for _, method := range extractFieldList(interfaceType.Methods, imports) {
 			methods = append(methods, fmt.Sprintf("%s%s", method.Name, method.TypeName))
 		}
-		mField.TypeName = fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
-		return true
+		typeName := fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
+		return &Expression{
+			ExpressionTypes: []ExpressionType{ExpressionType_interface},
+			TypeName:        typeName,
+			Formatted:       typeName,
+		}
 	}
-	return false
+	return nil
 }
 
-func formatExpression(expr ast.Expr, imports map[string]string) string {
-
-	if arrayType, ok := expr.(*ast.ArrayType); ok {
-		if arrayElt := formatExpression(arrayType.Elt, imports); arrayElt != "" {
-			return fmt.Sprintf("[]%s", arrayElt)
-		}
-	}
-
-	if starExpr, ok := expr.(*ast.StarExpr); ok {
-		if starX := formatExpression(starExpr.X, imports); starX != "" {
-			return fmt.Sprintf("*%s", starX)
-		}
-	}
-
-	if ident, ok := expr.(*ast.Ident); ok {
-		return fmt.Sprintf("%s", ident.Name)
-	}
-
-	if selectorExpr, ok := expr.(*ast.SelectorExpr); ok {
-		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-			return fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-		}
-	}
-
-	if mapType, ok := expr.(*ast.MapType); ok {
-		if mapKey := formatExpression(mapType.Key, imports); mapKey != "" {
-			if mapValue := formatExpression(mapType.Value, imports); mapValue != "" {
-				return fmt.Sprintf("map[%s]%s", mapKey, mapValue)
-			}
-		}
-	}
-
-	if funcType, ok := expr.(*ast.FuncType); ok {
-		params := make([]string, 0)
-		for _, param := range funcType.Params.List {
-			if formattedParam := formatExpression(param.Type, imports); formattedParam != "" {
-				params = append(params, formattedParam)
-			} else {
-				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
-			}
-		}
-		results := make([]string, 0)
-		if funcType.Results != nil {
-			for _, result := range funcType.Results.List {
-				formattedResult := formatExpression(result.Type, imports)
-				if formattedResult != "" {
-					results = append(results, formattedResult)
-				} else {
-					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
-				}
-			}
-		}
-		return fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
-	}
-
-	if interfaceType, ok := expr.(*ast.InterfaceType); ok {
-		methods := make([]string, 0)
-		for _, method := range extractFieldList(interfaceType.Methods, imports) {
-			methods = append(methods, fmt.Sprintf("%s%s", method.Name, method.TypeName))
-		}
-		return fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
-	}
-
-	log.Printf("Unrecognized expression: %+v\n", reflect.TypeOf(expr))
-
-	return ""
+type Expression struct {
+	ExpressionTypes []ExpressionType
+	PackageName     string
+	Name            string
+	TypeName        string
+	Formatted       string
 }
+
+type ExpressionType int
+
+const (
+	ExpressionType_default ExpressionType = iota
+	ExpressionType_variadic
+	ExpressionType_slice
+	ExpressionType_pointer
+	ExpressionType_map
+	ExpressionType_func
+	ExpressionType_interface
+)
