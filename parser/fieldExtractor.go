@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"go/ast"
 	"log"
-	"strings"
 	"reflect"
+	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
 )
@@ -59,6 +59,10 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		return mField, true
 	}
 
+	if extractInterfaceField(field.Type, &mField, imports) {
+		return mField, true
+	}
+
 	if extractMapField(field.Type, &mField, imports) {
 		return mField, true
 	}
@@ -73,10 +77,11 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 }
 
 func extractEllipsisField(expr ast.Expr, mField *model.Field, imports map[string]string) bool {
-	ellipsisType, ok := expr.(*ast.Ellipsis)
-	if ok {
+	if ellipsisType, ok := expr.(*ast.Ellipsis); ok {
+
+		mField.IsEllipsis = true
+
 		if extractElementType(ellipsisType.Elt, mField, imports) {
-			mField.IsEllipsis = true
 			return true
 		}
 	}
@@ -85,8 +90,10 @@ func extractEllipsisField(expr ast.Expr, mField *model.Field, imports map[string
 
 func extractSliceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
+
+		mField.IsSlice = true
+
 		if extractElementType(arrayType.Elt, mField, imports) {
-			mField.IsSlice = true
 			return true
 		}
 	}
@@ -113,13 +120,13 @@ func extractElementType(elt ast.Expr, mField *model.Field, imports map[string]st
 func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
 
+		mField.IsPointer = true
+
 		if extractIdentField(starExpr.X, mField, imports) {
-			mField.IsPointer = true
 			return true
 		}
 
 		if extractSelectorField(starExpr.X, mField, imports); ok {
-			mField.IsPointer = true
 			return true
 		}
 	}
@@ -145,12 +152,26 @@ func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[s
 	return false
 }
 
+func extractInterfaceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if interfaceType, ok := fieldType.(*ast.InterfaceType); ok {
+		methods := make([]string, 0)
+		for _, method := range extractFieldList(interfaceType.Methods, imports) {
+			methods = append(methods, fmt.Sprintf("%s%s", method.Name, method.TypeName))
+		}
+		mField.TypeName = fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
+		return true
+	}
+	return false
+}
+
 func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if mapType, ok := fieldType.(*ast.MapType); ok {
+
+		mField.IsMap = true
+
 		if mapKey := formatExpression(mapType.Key); mapKey != "" {
 			if mapValue := formatExpression(mapType.Value); mapValue != "" {
 				mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
-				mField.IsMap = true
 				return true
 			}
 		}
@@ -164,16 +185,27 @@ func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[s
 		params := make([]string, 0)
 		for _, param := range funcType.Params.List {
 			if f, ok := extractField(param, imports); ok {
-				params = append(params, f.Name)
+				formattedParam := f.TypeName
+				if f.Name != "" {
+					formattedParam = fmt.Sprintf("%s %s", f.Name, f.TypeName)
+				}
+				params = append(params, formattedParam)
+			} else {
+				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
 			}
 		}
 		results := make([]string, 0)
 		if funcType.Results != nil {
 			for _, result := range funcType.Results.List {
-				params = append(params, formatExpression(result.Type))
+				formattedResult := formatExpression(result.Type)
+				if formattedResult != "" {
+					results = append(results, formattedResult)
+				} else {
+					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
+				}
 			}
 		}
-		mField.TypeName = fmt.Sprintf("func(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
+		mField.TypeName = fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
 		return true
 	}
 	return false
