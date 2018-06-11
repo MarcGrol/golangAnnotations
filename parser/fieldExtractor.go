@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"log"
 	"strings"
+	"reflect"
 
 	"github.com/MarcGrol/golangAnnotations/model"
 )
@@ -180,6 +181,14 @@ func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[s
 
 func formatExpression(expr ast.Expr) string {
 
+	if mapType, ok := expr.(*ast.MapType); ok {
+		if mapKey := formatExpression(mapType.Key); mapKey != "" {
+			if mapValue := formatExpression(mapType.Value); mapValue != "" {
+				return fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+			}
+		}
+	}
+
 	if arrayType, ok := expr.(*ast.ArrayType); ok {
 		if arrayElt := formatExpression(arrayType.Elt); arrayElt != "" {
 			return fmt.Sprintf("[]%s", arrayElt)
@@ -201,5 +210,8 @@ func formatExpression(expr ast.Expr) string {
 			return fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 		}
 	}
+
+	log.Printf("Unrecognized expression: %+v\n", reflect.TypeOf(expr))
+
 	return ""
 }
