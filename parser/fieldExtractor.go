@@ -111,18 +111,15 @@ func extractElementType(elt ast.Expr, mField *model.Field, imports map[string]st
 
 func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
-		if ident, ok := starExpr.X.(*ast.Ident); ok {
-			mField.TypeName = ident.Name
+
+		if extractIdentField(starExpr.X, mField, imports) {
 			mField.IsPointer = true
 			return true
 		}
-		if selectorExpr, ok := starExpr.X.(*ast.SelectorExpr); ok {
-			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-				mField.PackageName = imports[ident.Name]
-				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-				mField.IsPointer = true
-				return true
-			}
+
+		if extractSelectorField(starExpr.X, mField, imports); ok {
+			mField.IsPointer = true
+			return true
 		}
 	}
 	return false
@@ -140,7 +137,6 @@ func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[s
 	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
 			mField.PackageName = imports[ident.Name]
-			mField.Name = ident.Name
 			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 			return true
 		}
