@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go/ast"
 	"log"
-
 	"strings"
 
 	"github.com/MarcGrol/golangAnnotations/model"
@@ -79,47 +78,15 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 func extractSliceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
 		mField.IsSlice = true
-		if extractSliceSelectorField(arrayType, mField, imports) {
+
+		if extractIdentField(arrayType.Elt, mField, imports) {
 			return true
 		}
-		if extractSlicePointerField(arrayType, mField, imports) {
+		if extractSelectorField(arrayType.Elt, mField, imports) {
 			return true
 		}
-	}
-	return false
-}
-
-func extractSliceSelectorField(arrayType *ast.ArrayType, mField *model.Field, imports map[string]string) bool {
-	if ident, ok := arrayType.Elt.(*ast.Ident); ok {
-		mField.TypeName = ident.Name
-		return true
-	}
-
-	if selectorExpr, ok := arrayType.Elt.(*ast.SelectorExpr); ok {
-		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-			mField.PackageName = imports[ident.Name]
+		if extractPointerField(arrayType.Elt, mField, imports) {
 			return true
-		}
-	}
-	return false
-}
-
-func extractSlicePointerField(arrayType *ast.ArrayType, mField *model.Field, imports map[string]string) bool {
-	if starExpr, ok := arrayType.Elt.(*ast.StarExpr); ok {
-		if ident, ok := starExpr.X.(*ast.Ident); ok {
-			mField.TypeName = ident.Name
-			mField.IsPointer = true
-			return true
-		}
-
-		if selectorExpr, ok := starExpr.X.(*ast.SelectorExpr); ok {
-			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-				mField.PackageName = imports[ident.Name]
-				mField.IsPointer = true
-				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-				return true
-			}
 		}
 	}
 	return false
@@ -183,9 +150,9 @@ func extractPointerField(fieldType ast.Expr, mField *model.Field, imports map[st
 
 		if selectorExpr, ok := starExpr.X.(*ast.SelectorExpr); ok {
 			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+				mField.PackageName = imports[ident.Name]
 				mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 				mField.IsPointer = true
-				mField.PackageName = imports[ident.Name]
 				return true
 			}
 		}
@@ -204,9 +171,9 @@ func extractIdentField(fieldType ast.Expr, mField *model.Field, imports map[stri
 func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+			mField.PackageName = imports[ident.Name]
 			mField.Name = ident.Name
 			mField.TypeName = fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
-			mField.PackageName = imports[ident.Name]
 			return true
 		}
 	}
