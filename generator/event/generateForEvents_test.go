@@ -11,13 +11,11 @@ import (
 )
 
 func cleanup() {
-	os.Remove(generationUtil.Prefixed("./testData/ast.json"))
 	os.Remove(generationUtil.Prefixed("./testData/aggregates.go"))
 	os.Remove(generationUtil.Prefixed("./testData/interface.go"))
 	os.Remove(generationUtil.Prefixed("./testData/wrappers.go"))
 	os.Remove(generationUtil.Prefixed("./testData/wrappers_test.go"))
-	os.Remove(generationUtil.Prefixed("./store/testDataStore/testDataStore.go"))
-	os.Remove(generationUtil.Prefixed("./repository/storeEvents.go"))
+	os.Remove(generationUtil.Prefixed("./testDataStore/testDataStore.go"))
 }
 
 func TestGenerateForEvents(t *testing.T) {
