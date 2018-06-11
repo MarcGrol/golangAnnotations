@@ -46,6 +46,10 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		Tag:          extractTag(field.Tag),
 	}
 
+	if extractEllipsisField(field.Type, &mField, imports) {
+		return mField, true
+	}
+
 	if extractSliceField(field.Type, &mField, imports) {
 		return mField, true
 	}
@@ -75,19 +79,38 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 	return mField, false
 }
 
+func extractEllipsisField(expr ast.Expr, mField *model.Field, imports map[string]string) bool {
+	ellipsisType, ok := expr.(*ast.Ellipsis)
+	if ok {
+		mField.IsEllipsis = true
+
+		if extractElementType(ellipsisType.Elt, mField, imports) {
+			return true
+		}
+	}
+	return false
+}
+
 func extractSliceField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
 		mField.IsSlice = true
 
-		if extractIdentField(arrayType.Elt, mField, imports) {
+		if extractElementType(arrayType.Elt, mField, imports) {
 			return true
 		}
-		if extractSelectorField(arrayType.Elt, mField, imports) {
-			return true
-		}
-		if extractPointerField(arrayType.Elt, mField, imports) {
-			return true
-		}
+	}
+	return false
+}
+
+func extractElementType(elt ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if extractIdentField(elt, mField, imports) {
+		return true
+	}
+	if extractSelectorField(elt, mField, imports) {
+		return true
+	}
+	if extractPointerField(elt, mField, imports) {
+		return true
 	}
 	return false
 }

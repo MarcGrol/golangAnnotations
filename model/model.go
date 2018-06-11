@@ -50,6 +50,7 @@ type Field struct {
 	DocLines     []string `json:"docLines,omitempty"`
 	Name         string   `json:"name,omitempty"`
 	TypeName     string   `json:"typeName,omitempty"`
+	IsEllipsis   bool     `json:"isEllipsis,omitempty"`
 	IsSlice      bool     `json:"isSlice,omitempty"`
 	IsPointer    bool     `json:"isPointer,omitempty"`
 	IsMap        bool     `json:"isMap,omitempty"`
