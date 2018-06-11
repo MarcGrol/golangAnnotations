@@ -59,15 +59,15 @@ func extractField(field *ast.Field, imports map[string]string) (model.Field, boo
 		return mField, true
 	}
 
-	if extractInterfaceField(field.Type, &mField, imports) {
-		return mField, true
-	}
-
 	if extractMapField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
 	if extractFuncTypeField(field.Type, &mField, imports) {
+		return mField, true
+	}
+
+	if extractInterfaceField(field.Type, &mField, imports) {
 		return mField, true
 	}
 
@@ -145,9 +145,55 @@ func extractSelectorField(fieldType ast.Expr, mField *model.Field, imports map[s
 	if selectorExpr, ok := fieldType.(*ast.SelectorExpr); ok {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
 			mField.PackageName = imports[ident.Name]
-			mField.TypeName = formatExpression(selectorExpr)
+			mField.TypeName = formatExpression(selectorExpr, imports)
 			return true
 		}
+	}
+	return false
+}
+
+func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if mapType, ok := fieldType.(*ast.MapType); ok {
+
+		mField.IsMap = true
+
+		if mapKey := formatExpression(mapType.Key, imports); mapKey != "" {
+			if mapValue := formatExpression(mapType.Value, imports); mapValue != "" {
+				mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
+	if funcType, ok := fieldType.(*ast.FuncType); ok {
+		params := make([]string, 0)
+		for _, param := range funcType.Params.List {
+			if paramField, ok := extractField(param, imports); ok {
+				formattedParam := paramField.TypeName
+				if paramField.Name != "" {
+					formattedParam = fmt.Sprintf("%s %s", paramField.Name, paramField.TypeName)
+				}
+				params = append(params, formattedParam)
+			} else {
+				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
+			}
+		}
+		results := make([]string, 0)
+		if funcType.Results != nil {
+			for _, result := range funcType.Results.List {
+				formattedResult := formatExpression(result.Type, imports)
+				if formattedResult != "" {
+					results = append(results, formattedResult)
+				} else {
+					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
+				}
+			}
+		}
+		mField.TypeName = fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
+		return true
 	}
 	return false
 }
@@ -164,71 +210,16 @@ func extractInterfaceField(fieldType ast.Expr, mField *model.Field, imports map[
 	return false
 }
 
-func extractMapField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	if mapType, ok := fieldType.(*ast.MapType); ok {
-
-		mField.IsMap = true
-
-		if mapKey := formatExpression(mapType.Key); mapKey != "" {
-			if mapValue := formatExpression(mapType.Value); mapValue != "" {
-				mField.TypeName = fmt.Sprintf("map[%s]%s", mapKey, mapValue)
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func extractFuncTypeField(fieldType ast.Expr, mField *model.Field, imports map[string]string) bool {
-	funcType, ok := fieldType.(*ast.FuncType)
-	if ok {
-		params := make([]string, 0)
-		for _, param := range funcType.Params.List {
-			if f, ok := extractField(param, imports); ok {
-				formattedParam := f.TypeName
-				if f.Name != "" {
-					formattedParam = fmt.Sprintf("%s %s", f.Name, f.TypeName)
-				}
-				params = append(params, formattedParam)
-			} else {
-				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
-			}
-		}
-		results := make([]string, 0)
-		if funcType.Results != nil {
-			for _, result := range funcType.Results.List {
-				formattedResult := formatExpression(result.Type)
-				if formattedResult != "" {
-					results = append(results, formattedResult)
-				} else {
-					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
-				}
-			}
-		}
-		mField.TypeName = fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
-		return true
-	}
-	return false
-}
-
-func formatExpression(expr ast.Expr) string {
-
-	if mapType, ok := expr.(*ast.MapType); ok {
-		if mapKey := formatExpression(mapType.Key); mapKey != "" {
-			if mapValue := formatExpression(mapType.Value); mapValue != "" {
-				return fmt.Sprintf("map[%s]%s", mapKey, mapValue)
-			}
-		}
-	}
+func formatExpression(expr ast.Expr, imports map[string]string) string {
 
 	if arrayType, ok := expr.(*ast.ArrayType); ok {
-		if arrayElt := formatExpression(arrayType.Elt); arrayElt != "" {
+		if arrayElt := formatExpression(arrayType.Elt, imports); arrayElt != "" {
 			return fmt.Sprintf("[]%s", arrayElt)
 		}
 	}
 
 	if starExpr, ok := expr.(*ast.StarExpr); ok {
-		if starX := formatExpression(starExpr.X); starX != "" {
+		if starX := formatExpression(starExpr.X, imports); starX != "" {
 			return fmt.Sprintf("*%s", starX)
 		}
 	}
@@ -241,6 +232,45 @@ func formatExpression(expr ast.Expr) string {
 		if ident, ok := selectorExpr.X.(*ast.Ident); ok {
 			return fmt.Sprintf("%s.%s", ident.Name, selectorExpr.Sel.Name)
 		}
+	}
+
+	if mapType, ok := expr.(*ast.MapType); ok {
+		if mapKey := formatExpression(mapType.Key, imports); mapKey != "" {
+			if mapValue := formatExpression(mapType.Value, imports); mapValue != "" {
+				return fmt.Sprintf("map[%s]%s", mapKey, mapValue)
+			}
+		}
+	}
+
+	if funcType, ok := expr.(*ast.FuncType); ok {
+		params := make([]string, 0)
+		for _, param := range funcType.Params.List {
+			if formattedParam := formatExpression(param.Type, imports); formattedParam != "" {
+				params = append(params, formattedParam)
+			} else {
+				log.Printf("Skipping unrecognized funcType.Param: %+v\n", param)
+			}
+		}
+		results := make([]string, 0)
+		if funcType.Results != nil {
+			for _, result := range funcType.Results.List {
+				formattedResult := formatExpression(result.Type, imports)
+				if formattedResult != "" {
+					results = append(results, formattedResult)
+				} else {
+					log.Printf("Skipping unrecognized functType.Result: %+v\n", result)
+				}
+			}
+		}
+		return fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
+	}
+
+	if interfaceType, ok := expr.(*ast.InterfaceType); ok {
+		methods := make([]string, 0)
+		for _, method := range extractFieldList(interfaceType.Methods, imports) {
+			methods = append(methods, fmt.Sprintf("%s%s", method.Name, method.TypeName))
+		}
+		return fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
 	}
 
 	log.Printf("Unrecognized expression: %+v\n", reflect.TypeOf(expr))
