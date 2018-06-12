@@ -40,7 +40,7 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 
 func extractField(field *ast.Field, imports map[string]string) *model.Field {
 	if fieldType := processExpression(field.Type, imports); fieldType != nil {
-		mField := &model.Field{
+		return &model.Field{
 			PackageName:  fieldType.PackageName,
 			DocLines:     extractComments(field.Doc),
 			Name:         fieldType.Name,
@@ -48,14 +48,6 @@ func extractField(field *ast.Field, imports map[string]string) *model.Field {
 			Tag:          extractTag(field.Tag),
 			CommentLines: extractComments(field.Comment),
 		}
-		//FIXME take expressionType order into account
-		for _, expressionType := range fieldType.ExpressionTypes {
-			switch expressionType {
-			case ExpressionType_pointer:
-				mField.IsPointer = true
-			}
-		}
-		return mField
 	}
 	return nil
 }
@@ -128,11 +120,12 @@ func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression
 func processStarExpr(fieldType ast.Expr, imports map[string]string) *Expression {
 	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
 		if x := processExpression(starExpr.X, imports); x != nil {
+			typeName := fmt.Sprintf("*%s", x.Formatted)
 			return &Expression{
 				ExpressionTypes: append([]ExpressionType{ExpressionType_pointer}, x.ExpressionTypes...),
 				PackageName:     x.PackageName,
-				TypeName:        x.TypeName,
-				Formatted:       fmt.Sprintf("*%s", x.Formatted),
+				TypeName:        typeName,
+				Formatted:       typeName,
 			}
 		}
 	}

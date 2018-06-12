@@ -28,10 +28,10 @@ func TestGenerateForEvents(t *testing.T) {
 			DocLines:    []string{`//@Event(aggregate = "Test")`},
 			Name:        "MyStruct",
 			Fields: []model.Field{
-				{Name: "StringField", TypeName: "string", IsPointer: false},
-				{Name: "IntField", TypeName: "int", IsPointer: false},
-				{Name: "StructField", TypeName: "MyStruct", IsPointer: true},
-				{Name: "SliceField", TypeName: "[]MyStruct", IsPointer: false},
+				{Name: "StringField", TypeName: "string"},
+				{Name: "IntField", TypeName: "int"},
+				{Name: "StructField", TypeName: "*MyStruct"},
+				{Name: "SliceField", TypeName: "[]MyStruct"},
 			},
 		},
 	}

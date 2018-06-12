@@ -563,7 +563,7 @@ func GetContextName(o model.Operation) string {
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
-			return arg.TypeName
+			return arg.DereferencedTypeName()
 		}
 	}
 	return ""
@@ -614,14 +614,7 @@ func HasOutput(o model.Operation) bool {
 func GetOutputArgType(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			if arg.IsSlice() {
-				return arg.TypeName
-			}
-			pointer := ""
-			if arg.IsPointer {
-				pointer = "*"
-			}
-			return fmt.Sprintf("%s%s", pointer, arg.TypeName)
+			return arg.TypeName
 		}
 	}
 	return ""
@@ -652,16 +645,7 @@ func GetMetaArg(o model.Operation) *model.Field {
 func GetOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			addressOf := ""
-			if arg.IsPointer {
-				addressOf = "&"
-			}
-
-			if arg.IsSlice() {
-				return fmt.Sprintf("%s{}", arg.TypeName)
-
-			}
-			return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
+			return arg.EmptyInstance()
 		}
 	}
 	return ""
@@ -672,22 +656,13 @@ func GetOutputArgsDeclaration(o model.Operation) []string {
 	for idx, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			name := ""
-			pointer := ""
-			if arg.IsPointer {
-				pointer = "*"
-			}
 			switch idx {
 			case 0:
 				name = "result"
 			case 1:
 				name = "meta"
 			}
-
-			if arg.IsSlice() {
-				args = append(args, fmt.Sprintf("var %s %s", name, arg.TypeName))
-			} else {
-				args = append(args, fmt.Sprintf("var %s %s%s", name, pointer, arg.TypeName))
-			}
+			args = append(args, fmt.Sprintf("var %s %s", name, arg.TypeName))
 		}
 	}
 	return args
@@ -696,7 +671,7 @@ func GetOutputArgsDeclaration(o model.Operation) []string {
 func GetOutputArgName(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			if !arg.IsPointer || arg.IsSlice() {
+			if !arg.IsPointer() || arg.IsSlice() {
 				return "&resp"
 			}
 			return "resp"
@@ -787,7 +762,7 @@ func IsStringSliceArg(f model.Field) bool {
 }
 
 func IsDateArg(f model.Field) bool {
-	return f.TypeName == "mydate.MyDate"
+	return f.DereferencedTypeName() == "mydate.MyDate"
 }
 
 func ToFirstUpper(in string) string {

@@ -19,7 +19,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assert.Equal(t, "operations", o.PackageName)
 		assert.Equal(t, []string{"// docline for getPersons"}, o.DocLines)
 		assert.Equal(t, "getPersons", o.Name)
-		assertField(t, model.Field{Name: "s", TypeName: "Service", IsPointer: true}, *o.RelatedStruct)
+		assertField(t, model.Field{Name: "s", TypeName: "*Service"}, *o.RelatedStruct)
 
 		{
 			assert.Equal(t, 3, len(o.InputArgs))
@@ -54,7 +54,7 @@ func TestStructOperationsInDir(t *testing.T) {
 
 		assert.Equal(t, 3, len(o.OutputArgs))
 		assertField(t, model.Field{TypeName: "Person"}, o.OutputArgs[0])
-		assertField(t, model.Field{TypeName: "Person", IsPointer: true}, o.OutputArgs[1])
+		assertField(t, model.Field{TypeName: "*Person"}, o.OutputArgs[1])
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[2])
 	}
 	{
@@ -69,7 +69,7 @@ func TestStructOperationsInDir(t *testing.T) {
 			PackageName: "github.com/MarcGrol/golangAnnotations/parser/structs"}, o.InputArgs[0])
 
 		assert.Equal(t, 2, len(o.OutputArgs))
-		assertField(t, model.Field{TypeName: "structs.YetAnotherStruct", IsPointer: true,
+		assertField(t, model.Field{TypeName: "*structs.YetAnotherStruct",
 			PackageName: "github.com/MarcGrol/golangAnnotations/parser/structs"}, o.OutputArgs[0])
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[1])
 	}
@@ -85,7 +85,7 @@ func TestStructOperationsInDir(t *testing.T) {
 		assert.Equal(t, "context.Context", o.InputArgs[0].TypeName)
 
 		assert.Equal(t, 2, len(o.OutputArgs))
-		assertField(t, model.Field{TypeName: "[]*structs.YetAnotherStruct", IsPointer: true,
+		assertField(t, model.Field{TypeName: "[]*structs.YetAnotherStruct",
 			PackageName: "github.com/MarcGrol/golangAnnotations/parser/structs"}, o.OutputArgs[0])
 		assertField(t, model.Field{TypeName: "error"}, o.OutputArgs[1])
 	}

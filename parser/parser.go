@@ -153,7 +153,7 @@ func embedOperationsInStructs(visitor *astVisitor) {
 	for idx := range visitor.Operations {
 		mOperation := visitor.Operations[idx]
 		if mOperation.RelatedStruct != nil {
-			if mStruct, ok := mStructMap[strings.TrimPrefix(mOperation.RelatedStruct.TypeName, "*")]; ok {
+			if mStruct, ok := mStructMap[mOperation.RelatedStruct.DereferencedTypeName()]; ok {
 				mStruct.Operations = append(mStruct.Operations, &mOperation)
 			}
 		}

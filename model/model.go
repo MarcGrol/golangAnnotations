@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -55,13 +56,20 @@ type Field struct {
 	DocLines     []string `json:"docLines,omitempty"`
 	Name         string   `json:"name,omitempty"`
 	TypeName     string   `json:"typeName,omitempty"`
-	IsPointer    bool     `json:"isPointer,omitempty"`
 	Tag          string   `json:"tag,omitempty"`
 	CommentLines []string `json:"commentLines,omitempty"`
 }
 
 func (f Field) IsSlice() bool {
 	return strings.HasPrefix(f.TypeName, "[]")
+}
+
+func (f Field) IsPointer() bool {
+	return strings.Contains(f.TypeName, "*")
+}
+
+func (f Field) DereferencedTypeName() string {
+	return strings.TrimPrefix(f.TypeName, "*")
 }
 
 func (f Field) IsBool() bool {
@@ -88,7 +96,14 @@ func (f Field) IsStringSlice() bool {
 	return f.TypeName == "[]string"
 }
 
-var splittableTypeName = regexp.MustCompile(`((\w+)\.)?(\w+)`)
+func (f Field) EmptyInstance() string {
+	if f.IsPointer() {
+		return fmt.Sprintf("&%s{}", f.DereferencedTypeName())
+	}
+	return fmt.Sprintf("%s{}", f.TypeName)
+}
+
+var splittableTypeName = regexp.MustCompile(`\*?((\w+)\.)?(\w+)`)
 
 func (f Field) SplitTypeName() (string, string) {
 	submatch := splittableTypeName.FindStringSubmatch(f.TypeName)
