@@ -350,36 +350,38 @@ func isTransient(s model.Struct) bool {
 }
 
 func hasValueForField(field model.Field) bool {
-	if field.TypeName == "int" || field.TypeName == "string" || field.TypeName == "bool" {
+	if field.IsInt() || field.IsIntSlice() ||
+		field.IsString() || field.IsStringSlice() ||
+		field.IsBool() || field.IsBoolSlice() {
 		return true
 	}
 	return false
 }
 
 func valueForField(field model.Field) string {
-	if field.TypeName == "int" {
+	if field.IsInt() || field.IsIntSlice() {
 		return valueForIntField(field)
 	}
 
-	if field.TypeName == "string" {
+	if field.IsString() || field.IsStringSlice() {
 		return valueForStringField(field)
 	}
 
-	if field.TypeName == "bool" {
+	if field.IsBool() || field.IsBoolSlice() {
 		return valueForBoolField(field)
 	}
 	return ""
 }
 
 func valueForIntField(field model.Field) string {
-	if field.IsSlice {
+	if field.IsSlice() {
 		return "[]int{1,2}"
 	}
 	return "42"
 }
 
 func valueForStringField(field model.Field) string {
-	if field.IsSlice {
+	if field.IsSlice() {
 		return "[]string{" + fmt.Sprintf("\"Example1%s\"", field.Name) + "," +
 			fmt.Sprintf("\"Example1%s\"", field.Name) + "}"
 	}

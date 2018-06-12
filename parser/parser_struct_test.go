@@ -22,55 +22,55 @@ func TestParseStructsInFile(t *testing.T) {
 		s := parsedSources.Structs[0]
 
 		assertField(t,
-			model.Field{Name: "FirstName", TypeName: "string", IsPointer: false, IsSlice: false},
+			model.Field{Name: "FirstName", TypeName: "string", IsPointer: false},
 			s.Fields[0])
 
 		assertField(t,
-			model.Field{Name: "LastName", TypeName: "string", IsPointer: false, IsSlice: false},
+			model.Field{Name: "LastName", TypeName: "string", IsPointer: false},
 			s.Fields[1])
 
 		assertField(t,
-			model.Field{Name: "Age", TypeName: "int", IsPointer: false, IsSlice: false, CommentLines: []string{"// Age comment"}},
+			model.Field{Name: "Age", TypeName: "int", IsPointer: false, CommentLines: []string{"// Age comment"}},
 			s.Fields[2])
 
 		assertField(t,
-			model.Field{Name: "Nice", TypeName: "bool", IsPointer: true, IsSlice: false, DocLines: []string{"// Before nice comment"}, CommentLines: []string{"// After Nice comment"}},
+			model.Field{Name: "Nice", TypeName: "bool", IsPointer: true, DocLines: []string{"// Before nice comment"}, CommentLines: []string{"// After Nice comment"}},
 			s.Fields[3])
 
 		assertField(t,
-			model.Field{Name: "Color", TypeName: "ColorType", IsPointer: false, IsSlice: false, DocLines: []string{"// Before Color comment"}, Tag: "`json:\"COLOR_TYPE\"`"},
+			model.Field{Name: "Color", TypeName: "ColorType", IsPointer: false, DocLines: []string{"// Before Color comment"}, Tag: "`json:\"COLOR_TYPE\"`"},
 			s.Fields[4])
 
 		assertField(t,
-			model.Field{Name: "OptionalColor", TypeName: "ColorType", IsPointer: true, IsSlice: false},
+			model.Field{Name: "OptionalColor", TypeName: "ColorType", IsPointer: true},
 			s.Fields[5])
 
 		assertField(t,
-			model.Field{Name: "Father", TypeName: "Person", IsPointer: true, IsSlice: false},
+			model.Field{Name: "Father", TypeName: "Person", IsPointer: true},
 			s.Fields[6])
 
 		assertField(t,
-			model.Field{Name: "Uncles", TypeName: "Person", IsPointer: true, IsSlice: true},
+			model.Field{Name: "Uncles", TypeName: "[]*Person", IsPointer: true},
 			s.Fields[7])
 
 		assertField(t,
-			model.Field{Name: "Children", TypeName: "Person", IsPointer: false, IsSlice: true},
+			model.Field{Name: "Children", TypeName: "[]Person", IsPointer: false},
 			s.Fields[8])
 
 		assertField(t,
-			model.Field{Name: "ChildMap", TypeName: "map[string]Person", IsPointer: false, IsSlice: false},
+			model.Field{Name: "ChildMap", TypeName: "map[string]Person", IsPointer: false},
 			s.Fields[9])
 
 		assertField(t,
-			model.Field{Name: "ChildPointerMap", TypeName: "map[string]*Person", IsPointer: false, IsSlice: false},
+			model.Field{Name: "ChildPointerMap", TypeName: "map[string]*Person", IsPointer: false},
 			s.Fields[10])
 
 		assertField(t,
-			model.Field{Name: "ChildrenMap", TypeName: "map[string][]Person", IsPointer: false, IsSlice: false},
+			model.Field{Name: "ChildrenMap", TypeName: "map[string][]Person", IsPointer: false},
 			s.Fields[11])
 
 		assertField(t,
-			model.Field{Name: "ChildrenPointerMap", TypeName: "map[string][]*Person", IsPointer: false, IsSlice: false},
+			model.Field{Name: "ChildrenPointerMap", TypeName: "map[string][]*Person", IsPointer: false},
 			s.Fields[12])
 	}
 }
@@ -110,7 +110,7 @@ func assertField(t *testing.T, expected model.Field, actual model.Field) {
 	assert.Equal(t, expected.Name, actual.Name)
 	assert.Equal(t, expected.TypeName, actual.TypeName)
 	assert.Equal(t, expected.IsPointer, actual.IsPointer)
-	assert.Equal(t, expected.IsSlice, actual.IsSlice)
+	assert.Equal(t, expected.IsSlice(), actual.IsSlice())
 	assert.Equal(t, expected.Tag, actual.Tag)
 	assert.Equal(t, len(expected.CommentLines), len(actual.CommentLines))
 	assertStringSlice(t, expected.CommentLines, actual.CommentLines)

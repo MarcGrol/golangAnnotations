@@ -1,6 +1,9 @@
 package model
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 //go:generate golangAnnotations -input-dir .
 
@@ -52,22 +55,37 @@ type Field struct {
 	DocLines     []string `json:"docLines,omitempty"`
 	Name         string   `json:"name,omitempty"`
 	TypeName     string   `json:"typeName,omitempty"`
-	IsSlice      bool     `json:"isSlice,omitempty"`
 	IsPointer    bool     `json:"isPointer,omitempty"`
 	Tag          string   `json:"tag,omitempty"`
 	CommentLines []string `json:"commentLines,omitempty"`
+}
+
+func (f Field) IsSlice() bool {
+	return strings.HasPrefix(f.TypeName, "[]")
 }
 
 func (f Field) IsBool() bool {
 	return f.TypeName == "bool"
 }
 
+func (f Field) IsBoolSlice() bool {
+	return f.TypeName == "[]bool"
+}
+
 func (f Field) IsInt() bool {
 	return f.TypeName == "int"
 }
 
+func (f Field) IsIntSlice() bool {
+	return f.TypeName == "[]int"
+}
+
 func (f Field) IsString() bool {
 	return f.TypeName == "string"
+}
+
+func (f Field) IsStringSlice() bool {
+	return f.TypeName == "[]string"
 }
 
 var splittableTypeName = regexp.MustCompile(`((\w+)\.)?(\w+)`)

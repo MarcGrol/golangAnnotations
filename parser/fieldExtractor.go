@@ -51,8 +51,6 @@ func extractField(field *ast.Field, imports map[string]string) *model.Field {
 		//FIXME take expressionType order into account
 		for _, expressionType := range fieldType.ExpressionTypes {
 			switch expressionType {
-			case ExpressionType_slice:
-				mField.IsSlice = true
 			case ExpressionType_pointer:
 				mField.IsPointer = true
 			}
@@ -115,11 +113,12 @@ func processEllipsis(expr ast.Expr, imports map[string]string) *Expression {
 func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
 		if elt := processExpression(arrayType.Elt, imports); elt != nil {
+			typeName := fmt.Sprintf("[]%s", elt.Formatted)
 			return &Expression{
 				ExpressionTypes: append([]ExpressionType{ExpressionType_slice}, elt.ExpressionTypes...),
 				PackageName:     elt.PackageName,
-				TypeName:        elt.TypeName,
-				Formatted:       fmt.Sprintf("[]%s", elt.Formatted),
+				TypeName:        typeName,
+				Formatted:       typeName,
 			}
 		}
 	}

@@ -46,8 +46,7 @@ func TestGenerateForJson(t *testing.T) {
 				},
 				{
 					Name:     "Tags",
-					TypeName: "string",
-					IsSlice:  true,
+					TypeName: "[]string",
 				},
 				{
 					Name:     "PrimaryColor",
@@ -55,8 +54,7 @@ func TestGenerateForJson(t *testing.T) {
 				},
 				{
 					Name:     "OtherColors",
-					TypeName: "ColorType",
-					IsSlice:  true,
+					TypeName: "[]ColorType",
 				},
 			},
 		},

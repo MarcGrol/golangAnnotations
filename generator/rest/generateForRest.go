@@ -570,7 +570,7 @@ func GetInputArgType(o model.Operation) string {
 }
 
 func IsSliceParam(arg model.Field) bool {
-	return arg.IsSlice
+	return arg.IsSlice()
 }
 
 func IsQueryParam(o model.Operation, arg model.Field) bool {
@@ -614,15 +614,14 @@ func HasOutput(o model.Operation) bool {
 func GetOutputArgType(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			slice := ""
-			if arg.IsSlice {
-				slice = "[]"
+			if arg.IsSlice() {
+				return arg.TypeName
 			}
 			pointer := ""
 			if arg.IsPointer {
 				pointer = "*"
 			}
-			return fmt.Sprintf("%s%s%s", slice, pointer, arg.TypeName)
+			return fmt.Sprintf("%s%s", pointer, arg.TypeName)
 		}
 	}
 	return ""
@@ -653,15 +652,13 @@ func GetMetaArg(o model.Operation) *model.Field {
 func GetOutputArgDeclaration(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			pointer := ""
 			addressOf := ""
 			if arg.IsPointer {
-				pointer = "*"
 				addressOf = "&"
 			}
 
-			if arg.IsSlice {
-				return fmt.Sprintf("[]%s%s{}", pointer, arg.TypeName)
+			if arg.IsSlice() {
+				return fmt.Sprintf("%s{}", arg.TypeName)
 
 			}
 			return fmt.Sprintf("%s%s{}", addressOf, arg.TypeName)
@@ -676,21 +673,21 @@ func GetOutputArgsDeclaration(o model.Operation) []string {
 		if !IsErrorArg(arg) {
 			name := ""
 			pointer := ""
-			slice := ""
 			if arg.IsPointer {
 				pointer = "*"
 			}
-			if idx == 0 {
+			switch idx {
+			case 0:
 				name = "result"
-			}
-			if idx == 1 {
+			case 1:
 				name = "meta"
 			}
 
-			if arg.IsSlice {
-				slice = "[]"
+			if arg.IsSlice() {
+				args = append(args, fmt.Sprintf("var %s %s", name, arg.TypeName))
+			} else {
+				args = append(args, fmt.Sprintf("var %s %s%s", name, pointer, arg.TypeName))
 			}
-			args = append(args, fmt.Sprintf("var %s %s%s%s", name, slice, pointer, arg.TypeName))
 		}
 	}
 	return args
@@ -699,8 +696,7 @@ func GetOutputArgsDeclaration(o model.Operation) []string {
 func GetOutputArgName(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			if !arg.IsPointer || arg.IsSlice {
-
+			if !arg.IsPointer || arg.IsSlice() {
 				return "&resp"
 			}
 			return "resp"
@@ -775,23 +771,23 @@ func IsPrimitiveArg(f model.Field) bool {
 }
 
 func IsBoolArg(f model.Field) bool {
-	return f.IsBool() && !f.IsSlice
+	return f.IsBool()
 }
 
 func IsIntArg(f model.Field) bool {
-	return f.IsInt() && !f.IsSlice
+	return f.IsInt()
 }
 
 func IsStringArg(f model.Field) bool {
-	return f.IsString() && !f.IsSlice
+	return f.IsString()
 }
 
 func IsStringSliceArg(f model.Field) bool {
-	return f.IsString() && f.IsSlice
+	return f.IsStringSlice()
 }
 
 func IsDateArg(f model.Field) bool {
-	return f.TypeName == "mydate.MyDate" && !f.IsSlice
+	return f.TypeName == "mydate.MyDate"
 }
 
 func ToFirstUpper(in string) string {

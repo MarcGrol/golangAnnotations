@@ -224,7 +224,7 @@ func IsJSONStruct(s model.Struct) bool {
 
 func hasSlices(s model.Struct) bool {
 	for _, f := range s.Fields {
-		if f.IsSlice {
+		if f.IsSlice() {
 			return true
 		}
 	}
