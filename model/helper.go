@@ -30,7 +30,7 @@ func (f Field) DereferencedTypeName() string {
 }
 
 func (f Field) IsPointer() bool {
-	return strings.Contains(f.TypeName, "*")
+	return strings.HasPrefix(f.TypeName, "*")
 }
 
 func (f Field) IsSlice() bool {

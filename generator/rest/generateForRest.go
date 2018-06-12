@@ -671,7 +671,7 @@ func GetOutputArgsDeclaration(o model.Operation) []string {
 func GetOutputArgName(o model.Operation) string {
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
-			if !arg.IsPointer() || arg.IsSlice() {
+			if !arg.IsPointer() {
 				return "&resp"
 			}
 			return "resp"
