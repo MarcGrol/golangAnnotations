@@ -1,5 +1,7 @@
 package model
 
+import "regexp"
+
 //go:generate golangAnnotations -input-dir .
 
 // @JsonStruct()
@@ -46,14 +48,38 @@ type Interface struct {
 
 // @JsonStruct()
 type Field struct {
-	PackageName string   `json:"packageName,omitempty"`
-	DocLines    []string `json:"docLines,omitempty"`
-	Name        string   `json:"name,omitempty"`
-	TypeName    string   `json:"typeName,omitempty"`
-	IsSlice     bool     `json:"isSlice,omitempty"`
-	IsPointer   bool     `json:"isPointer,omitempty"`
+	PackageName  string   `json:"packageName,omitempty"`
+	DocLines     []string `json:"docLines,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	TypeName     string   `json:"typeName,omitempty"`
+	IsSlice      bool     `json:"isSlice,omitempty"`
+	IsPointer    bool     `json:"isPointer,omitempty"`
 	Tag          string   `json:"tag,omitempty"`
 	CommentLines []string `json:"commentLines,omitempty"`
+}
+
+func (f Field) IsBool() bool {
+	return f.TypeName == "bool"
+}
+
+func (f Field) IsInt() bool {
+	return f.TypeName == "int"
+}
+
+func (f Field) IsString() bool {
+	return f.TypeName == "string"
+}
+
+var splittableTypeName = regexp.MustCompile(`((\w+)\.)?(\w+)`)
+
+func (f Field) SplitTypeName() (string, string) {
+	submatch := splittableTypeName.FindStringSubmatch(f.TypeName)
+	if len(submatch) == 2 {
+		return "", submatch[1]
+	} else if len(submatch) == 4 {
+		return submatch[2], submatch[3]
+	}
+	return "", ""
 }
 
 // @JsonStruct()

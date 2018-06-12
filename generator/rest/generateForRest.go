@@ -191,7 +191,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasMetaOutput":                         HasMetaOutput,
 	"IsMetaCallback":                        IsMetaCallback,
 	"IsPrimitiveArg":                        IsPrimitiveArg,
-	"IsNumberArg":                           IsNumberArg,
+	"IsIntArg":                              IsIntArg,
 	"IsBoolArg":                             IsBoolArg,
 	"IsStringArg":                           IsStringArg,
 	"IsStringSliceArg":                      IsStringSliceArg,
@@ -671,7 +671,7 @@ func GetOutputArgDeclaration(o model.Operation) string {
 }
 
 func GetOutputArgsDeclaration(o model.Operation) []string {
-	args := []string{}
+	args := make([]string, 0)
 	for idx, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) {
 			name := ""
@@ -720,7 +720,7 @@ func findArgInArray(array []string, toMatch string) bool {
 
 func RequiresParamValidation(o model.Operation) bool {
 	for _, field := range o.InputArgs {
-		if (IsNumberArg(field) || IsBoolArg(field) || IsStringSliceArg(field) || IsStringArg(field)) && IsInputArgMandatory(o, field) {
+		if (IsIntArg(field) || IsBoolArg(field) || IsStringSliceArg(field) || IsStringArg(field)) && IsInputArgMandatory(o, field) {
 			return true
 		}
 	}
@@ -771,23 +771,23 @@ func IsMetaCallbackArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return IsBoolArg(f) || IsNumberArg(f) || IsStringArg(f) || IsStringSliceArg(f) || IsDateArg(f)
+	return IsBoolArg(f) || IsIntArg(f) || IsStringArg(f) || IsStringSliceArg(f) || IsDateArg(f)
 }
 
 func IsBoolArg(f model.Field) bool {
-	return f.TypeName == "bool" && !f.IsSlice
+	return f.IsBool() && !f.IsSlice
 }
 
-func IsNumberArg(f model.Field) bool {
-	return f.TypeName == "int" && !f.IsSlice
+func IsIntArg(f model.Field) bool {
+	return f.IsInt() && !f.IsSlice
 }
 
 func IsStringArg(f model.Field) bool {
-	return f.TypeName == "string" && !f.IsSlice
+	return f.IsString() && !f.IsSlice
 }
 
 func IsStringSliceArg(f model.Field) bool {
-	return f.TypeName == "string" && f.IsSlice
+	return f.IsString() && f.IsSlice
 }
 
 func IsDateArg(f model.Field) bool {

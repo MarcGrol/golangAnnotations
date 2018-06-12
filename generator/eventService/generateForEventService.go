@@ -284,8 +284,8 @@ func IsEventOperationDelayed(o model.Operation) bool {
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isRequestContextArg(arg) {
-			tn := strings.Split(arg.TypeName, ".")
-			return tn[len(tn)-1]
+			_, argType := arg.SplitTypeName()
+			return argType
 		}
 	}
 	return ""
@@ -294,8 +294,8 @@ func GetInputArgType(o model.Operation) string {
 func GetInputArgPackage(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		if !IsPrimitiveArg(arg) && !isContextArg(arg) && !isRequestContextArg(arg) {
-			tn := strings.Split(arg.TypeName, ".")
-			return tn[len(tn)-2]
+			argPackage, _ := arg.SplitTypeName()
+			return argPackage
 		}
 	}
 	return ""
@@ -309,15 +309,7 @@ func isRequestContextArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return isNumberArg(f) || isStringArg(f)
-}
-
-func isNumberArg(f model.Field) bool {
-	return f.TypeName == "int"
-}
-
-func isStringArg(f model.Field) bool {
-	return f.TypeName == "string"
+	return f.IsInt() || f.IsString()
 }
 
 func ToFirstUpper(in string) string {

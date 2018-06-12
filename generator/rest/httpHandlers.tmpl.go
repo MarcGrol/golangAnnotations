@@ -96,7 +96,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
         {{range .InputArgs -}}
 
 			{{if IsPrimitiveArg . }}
-				{{if IsNumberArg . -}}
+				{{if IsIntArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{.Name}}", true)
 						if err != nil {

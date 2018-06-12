@@ -180,12 +180,12 @@ func TestIsPrimitiveFalse(t *testing.T) {
 
 func TestIsNumberTrue(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "int"}
-	assert.True(t, IsNumberArg(f))
+	assert.True(t, IsIntArg(f))
 }
 
 func TestIsNumberFalse(t *testing.T) {
 	f := model.Field{Name: "uid", TypeName: "string"}
-	assert.False(t, IsNumberArg(f))
+	assert.False(t, IsIntArg(f))
 }
 
 func createOper(method string) model.Operation {
