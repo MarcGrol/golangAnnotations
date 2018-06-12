@@ -742,7 +742,7 @@ func IsMetaCallbackArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return IsBoolArg(f) || IsIntArg(f) || IsStringArg(f) || IsStringSliceArg(f) || IsDateArg(f)
+	return f.IsPrimitive() || f.IsPrimitiveSlice() || IsDateArg(f) || IsDateSliceArg(f)
 }
 
 func IsBoolArg(f model.Field) bool {
@@ -763,6 +763,10 @@ func IsStringSliceArg(f model.Field) bool {
 
 func IsDateArg(f model.Field) bool {
 	return f.DereferencedTypeName() == "mydate.MyDate"
+}
+
+func IsDateSliceArg(f model.Field) bool {
+	return f.DereferencedTypeName() == "[]mydate.MyDate"
 }
 
 func ToFirstUpper(in string) string {

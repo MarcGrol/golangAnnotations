@@ -37,6 +37,14 @@ func (f Field) IsSlice() bool {
 	return strings.HasPrefix(f.TypeName, "[]")
 }
 
+func (f Field) IsPrimitive() bool {
+	return f.IsBool() || f.IsInt() || f.IsString()
+}
+
+func (f Field) IsPrimitiveSlice() bool {
+	return f.IsBoolSlice() || f.IsIntSlice() || f.IsStringSlice()
+}
+
 func (f Field) IsBool() bool {
 	return f.TypeName == "bool"
 }

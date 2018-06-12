@@ -350,9 +350,7 @@ func isTransient(s model.Struct) bool {
 }
 
 func hasValueForField(field model.Field) bool {
-	if field.IsInt() || field.IsIntSlice() ||
-		field.IsString() || field.IsStringSlice() ||
-		field.IsBool() || field.IsBoolSlice() {
+	if field.IsPrimitive() || field.IsPrimitiveSlice() {
 		return true
 	}
 	return false

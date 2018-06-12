@@ -309,7 +309,7 @@ func isRequestContextArg(f model.Field) bool {
 }
 
 func IsPrimitiveArg(f model.Field) bool {
-	return f.IsInt() || f.IsString()
+	return f.IsPrimitive() || f.IsPrimitiveSlice()
 }
 
 func ToFirstUpper(in string) string {
