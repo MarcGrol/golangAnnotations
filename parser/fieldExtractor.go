@@ -86,12 +86,10 @@ func processExpression(expr ast.Expr, imports map[string]string) *Expression {
 func processEllipsis(expr ast.Expr, imports map[string]string) *Expression {
 	if ellipsisType, ok := expr.(*ast.Ellipsis); ok {
 		mExpr := &Expression{
-			ExpressionTypes: []ExpressionType{ExpressionType_variadic},
-			TypeName:        "...",
+			TypeName: "...",
 		}
 		if ellipsisType.Elt != nil {
 			if elt := processExpression(ellipsisType.Elt, imports); elt != nil {
-				mExpr.ExpressionTypes = append(mExpr.ExpressionTypes, elt.ExpressionTypes...)
 				mExpr.PackageName = elt.PackageName
 				mExpr.TypeName = fmt.Sprintf("...%s", elt.TypeName)
 			}
@@ -106,9 +104,8 @@ func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression
 		if elt := processExpression(arrayType.Elt, imports); elt != nil {
 			typeName := fmt.Sprintf("[]%s", elt.TypeName)
 			return &Expression{
-				ExpressionTypes: append([]ExpressionType{ExpressionType_slice}, elt.ExpressionTypes...),
-				PackageName:     elt.PackageName,
-				TypeName:        typeName,
+				PackageName: elt.PackageName,
+				TypeName:    typeName,
 			}
 		}
 	}
@@ -120,9 +117,8 @@ func processStarExpr(fieldType ast.Expr, imports map[string]string) *Expression 
 		if x := processExpression(starExpr.X, imports); x != nil {
 			typeName := fmt.Sprintf("*%s", x.TypeName)
 			return &Expression{
-				ExpressionTypes: append([]ExpressionType{ExpressionType_pointer}, x.ExpressionTypes...),
-				PackageName:     x.PackageName,
-				TypeName:        typeName,
+				PackageName: x.PackageName,
+				TypeName:    typeName,
 			}
 		}
 	}
@@ -157,8 +153,7 @@ func processMapType(fieldType ast.Expr, imports map[string]string) *Expression {
 			if value := processExpression(mapType.Value, imports); value != nil {
 				typeName := fmt.Sprintf("map[%s]%s", key.TypeName, value.TypeName)
 				return &Expression{
-					ExpressionTypes: []ExpressionType{ExpressionType_map},
-					TypeName:        typeName,
+					TypeName: typeName,
 				}
 			}
 		}
@@ -188,8 +183,7 @@ func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression 
 		}
 		typeName := fmt.Sprintf("(%s)%s", strings.Join(params, ","), strings.Join(results, ","))
 		return &Expression{
-			ExpressionTypes: []ExpressionType{ExpressionType_func},
-			TypeName:        typeName,
+			TypeName: typeName,
 		}
 	}
 	return nil
@@ -203,28 +197,14 @@ func processInterfaceType(fieldType ast.Expr, imports map[string]string) *Expres
 		}
 		typeName := fmt.Sprintf("interface{%s}", strings.Join(methods, ","))
 		return &Expression{
-			ExpressionTypes: []ExpressionType{ExpressionType_interface},
-			TypeName:        typeName,
+			TypeName: typeName,
 		}
 	}
 	return nil
 }
 
 type Expression struct {
-	ExpressionTypes []ExpressionType
-	PackageName     string
-	Name            string
-	TypeName        string
+	PackageName string
+	Name        string
+	TypeName    string
 }
-
-type ExpressionType int
-
-const (
-	ExpressionType_default ExpressionType = iota
-	ExpressionType_variadic
-	ExpressionType_slice
-	ExpressionType_pointer
-	ExpressionType_map
-	ExpressionType_func
-	ExpressionType_interface
-)
