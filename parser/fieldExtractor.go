@@ -93,10 +93,9 @@ func processEllipsis(expr ast.Expr, imports map[string]string) *Expression {
 			if elt := processExpression(ellipsisType.Elt, imports); elt != nil {
 				mExpr.ExpressionTypes = append(mExpr.ExpressionTypes, elt.ExpressionTypes...)
 				mExpr.PackageName = elt.PackageName
-				mExpr.TypeName = fmt.Sprintf("...%s", elt.Formatted)
+				mExpr.TypeName = fmt.Sprintf("...%s", elt.TypeName)
 			}
 		}
-		mExpr.Formatted = mExpr.TypeName
 		return mExpr
 	}
 	return nil
@@ -105,12 +104,11 @@ func processEllipsis(expr ast.Expr, imports map[string]string) *Expression {
 func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if arrayType, ok := fieldType.(*ast.ArrayType); ok {
 		if elt := processExpression(arrayType.Elt, imports); elt != nil {
-			typeName := fmt.Sprintf("[]%s", elt.Formatted)
+			typeName := fmt.Sprintf("[]%s", elt.TypeName)
 			return &Expression{
 				ExpressionTypes: append([]ExpressionType{ExpressionType_slice}, elt.ExpressionTypes...),
 				PackageName:     elt.PackageName,
 				TypeName:        typeName,
-				Formatted:       typeName,
 			}
 		}
 	}
@@ -120,12 +118,11 @@ func processArrayType(fieldType ast.Expr, imports map[string]string) *Expression
 func processStarExpr(fieldType ast.Expr, imports map[string]string) *Expression {
 	if starExpr, ok := fieldType.(*ast.StarExpr); ok {
 		if x := processExpression(starExpr.X, imports); x != nil {
-			typeName := fmt.Sprintf("*%s", x.Formatted)
+			typeName := fmt.Sprintf("*%s", x.TypeName)
 			return &Expression{
 				ExpressionTypes: append([]ExpressionType{ExpressionType_pointer}, x.ExpressionTypes...),
 				PackageName:     x.PackageName,
 				TypeName:        typeName,
-				Formatted:       typeName,
 			}
 		}
 	}
@@ -135,8 +132,7 @@ func processStarExpr(fieldType ast.Expr, imports map[string]string) *Expression 
 func processIdent(fieldType ast.Expr, imports map[string]string) *Expression {
 	if ident, ok := fieldType.(*ast.Ident); ok {
 		return &Expression{
-			TypeName:  ident.Name,
-			Formatted: ident.Name,
+			TypeName: ident.Name,
 		}
 	}
 	return nil
@@ -149,7 +145,6 @@ func processSelectorExpr(fieldType ast.Expr, imports map[string]string) *Express
 			return &Expression{
 				PackageName: imports[ident.Name],
 				TypeName:    typeName,
-				Formatted:   typeName,
 			}
 		}
 	}
@@ -160,11 +155,10 @@ func processMapType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if mapType, ok := fieldType.(*ast.MapType); ok {
 		if key := processExpression(mapType.Key, imports); key != nil {
 			if value := processExpression(mapType.Value, imports); value != nil {
-				typeName := fmt.Sprintf("map[%s]%s", key.Formatted, value.Formatted)
+				typeName := fmt.Sprintf("map[%s]%s", key.TypeName, value.TypeName)
 				return &Expression{
 					ExpressionTypes: []ExpressionType{ExpressionType_map},
 					TypeName:        typeName,
-					Formatted:       typeName,
 				}
 			}
 		}
@@ -188,7 +182,7 @@ func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression 
 		if funcType.Results != nil {
 			for _, result := range funcType.Results.List {
 				if resultType := processExpression(result.Type, imports); resultType != nil {
-					results = append(results, resultType.Formatted)
+					results = append(results, resultType.TypeName)
 				}
 			}
 		}
@@ -196,7 +190,6 @@ func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression 
 		return &Expression{
 			ExpressionTypes: []ExpressionType{ExpressionType_func},
 			TypeName:        typeName,
-			Formatted:       typeName,
 		}
 	}
 	return nil
@@ -212,7 +205,6 @@ func processInterfaceType(fieldType ast.Expr, imports map[string]string) *Expres
 		return &Expression{
 			ExpressionTypes: []ExpressionType{ExpressionType_interface},
 			TypeName:        typeName,
-			Formatted:       typeName,
 		}
 	}
 	return nil
@@ -223,7 +215,6 @@ type Expression struct {
 	PackageName     string
 	Name            string
 	TypeName        string
-	Formatted       string
 }
 
 type ExpressionType int
