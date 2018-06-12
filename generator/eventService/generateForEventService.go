@@ -46,7 +46,7 @@ func generate(inputDir string, structs []model.Struct) error {
 		return err
 	}
 
-	eventServices := []model.Struct{}
+	eventServices := make([]model.Struct, 0)
 	for _, service := range structs {
 		if IsEventService(service) {
 			eventServices = append(eventServices, service)
@@ -153,7 +153,7 @@ func GetEventOperationProducesEventsAsSlice(o model.Operation) []string {
 	annotations := annotation.NewRegistry(eventServiceAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, eventServiceAnnotation.TypeEventOperation); ok {
 		if attrs, ok := ann.Attributes[eventServiceAnnotation.ParamProducesEvents]; ok {
-			eventsProduced := []string{}
+			eventsProduced := make([]string, 0)
 			for _, e := range strings.Split(attrs, ",") {
 				evt := strings.TrimSpace(e)
 				if evt != "" {
@@ -171,7 +171,7 @@ func GetEventOperationProducesEvents(o model.Operation) string {
 }
 
 func asStringSlice(in []string) string {
-	adjusted := []string{}
+	adjusted := make([]string, 0)
 	for _, i := range in {
 		adjusted = append(adjusted, fmt.Sprintf("\"%s\"", i))
 	}
@@ -179,7 +179,7 @@ func asStringSlice(in []string) string {
 }
 
 func GetEventServiceTopics(s model.Struct) []string {
-	topics := []string{}
+	topics := make([]string, 0)
 operations:
 	for _, o := range s.Operations {
 		if IsEventOperation(*o) {
@@ -203,7 +203,7 @@ func GetFullEventNames(s model.Struct) []string {
 		}
 	}
 
-	eventSlice := []string{}
+	eventSlice := make([]string, 0)
 	for e := range eventMap {
 		eventSlice = append(eventSlice, e)
 	}
@@ -231,7 +231,7 @@ type queueGroup struct {
 }
 
 func GetEventOperationQueueGroups(s model.Struct) []queueGroup {
-	queueGroups := []queueGroup{}
+	queueGroups := make([]queueGroup, 0)
 operations:
 	for _, o := range s.Operations {
 		if IsEventOperation(*o) {

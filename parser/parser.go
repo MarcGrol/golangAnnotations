@@ -153,7 +153,7 @@ func embedOperationsInStructs(visitor *astVisitor) {
 	for idx := range visitor.Operations {
 		mOperation := visitor.Operations[idx]
 		if mOperation.RelatedStruct != nil {
-			if mStruct, ok := mStructMap[(*mOperation.RelatedStruct).TypeName]; ok {
+			if mStruct, ok := mStructMap[strings.TrimPrefix(mOperation.RelatedStruct.TypeName, "*")]; ok {
 				mStruct.Operations = append(mStruct.Operations, &mOperation)
 			}
 		}
@@ -461,7 +461,7 @@ func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *mode
 }
 
 func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
-	methods := []model.Operation{}
+	methods := make([]model.Operation, 0)
 	for _, field := range fieldList.List {
 		if len(field.Names) > 0 {
 			if funcType, ok := field.Type.(*ast.FuncType); ok {

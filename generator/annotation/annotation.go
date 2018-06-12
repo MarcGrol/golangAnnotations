@@ -32,7 +32,7 @@ type AnnotationDescriptor struct {
 }
 
 func (ar *annotationRegistry) ResolveAnnotations(annotationDocline []string) []Annotation {
-	annotations := []Annotation{}
+	annotations := make([]Annotation, 0)
 	for _, line := range annotationDocline {
 		if ann, ok := ar.ResolveAnnotation(strings.TrimSpace(line)); ok {
 			annotations = append(annotations, ann)

@@ -299,7 +299,7 @@ var customTemplateFuncs = template.FuncMap{
 }
 
 func GetEvents(thecontext structures) []model.Struct {
-	eventsOnly := []model.Struct{}
+	eventsOnly := make([]model.Struct, 0)
 	for _, s := range thecontext.Structs {
 		if IsEvent(s) {
 			eventsOnly = append(eventsOnly, s)

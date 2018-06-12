@@ -310,7 +310,7 @@ func ExtractImports(s model.Struct) []string {
 }
 
 func mapToSlice(importsMap map[string]bool) []string {
-	importsList := []string{}
+	importsList := make([]string, 0)
 	for k := range importsMap {
 		importsList = append(importsList, k)
 	}
@@ -485,7 +485,7 @@ func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 	annotations := annotation.NewRegistry(restAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(o.DocLines, restAnnotation.TypeRestOperation); ok {
 		if attrs, ok := ann.Attributes[restAnnotation.ParamProducesEvents]; ok {
-			eventsProduced := []string{}
+			eventsProduced := make([]string, 0)
 			for _, e := range strings.Split(attrs, ",") {
 				evt := strings.TrimSpace(e)
 				if evt != "" {
@@ -499,7 +499,7 @@ func GetRestOperationProducesEventsAsSlice(o model.Operation) []string {
 }
 
 func asStringSlice(in []string) string {
-	adjusted := []string{}
+	adjusted := make([]string, 0)
 	for _, i := range in {
 		adjusted = append(adjusted, fmt.Sprintf("\"%s\"", i))
 	}
@@ -595,7 +595,7 @@ func GetInputArgName(o model.Operation) string {
 }
 
 func GetInputParamString(o model.Operation) string {
-	args := []string{}
+	args := make([]string, 0)
 	for _, arg := range o.InputArgs {
 		args = append(args, arg.Name)
 	}
