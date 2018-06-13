@@ -365,7 +365,7 @@ func HasAnyPathParam(o model.Operation) bool {
 }
 
 func getAllPathParams(o model.Operation) []string {
-	re, _ := regexp.Compile(`\{\w+\}`)
+	re := regexp.MustCompile(`\{\w+\}`)
 	path := GetRestOperationPath(o)
 	params := re.FindAllString(path, -1)
 	for idx, param := range params {
