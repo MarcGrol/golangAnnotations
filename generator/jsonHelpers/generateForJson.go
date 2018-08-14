@@ -194,20 +194,27 @@ func hasAlternativeName(e model.Enum) bool {
 	return HasJSONEnumBase(e) && IsJSONEnumTolerant(e)
 }
 
+// special feature to work around literal names that should contain '-': use 'ɂ' instead
+func fixedLitName(lit model.EnumLiteral) string {
+	return strings.Replace(lit.Name, "ɂ", "-", -1)
+}
+
 func getAlternativeName(e model.Enum, lit model.EnumLiteral) string {
+	name := fixedLitName(lit)
 	if IsJSONEnumStripped(e) {
-		return lowerInitial(lit.Name)
+		return lowerInitial(name)
 	}
 	base := GetJSONEnumBase(e)
-	return lowerInitial(strings.TrimPrefix(lit.Name, base))
+	return lowerInitial(strings.TrimPrefix(name, base))
 }
 
 func getPreferredName(e model.Enum, lit model.EnumLiteral) string {
+	name := fixedLitName(lit)
 	if IsJSONEnumStripped(e) {
 		base := GetJSONEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(lit.Name, base))
+		return lowerInitial(strings.TrimPrefix(name, base))
 	}
-	return lowerInitial(lit.Name)
+	return lowerInitial(name)
 }
 
 func lowerInitial(s string) string {
