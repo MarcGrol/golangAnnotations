@@ -5,6 +5,9 @@ const httpHandlersTemplate = `// Generated automatically by golangAnnotations: d
 package {{.PackageName}}
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 )
@@ -12,59 +15,59 @@ import (
 {{ $service := . }}
 
 var (
-    preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
-    postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, rc request.Context) {}
+	preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
+	postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, rc request.Context) {}
 )
 
 // HTTPHandler registers endpoint in new router
 func (ts *{{.Name}}) HTTPHandler() http.Handler {
-    router := mux.NewRouter().StrictSlash(true)
-    return ts.HTTPHandlerWithRouter(router)
+	router := mux.NewRouter().StrictSlash(true)
+	return ts.HTTPHandlerWithRouter(router)
 }
 
 // HTTPHandlerWithRouter registers endpoint in existing router
 func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
-    subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
+	subRouter := router.PathPrefix("{{GetRestServicePath . }}").Subrouter()
 
-    {{range .Operations -}}
-        {{if IsRestOperation . -}}
-    		subRouter.HandleFunc(  "{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
-        {{end -}}
-    {{end -}}
+	{{range .Operations -}}
+		{{if IsRestOperation . -}}
+			subRouter.HandleFunc("{{GetRestOperationPath . }}", {{.Name}}(ts)).Methods("{{GetRestOperationMethod . }}")
+		{{end -}}
+	{{end -}}
 
-    return router
+	return router
 }
 
 {{ $extractRequestContextMethod := GetExtractRequestContextMethod . }}
 {{ $noValidation := IsRestServiceNoValidation . }}
 
 {{range $idxOper, $oper := .Operations}}
-    {{if IsRestOperation $oper -}}
-        {{if IsRestOperationGenerated . -}}
+	{{if IsRestOperation $oper -}}
+		{{if IsRestOperationGenerated . -}}
 
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        var err error
+func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
 
-        {{if NeedsContext $oper -}}
+		{{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
-			preLogicHook( c, w, r )
-        {{else -}}
-			preLogicHook( nil, w, r )
-        {{end -}}
+			preLogicHook(c, w, r)
+		{{else -}}
+			preLogicHook(nil, w, r)
+		{{end -}}
 
-        rc := {{ $extractRequestContextMethod }}(c, r)
+		rc := {{ $extractRequestContextMethod }}(c, r)
 
-        {{if (not $noValidation) and (HasRequestContext $oper) -}}
+		{{if (not $noValidation) and (HasRequestContext $oper) -}}
 
-        	err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
-        	if err != nil {
-            	errorh.HandleHttpError(c, rc, err, w, r)
-            	return
-        	}
+			err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
+			if err != nil {
+				errorh.HandleHttpError(c, rc, err, w, r)
+				return
+			}
 
-        {{end -}}
+		{{end -}}
 
 		{{if HasUpload . -}}
 
@@ -79,7 +82,7 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 
 			// read and parse request body
 			var {{GetInputArgName . }} {{GetInputArgType . }}
-			err = json.NewDecoder(r.Body).Decode( &{{GetInputArgName . }} )
+			err = json.NewDecoder(r.Body).Decode(&{{GetInputArgName . }})
 			if err != nil {
 				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body: %s", err), w, r)
 				return
@@ -89,11 +92,11 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 
 		{{if RequiresParamValidation . -}}
 
-	        // start parameter validation
-        	validationErrors := []errorh.FieldError{}
-        {{end -}}
+			// start parameter validation
+			validationErrors := []errorh.FieldError{}
+		{{end -}}
 
-        {{range .InputArgs -}}
+		{{range .InputArgs -}}
 
 			{{if IsPrimitiveArg . }}
 				{{if IsIntArg . -}}
@@ -153,38 +156,38 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 				errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorSpecific(0, validationErrors), w, r)
 				return
 			}
-	        // end of parameter validation
+			// end of parameter validation
 
 		{{end -}}
 
-        // call business logic
-        rc.Set(request.Transactional({{ IsRestOperationTransactional $service .}}))
+		// call business logic
+		rc.Set(request.Transactional({{ IsRestOperationTransactional $service .}}))
 		{{range GetOutputArgsDeclaration . -}}
 			{{.}}
 		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
-	    err = eventStore.RunInTransaction(c, rc, func(c context.Context) error {
+		err = eventStore.RunInTransaction(c, rc, func(c context.Context) error {
 		{{end -}}
 		{{if HasMetaOutput . -}}
-        	result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})
-        {{else if HasOutput . -}}
+			result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})
+		{{else if HasOutput . -}}
 			result, err = service.{{$oper.Name}}({{GetInputParamString . }})
-        {{else -}}
+		{{else -}}
 			err = service.{{$oper.Name}}({{GetInputParamString . }})
-        {{end -}}
+		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
 			if err != nil {
 				return err
 			}
 			return nil
 		})
-        {{end -}}
-        if err != nil {
-            errorh.HandleHttpError(c, rc, err, w, r)
-            return
-        }
+		{{end -}}
+		if err != nil {
+			errorh.HandleHttpError(c, rc, err, w, r)
+			return
+		}
 
-        {{if HasMetaOutput .}}
+		{{if HasMetaOutput .}}
 			if meta != nil {
 				{{if IsMetaCallback . -}}
 					err = meta(c, w, r)
@@ -196,28 +199,28 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 					return
 				}
 			}
-        {{end -}}
+		{{end -}}
 
-       {{if HasRestOperationAfter . -}}
+	   {{if HasRestOperationAfter . -}}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
 				errorh.HandleHttpError(c, rc, err, w, r)
 				return
 			}
-        {{end -}}
+		{{end -}}
 
-        {{if NeedsContext $oper}}
-        	postLogicHook( c, w, r, rc )
-        {{else -}}
-        	postLogicHook( nil, w, r, rc )
-        {{end -}}
+		{{if NeedsContext $oper}}
+			postLogicHook(c, w, r, rc)
+		{{else -}}
+			postLogicHook(nil, w, r, rc)
+		{{end -}}
 
-        // write OK response body
-        {{if HasContentType . -}}
-        	w.Header().Set("Content-Type", "{{GetContentType .}}")
-        {{end -}}
-        {{if IsRestOperationJSON . -}}
-            {{if HasOutput . -}}
+		// write OK response body
+		{{if HasContentType . -}}
+			w.Header().Set("Content-Type", "{{GetContentType .}}")
+		{{end -}}
+		{{if IsRestOperationJSON . -}}
+			{{if HasOutput . -}}
 				err = json.NewEncoder(w).Encode(result)
 				if err != nil {
 					mylog.New().Warning(c, "Error writing json-response: %s", err)
@@ -236,8 +239,8 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 				}
 			{{end -}}
 		{{else if IsRestOperationCSV . -}}
-        	w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
-        	{{if HasOutput . -}}
+			w.Header().Set("Content-Disposition", "attachment;filename={{ GetRestOperationFilename .}}")
+			{{if HasOutput . -}}
 				service.{{$oper.Name}}WriteCSV(w, result)
 			{{else -}}
 				{{$oper.Name}}WriteCSV(w)
@@ -253,22 +256,20 @@ func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
 		{{else -}}
 			errorh.NewInternalErrorf(0, "Not implemented")
 		{{end -}}
-    }
+	}
 }
-    {{else -}}
+	{{else -}}
 
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
-func {{$oper.Name}}( service *{{$service.Name}} ) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        {{if NeedsContext $oper -}}
+func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		{{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
 		{{end -}}
-        service.{{$oper.Name}}({{GetInputParamString . }})
-    }
+		service.{{$oper.Name}}({{GetInputParamString . }})
+	}
 }
-
-        {{end -}}
-    {{end -}}
+		{{end -}}
+	{{end -}}
 {{end}}
-
 `

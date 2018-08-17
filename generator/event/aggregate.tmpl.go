@@ -6,6 +6,7 @@ package {{.PackageName}}
 
 import (
 	"fmt"
+
 	"golang.org/x/net/context"
 )
 
@@ -19,7 +20,7 @@ const (
 // AggregateEvents describes all aggregates with their events
 var AggregateEvents = map[string][]string{
 {{range $aggr, $events := .AggregateMap -}}
-	{{$aggr}}AggregateName: []string {
+	{{$aggr}}AggregateName: {
 		{{range $aggregName, $event := $events.Events -}}
 			{{$event.Name}}EventName,
 		{{end -}}
@@ -34,7 +35,7 @@ type {{$aggr}}Aggregate interface {
 	idempotency.Checker
 	eventMetaData.MetaDataSetter
 	{{range $aggregName, $event := $events.Events -}}
-    	{{if $event.IsPersistent -}}
+		{{if $event.IsPersistent -}}
 			Apply{{$event.Name}}(c context.Context, evt {{$event.Name}})
 		{{end -}}
 	{{end -}}
@@ -43,23 +44,23 @@ type {{$aggr}}Aggregate interface {
 {{if $events.IsAnyPersistent -}}
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
 func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
-	if aggregateRoot.IsEventProcessed(envlp.UUID){
+	if aggregateRoot.IsEventProcessed(envlp.UUID) {
 		 mylog.New().Error(c, request.NewEmptyContext(), "Event %+v already processed", envlp)
 		 return nil
 	}
 
 	switch envlp.EventTypeName {
 		{{range $aggregName, $event := $events.Events -}}{{if $event.IsPersistent -}}
-			case {{$event.Name}}EventName:
-			evt, err :=    UnWrap{{$event.Name}}(&envlp)
+		case {{$event.Name}}EventName:
+			evt, err := UnWrap{{$event.Name}}(&envlp)
 			if err != nil {
-					return err
+				return err
 			}
 			aggregateRoot.Apply{{$event.Name}}(c, *evt)
 			break
 		{{end -}}{{end -}}
 		default:
-		mylog.New().Error(c, request.NewEmptyContext(),"Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
+		mylog.New().Error(c, request.NewEmptyContext(), "Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 
@@ -83,7 +84,7 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggr
 	for _, envlp := range envelopes {
 		err = Apply{{$aggr}}Event(c, envlp, aggregateRoot)
 		if err != nil {
-				break
+			break
 		}
 	}
 	return err
@@ -112,12 +113,11 @@ func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, err
 	for _, envlp := range envelopes {
 		evt, err := UnWrap{{$aggr}}Event(&envlp)
 		if err != nil {
-				return nil, err
+			return nil, err
 		}
 		events = append(events, evt)
 	}
 	return events, nil
 }
-
 {{end -}}
 `

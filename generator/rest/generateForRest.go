@@ -599,7 +599,7 @@ func GetInputParamString(o model.Operation) string {
 	for _, arg := range o.InputArgs {
 		args = append(args, arg.Name)
 	}
-	return strings.Join(args, ",")
+	return strings.Join(args, ", ")
 }
 
 func HasOutput(o model.Operation) bool {

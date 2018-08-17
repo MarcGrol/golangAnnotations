@@ -7,44 +7,45 @@ const wrappersTestTemplate = `// +build !appengine
 package {{.PackageName}}
 
 import (
-    "reflect"
-    "testing"
-    "time"
-    "github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 {{range .Structs -}}
-    {{if IsEvent . -}}
+	{{if IsEvent . -}}
 
 func Test{{.Name}}Wrapper(t *testing.T) {
-    defer mytime.SetDefaultNow()
+	defer mytime.SetDefaultNow()
 	defer myuuid.SetDefaults()
 
-    mytime.SetMockNow()
+	mytime.SetMockNow()
 	myuuid.SetMockV1({{GetAggregateName . }}AggregateName, "1234321")
 
-    evt := {{.Name}}{
-        {{range .Fields -}}
+	evt := {{.Name}}{
+		{{range .Fields -}}
 			{{if HasValueForField . -}}
 				{{.Name}}: {{ValueForField .}},
 			{{end -}}
 		{{end -}}
-    }
-    wrapped, err := evt.Wrap(request.New(request.SessionUID("test_session")))
-    assert.NoError(t, err)
-    assert.True(t, Is{{.Name}}(wrapped))
-    assert.Equal(t, {{GetAggregateName . }}AggregateName, wrapped.AggregateName)
-    assert.Equal(t, {{.Name}}EventName, wrapped.EventTypeName)
-    //	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
-    assert.Equal(t, "test_session", wrapped.SessionUID)
-    assert.NotEmpty(t, wrapped.UUID)
-    assert.Equal(t, "2016-02-27T00:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
-    assert.Equal(t, int64(0), wrapped.SequenceNumber)
-    again, ok := GetIfIs{{.Name}}(wrapped)
-    assert.True(t, ok)
-    assert.NotNil(t,again)
-    reflect.DeepEqual(evt, *again)
+	}
+	wrapped, err := evt.Wrap(request.New(request.SessionUID("test_session")))
+	assert.NoError(t, err)
+	assert.True(t, Is{{.Name}}(wrapped))
+	assert.Equal(t, {{GetAggregateName . }}AggregateName, wrapped.AggregateName)
+	assert.Equal(t, {{.Name}}EventName, wrapped.EventTypeName)
+	//	assert.Equal(t, "UID_{{.Name}}", wrapped.AggregateUID)
+	assert.Equal(t, "test_session", wrapped.SessionUID)
+	assert.NotEmpty(t, wrapped.UUID)
+	assert.Equal(t, "2016-02-27T00:00:00+01:00", wrapped.Timestamp.Format(time.RFC3339))
+	assert.Equal(t, int64(0), wrapped.SequenceNumber)
+	again, ok := GetIfIs{{.Name}}(wrapped)
+	assert.True(t, ok)
+	assert.NotNil(t, again)
+	reflect.DeepEqual(evt, *again)
 }
-        {{end -}}
+	{{end -}}
 {{end -}}
 `

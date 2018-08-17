@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"golang.org/x/net/context"
+	"strconv"
+
 	"github.com/gorilla/mux"
+	"golang.org/x/net/context"
 )
 
 {{range $idxService, $service := .Services -}}
@@ -21,16 +23,16 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 	{{ $serviceName := GetEventServiceSelfName $service }}
 	{{range GetEventServiceTopics . -}}
 	{
-	    bus.Subscribe("{{.}}", subscriber, es.enqueueEventToBackground)
+		bus.Subscribe("{{.}}", subscriber, es.enqueueEventToBackground)
 		router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.handleHttpBackgroundEvent()).Methods("POST")
 	}
 	{{end -}}
 }
 
-func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error {
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	switch envlp.EventTypeName {
-		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}},{{end -}}{{$evtName}}{{end -}}:
+		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}}, {{end -}}{{$evtName}}{{end -}}:
 
 			taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
 
@@ -78,18 +80,19 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
 	switch envlp.EventTypeName {
 		{{range $queueGroup := (GetEventOperationQueueGroups .) -}}
-		case  {{range $idx, $event := $queueGroup.Events -}}
-		{{if $idx}},{{end}}{{$event}}EventName{{end}}:
+		case {{range $idx, $event := $queueGroup.Events -}}
+		{{if $idx}}, {{end}}{{$event}}EventName{{end}}:
 			return myqueue.ProcessType{{$queueGroup.Process}}
 		{{end -}}
-		default: return myqueue.ProcessTypeDefault
+		default:
+			return myqueue.ProcessTypeDefault
 	}
 }
 
 func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
-		rc := request.NewMinimalContext(c,r)
+		rc := request.NewMinimalContext(c, r)
 
 		retryCount, err := strconv.Atoi(r.Header.Get("X-AppEngine-TaskRetryCount"))
 		if err != nil {
@@ -112,10 +115,10 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 		}
 
 		rc.Set(
-		    request.SessionUID(envlp.SessionUID),
-		    request.RequestUID(envlp.UUID), // pas a stable identifier that makes writing of resulting events idempotent
+			request.SessionUID(envlp.SessionUID),
+			request.RequestUID(envlp.UUID), // pas a stable identifier that makes writing of resulting events idempotent
 			request.TaskRetryCount(retryCount),
-		) 
+		)
 
 		err = es.handleEvent(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
@@ -125,10 +128,10 @@ func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
 	}
 }
 
-func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error{
+func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error {
 	const subscriber = "{{GetEventServiceSelfName .}}"
 
-    {{range $idxOper, $oper := .Operations -}}
+	{{range $idxOper, $oper := .Operations -}}
 		{{if IsEventOperation $oper -}}
 		{
 			evt, found := {{GetInputArgPackage $oper}}.GetIfIs{{GetInputArgType $oper}}(&envlp)
@@ -141,7 +144,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 				}
 
 				if rc.GetTaskRetryCount() > 0 {
-					myerrorhandling.HandleEventClearError(c, rc, topic, envlp, fmt.Sprintf("As subscriber '%s': Retry %d of '%s' succeeded", subscriber, rc.GetTaskRetryCount(), envlp.NiceName() ))
+					myerrorhandling.HandleEventClearError(c, rc, topic, envlp, fmt.Sprintf("As subscriber '%s': Retry %d of '%s' succeeded", subscriber, rc.GetTaskRetryCount(), envlp.NiceName()))
 				}
 
 				return nil

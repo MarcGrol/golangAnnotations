@@ -1,8 +1,15 @@
 package rest
 
-const testServiceTemplate = `package {{.PackageName}}
+const testServiceTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
-// Generated automatically by golangAnnotations: do not edit manually
+package {{.PackageName}}
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gorilla/mux"
+)
 
 var testResults = ""
 
