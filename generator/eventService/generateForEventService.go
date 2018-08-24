@@ -38,7 +38,7 @@ type templateData struct {
 func generate(inputDir string, structs []model.Struct) error {
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
-	if err != nil {
+	if packageName == "" || err != nil {
 		return err
 	}
 	targetDir, err := generationUtil.DetermineTargetPath(inputDir, packageName)

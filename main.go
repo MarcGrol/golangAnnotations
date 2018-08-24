@@ -30,7 +30,7 @@ func main() {
 
 	parsedSources, err := parser.New().ParseSourceDir(*inputDir, "^.*.go$", excludeMatchPattern)
 	if err != nil {
-		log.Printf("Error parsing golang sources in %s:%s", *inputDir, err)
+		log.Printf("Error parsing golang sources in %s: %s", *inputDir, err)
 		os.Exit(1)
 	}
 
@@ -39,7 +39,7 @@ func main() {
 	os.Exit(0)
 }
 
-func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error {
+func runAllGenerators(inputDir string, parsedSources model.ParsedSources) {
 	for name, g := range map[string]generator.Generator{
 		"ast":           ast.NewGenerator(),
 		"event":         event.NewGenerator(),
@@ -50,10 +50,10 @@ func runAllGenerators(inputDir string, parsedSources model.ParsedSources) error 
 	} {
 		err := g.Generate(inputDir, parsedSources)
 		if err != nil {
-			return fmt.Errorf("Error generating module %s: %s", name, err)
+			log.Printf("Error generating module %s: %s", name, err)
+			os.Exit(-1)
 		}
 	}
-	return nil
 }
 
 func printUsage() {

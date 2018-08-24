@@ -13,7 +13,7 @@ import (
 
 func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 	if len(structs) == 0 {
-		return "", fmt.Errorf("Need at least one struct to determine package-name")
+		return "", nil // Need at least one struct to determine package-name
 	}
 	packageName := structs[0].PackageName
 	for _, s := range structs {
@@ -26,7 +26,7 @@ func GetPackageNameForStructs(structs []model.Struct) (string, error) {
 
 func getPackageNameForEnums(enums []model.Enum) (string, error) {
 	if len(enums) == 0 {
-		return "", fmt.Errorf("Need at least one enum to determine package-name")
+		return "", nil // Need at least one enum to determine package-name
 	}
 	packageName := enums[0].PackageName
 	for _, s := range enums {

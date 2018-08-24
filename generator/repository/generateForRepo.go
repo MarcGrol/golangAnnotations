@@ -29,7 +29,7 @@ func (eg *Generator) Generate(inputDir string, parsedSource model.ParsedSources)
 	structs := parsedSource.Structs
 
 	packageName, err := generationUtil.GetPackageNameForStructs(structs)
-	if err != nil {
+	if packageName == "" || err != nil {
 		return err
 	}
 	targetDir, err := generationUtil.DetermineTargetPath(inputDir, packageName)
