@@ -7,10 +7,9 @@ const testHandlersTemplate = `// +build !appengine
 package {{.PackageName}}
 
 import (
+	"context"
 	"fmt"
 	"testing"
-
-	"golang.org/x/net/context"
 )
 
 {{range $idxService, $service := .Services -}}

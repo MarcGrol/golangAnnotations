@@ -4,9 +4,7 @@ const repositoryTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}
 
-import (
-	"golang.org/x/net/context"
-)
+import "context"
 
 {{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID

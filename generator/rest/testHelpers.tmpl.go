@@ -7,6 +7,7 @@ const testHelpersTemplate = `// +build !appengine
 package {{.PackageName}}
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,8 +15,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/context"
 )
 
 var (

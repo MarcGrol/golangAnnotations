@@ -5,9 +5,8 @@ const aggregateTemplate = `// Generated automatically by golangAnnotations: do n
 package {{.PackageName}}
 
 import (
+	"context"
 	"fmt"
-
-	"golang.org/x/net/context"
 )
 
 const (

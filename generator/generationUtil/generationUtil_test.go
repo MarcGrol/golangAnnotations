@@ -30,8 +30,9 @@ func TestGetPackageNameMultiplePackages(t *testing.T) {
 
 func TestGetPackageNameNoStructs(t *testing.T) {
 	s := []model.Struct{}
-	_, err := GetPackageNameForStructs(s)
-	assert.Error(t, err)
+	name, err := GetPackageNameForStructs(s)
+	assert.Empty(t, name)
+	assert.NoError(t, err)
 
 }
 

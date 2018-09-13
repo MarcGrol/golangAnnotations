@@ -7,13 +7,12 @@ const httpClientTemplate = `// +build !appengine
 package {{.PackageName}}
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httputil"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 {{ $serviceName := .Name }}

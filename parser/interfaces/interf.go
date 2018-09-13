@@ -1,6 +1,6 @@
 package interfaces
 
-import "golang.org/x/net/context"
+import "context"
 
 type Req struct{}
 type Resp struct{}

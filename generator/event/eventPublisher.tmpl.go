@@ -4,7 +4,7 @@ const eventPublisherTemplate = `// Generated automatically by golangAnnotations:
 
 package {{.PackageName}}Publisher
 
-import "golang.org/x/net/context"
+import "context"
 
 {{range .Structs -}}
 	{{if IsTransientEvent . -}}

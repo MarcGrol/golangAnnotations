@@ -3,9 +3,8 @@
 package myrest
 
 import (
+	"context"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 //go:generate golangAnnotations -input-dir .

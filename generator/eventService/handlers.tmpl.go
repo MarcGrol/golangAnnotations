@@ -5,13 +5,13 @@ const handlersTemplate = `// Generated automatically by golangAnnotations: do no
 package {{.PackageName}}
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
 )
 
 {{range $idxService, $service := .Services -}}

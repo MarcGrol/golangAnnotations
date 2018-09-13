@@ -5,11 +5,11 @@ const httpHandlersTemplate = `// Generated automatically by golangAnnotations: d
 package {{.PackageName}}
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
 )
 
 {{ $service := . }}

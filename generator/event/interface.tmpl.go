@@ -4,9 +4,7 @@ const interfaceTemplate = `// Generated automatically by golangAnnotations: do n
 
 package {{.PackageName}}
 
-import (
-	"golang.org/x/net/context"
-)
+import "context"
 
 {{$packageName := .PackageName}}
 

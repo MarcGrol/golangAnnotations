@@ -1,7 +1,7 @@
 package operations
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/MarcGrol/golangAnnotations/parser/structs"
 )

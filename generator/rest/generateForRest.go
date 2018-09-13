@@ -282,7 +282,7 @@ func isImportToBeIgnored(imp string) bool {
 		return true
 	}
 	for _, i := range []string{
-		"golang.org/x/net/context",
+		"context",
 		"github.com/gorilla/mux",
 	} {
 		if imp == i {

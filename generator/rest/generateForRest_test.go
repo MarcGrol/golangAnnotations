@@ -62,7 +62,7 @@ func TestGenerateForWeb(t *testing.T) {
 			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpMyService.go"))
 			assert.NoError(t, err)
 			assert.Contains(t, string(data), "func (ts *MyService) HTTPHandler() http.Handler {")
-			assert.Contains(t, string(data), "func doit( service *MyService ) http.HandlerFunc {")
+			assert.Contains(t, string(data), "func doit(service *MyService) http.HandlerFunc {")
 		}
 	}
 	{
@@ -89,7 +89,7 @@ func TestGenerateForWeb(t *testing.T) {
 			// check that generate code has 4 helper functions for MyStruct
 			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
 			assert.NoError(t, err)
-			assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string , cookie *http.Cookie, requestUID string, timeout time.Duration)  (int ,*errorh.Error,error) {")
+			assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string, cookie *http.Cookie, requestUID string, timeout time.Duration) (int, *errorh.Error, error) {")
 		}
 	}
 
@@ -157,7 +157,7 @@ func TestGetInputArgName(t *testing.T) {
 }
 
 func TestGetInputParamString(t *testing.T) {
-	assert.Equal(t, "ctx,uid,person", GetInputParamString(createOper("DONTCARE")))
+	assert.Equal(t, "ctx, uid, person", GetInputParamString(createOper("DONTCARE")))
 }
 
 func TestHasOutput(t *testing.T) {

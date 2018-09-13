@@ -4,7 +4,7 @@ const eventStoreTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}Store
 
-import "golang.org/x/net/context"
+import "context"
 
 {{range .Structs -}}
 
