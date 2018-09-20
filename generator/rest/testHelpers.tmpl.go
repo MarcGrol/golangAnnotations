@@ -183,6 +183,16 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 
 		{{if IsRestOperationJSON . -}}
 			{{if HasOutput . -}}
+
+		       if httpResp.Code == http.StatusTemporaryRedirect {
+			       return getBasketTestResponse{
+				       StatusCode: httpResp.Code,
+				       HeaderMap:  httpResp.HeaderMap,
+				       GetCookie:  getCookie,
+				       Body:       nil,
+			       }
+		        }
+
 				if httpResp.Code != http.StatusOK {
 					// return type-strong error response
 					var errorResponse errorh.Error
