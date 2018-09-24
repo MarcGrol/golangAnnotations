@@ -185,7 +185,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 			{{if HasOutput . -}}
 
 		       if httpResp.Code == http.StatusTemporaryRedirect {
-			       return getBasketTestResponse{
+			       return {{.Name}}TestResponse{
 				       StatusCode: httpResp.Code,
 				       HeaderMap:  httpResp.HeaderMap,
 				       GetCookie:  getCookie,
