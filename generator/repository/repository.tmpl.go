@@ -29,9 +29,18 @@ func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, rc request.Contex
 {{end -}}
 
 func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
-	envelopes, err := doFind{{UpperAggregateName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID, envelopeFilter)
+	envelopes, err := doFind{{UpperAggregateName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	envelopes, err = envelopeFilter.FilteredEnvelopes(envelopes)
+	if err != nil {
+		return nil, nil, errorh.NewInternalErrorf(0, "Failed to filter events for {{LowerModelName .}} with uid %s: %s", {{LowerModelName .}}UID, err)
+	}
+
+	if len(envelopes) == 0 {
+		return nil, nil, errorh.NewNotFoundErrorf(0, "{{UpperModelName .}} with uid %s not found", {{LowerModelName .}}UID)
 	}
 
 	{{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
@@ -42,7 +51,7 @@ func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{Lo
 	return {{LowerModelName .}}, envelopes, nil
 }
 
-func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) ([]envelope.Envelope, error) {
+func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]envelope.Envelope, error) {
 	envelopes, err := eventStoreInstance.Search(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, errorh.NewInternalErrorf(0, "Failed to fetch events for {{LowerModelName .}} with uid %s: %s", {{LowerModelName .}}UID, err)
@@ -52,15 +61,13 @@ func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, rc request.
 		return nil, errorh.NewNotFoundErrorf(0, "{{UpperModelName .}} with uid %s not found", {{LowerModelName .}}UID)
 	}
 
-	envelopes = envelopeFilter.FilteredEnvelopes(envelopes)
-
 	return envelopes, nil
 }
 {{end -}}
 
 {{if HasMethodFindStates . -}}
 	func Find{{UpperModelName .}}StatesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]{{ModelPackageName .}}.{{UpperModelName .}}, error) {
-	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID, envelope.AcceptAll)
+	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, err
 	}
