@@ -14,28 +14,26 @@ import (
 
 {{range $idxService, $service := .Services -}}
 
-   {{if not (IsEventServiceNoTest .) -}}
+	{{if not (IsEventServiceNoTest .) -}}
 
-	   {{ $eventService := . -}}
-	   {{ $eventServiceName := .Name -}}
+		{{ $eventService := . -}}
+		{{ $eventServiceName := .Name -}}
 
-	   {{range $idxOper, $oper := .Operations -}}
-		   {{if IsEventOperation $oper -}}
+		{{range $idxOper, $oper := .Operations -}}
+			{{if IsEventOperation $oper -}}
 
 func {{$oper.Name}}In{{ToFirstUpper $service.Name}}TestHelper(t *testing.T, c context.Context, rc request.Context, es *{{$eventServiceName}}, evt {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}) []envelope.Envelope {
 	{{if IsEventNotTransient $oper -}}
-	{
-		err := store.StoreEvent(c, rc, &evt)
+		envlp, err := store.StoreEvent(c, rc, &evt)
 		if err != nil {
-			t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+		t.Fatalf("Error storing event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
 		}
-	}
+	{{else -}}
+		envlp, err := evt.Wrap(rc)
+		if err != nil {
+			t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
+		}
 	{{end -}}
-
-	envlp, err := evt.Wrap(rc)
-	if err != nil {
-		t.Fatalf("Error wrapping event %s: %s", "{{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}", err)
-	}
 
 	eventsBefore := getEvents(c, rc)
 
