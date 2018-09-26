@@ -50,6 +50,21 @@ func (s *{{.Name}}) Wrap(rc request.Context) (*envelope.Envelope, error) {
 	return &envlp, nil
 }
 
+// GetAggregateName return the name of the event
+func (s *{{.Name}}) GetAggregateName() string {
+	return "{{GetAggregateName . }}"
+}
+
+// GetEventTypeName return the name of the event
+func (s *{{.Name}}) GetEventTypeName() string {
+	return "{{.Name}}"
+}
+
+// GetEventTypeName return the name of the event
+func (s *{{.Name}}) PrettyName() string {
+	return fmt.Sprintf( "%s-%s-%s", s.GetAggregateName(), s.GetEventTypeName(), s.GetUID())
+}
+
 // Is{{.Name}} detects of envelope carries event of type {{.Name}}
 func Is{{.Name}}(envlp *envelope.Envelope) bool {
 	return envlp.EventTypeName == {{.Name}}EventName

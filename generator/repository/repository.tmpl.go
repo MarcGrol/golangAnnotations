@@ -29,7 +29,7 @@ func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, rc request.Contex
 {{end -}}
 
 func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
-	envelopes, err := doFind{{UpperAggregateName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
+	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -51,7 +51,7 @@ func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{Lo
 	return {{LowerModelName .}}, envelopes, nil
 }
 
-func doFind{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]envelope.Envelope, error) {
+func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]envelope.Envelope, error) {
 	envelopes, err := eventStoreInstance.Search(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, errorh.NewInternalErrorf(0, "Failed to fetch events for {{LowerModelName .}} with uid %s: %s", {{LowerModelName .}}UID, err)
