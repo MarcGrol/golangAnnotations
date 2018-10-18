@@ -48,6 +48,22 @@ func (t {{.Name}}) String() string {
 	return v
 }
 
+func {{.Name}}EnumValues() []{{.Name}} {
+	return []{{.Name}}{
+	{{range .EnumLiterals -}}
+		{{.Name}},
+	{{end -}}
+	}
+}
+
+func {{.Name}}EnumValuesAsString() []string {
+	return []string{
+	{{range .EnumLiterals -}}
+		{{.Name}}.String(),
+	{{end -}}
+	}
+}
+
 // MarshalJSON caters for readable enums with a proper default value
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	s, ok := _{{.Name}}ValueToName[r]
