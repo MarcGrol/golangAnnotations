@@ -182,24 +182,26 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 			return nil
 		})
 		{{end -}}
-		if err != nil {
-			errorh.HandleHttpError(c, rc, err, w, r)
-			return
-		}
-
-		{{if HasMetaOutput .}}
+		{{if HasMetaOutput . -}}
 			if meta != nil {
 				{{if IsMetaCallback . -}}
-					err = meta(c, w, r)
+					metaErr := meta(c, w, r)
 				{{else -}}
-					err = service.{{$oper.Name}}HandleMetaData(c, w, meta)
+					metaErr := service.{{$oper.Name}}HandleMetaData(c, w, meta)
 				{{end -}}
-				if err != nil {
-					errorh.HandleHttpError(c, rc, err, w, r)
+				if metaErr != nil {
+					if err != nil {
+						metaErr = err
+					}
+					errorh.HandleHttpError(c, rc, metaErr, w, r)
 					return
 				}
 			}
 		{{end -}}
+		if err != nil {
+			errorh.HandleHttpError(c, rc, err, w, r)
+			return
+		}
 
 	   {{if HasRestOperationAfter . -}}
 			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
