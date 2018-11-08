@@ -72,7 +72,7 @@ func Is{{.Name}}(envlp *envelope.Envelope) bool {
 
 // GetIfIs{{.Name}} detects of envelope carries event of type {{.Name}} and returns the event if so
 func GetIfIs{{.Name}}(envlp *envelope.Envelope) (*{{.Name}}, bool) {
-	if Is{{.Name}}(envlp) == false {
+	if !Is{{.Name}}(envlp) {
 		return nil, false
 	}
 	evt, err := UnWrap{{.Name}}(envlp)
@@ -84,7 +84,7 @@ func GetIfIs{{.Name}}(envlp *envelope.Envelope) (*{{.Name}}, bool) {
 
 // UnWrap{{.Name}} extracts event {{.Name}} from its envelope
 func UnWrap{{.Name}}(envlp *envelope.Envelope) (*{{.Name}}, error) {
-	if Is{{.Name}}(envlp) == false {
+	if !Is{{.Name}}(envlp) {
 		return nil, fmt.Errorf("Not a {{.Name}}")
 	}
 	var evt {{.Name}}

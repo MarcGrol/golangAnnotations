@@ -296,12 +296,12 @@ func ExtractImports(s model.Struct) []string {
 	importsMap := map[string]bool{}
 	for _, o := range s.Operations {
 		for _, ia := range o.InputArgs {
-			if isImportToBeIgnored(ia.PackageName) == false {
+			if !isImportToBeIgnored(ia.PackageName) {
 				importsMap[ia.PackageName] = true
 			}
 		}
 		for _, oa := range o.OutputArgs {
-			if isImportToBeIgnored(oa.PackageName) == false {
+			if !isImportToBeIgnored(oa.PackageName) {
 				importsMap[oa.PackageName] = true
 			}
 		}

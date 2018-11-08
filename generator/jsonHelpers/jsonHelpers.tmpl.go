@@ -44,7 +44,7 @@ var (
 {{end -}}
 
 func (t {{.Name}}) String() string {
-	v, _ := _{{.Name}}ValueToName[t]
+	v := _{{.Name}}ValueToName[t]
 	return v
 }
 
@@ -71,7 +71,7 @@ func {{.Name}}EnumValuesAsString() []string {
 func (r {{.Name}}) MarshalJSON() ([]byte, error) {
 	s, ok := _{{.Name}}ValueToName[r]
 	if !ok {
-		{{if HasDefaultValue .}}s, _ = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", r){{end}}
+		{{if HasDefaultValue .}}s = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", r){{end}}
 	}
 	return json.Marshal(s)
 }

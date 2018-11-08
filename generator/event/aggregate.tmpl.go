@@ -56,7 +56,6 @@ func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRo
 				return err
 			}
 			aggregateRoot.Apply{{$event.Name}}(c, *evt)
-			break
 		{{end -}}{{end -}}
 		default:
 		mylog.New().Error(c, request.NewEmptyContext(), "Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
