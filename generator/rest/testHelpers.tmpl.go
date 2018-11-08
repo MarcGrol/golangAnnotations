@@ -170,7 +170,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 	{
 		// read cookies
 		requestWithCookies := &http.Request{
-			Header: http.Header{"Cookie": httpResp.HeaderMap["Set-Cookie"]},
+			Header: http.Header{"Cookie": httpResp.Result().Header["Set-Cookie"]},
 		}
 
 		getCookie := func(name string) *http.Cookie {
@@ -187,7 +187,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 		       if httpResp.Code == http.StatusTemporaryRedirect {
 			       return {{.Name}}TestResponse{
 				       StatusCode: httpResp.Code,
-				       HeaderMap:  httpResp.HeaderMap,
+				       HeaderMap:  httpResp.Result().Header,
 				       GetCookie:  getCookie,
 				       Body:       nil,
 			       }
@@ -204,7 +204,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 
 					return {{.Name}}TestResponse{
 						StatusCode: httpResp.Code,
-						HeaderMap:  httpResp.HeaderMap,
+						HeaderMap:  httpResp.Result().Header,
 						GetCookie:  getCookie,
 						ErrorBody:  &errorResponse,
 					}
@@ -220,21 +220,21 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 
 				return {{.Name}}TestResponse{
 					StatusCode: httpResp.Code,
-					HeaderMap:  httpResp.HeaderMap,
+					HeaderMap:  httpResp.Result().Header,
 					GetCookie:  getCookie,
 					Body:       resp,
 				}
 			{{else -}}
 				return {{.Name}}TestResponse{
 					StatusCode: httpResp.Code,
-					HeaderMap:  httpResp.HeaderMap,
+					HeaderMap:  httpResp.Result().Header,
 					GetCookie:  getCookie,
 				}
 			{{end -}}
 		{{else -}}
 			return {{.Name}}TestResponse{
 				StatusCode: httpResp.Code,
-				HeaderMap:  httpResp.HeaderMap,
+				HeaderMap:  httpResp.Result().Header,
 				GetCookie:  getCookie,
 				Recorder:   httpResp,
 			}
