@@ -683,7 +683,7 @@ func GetOutputArgName(o model.Operation) string {
 
 func findArgInArray(array []string, toMatch string) bool {
 	for _, p := range array {
-		if strings.Trim(p, " ") == toMatch {
+		if strings.ToUpper(strings.TrimSpace(p)) == strings.ToUpper(toMatch) {
 			return true
 		}
 	}
