@@ -110,7 +110,7 @@ func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 		err = json.NewDecoder(r.Body).Decode(&envlp)
 		if err != nil {
 			mylog.New().Error(c, rc, "Error parsing request body (retry-count:%d): %s", retryCount, err)
-			errorh.HandleHttpError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body (retry-count:%d): %s", retryCount, err), w, r)
+			errorh.HandleHTTPError(c, rc, errorh.NewInvalidInputErrorf(1, "Error parsing request body (retry-count:%d): %s", retryCount, err), w, r)
 			return
 		}
 
@@ -122,7 +122,7 @@ func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 
 		err = es.handleEvent(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
-			errorh.HandleHttpError(c, rc, err, w, r)
+			errorh.HandleHTTPError(c, rc, err, w, r)
 			return
 		}
 	}

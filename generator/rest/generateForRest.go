@@ -54,21 +54,21 @@ func generate(inputDir string, structs []model.Struct) error {
 				packageName: packageName,
 				service:     service,
 			}
-			err = generateHttpService(ctx)
+			err = generateHTTPService(ctx)
 			if err != nil {
 				return err
 			}
 
 			if !IsRestServiceNoTest(service) {
-				err = generateHttpTestHelpers(ctx)
+				err = generateHTTPTestHelpers(ctx)
 				if err != nil {
 					return err
 				}
-				err = generateHttpTestService(ctx)
+				err = generateHTTPTestService(ctx)
 				if err != nil {
 					return err
 				}
-				err = generateHttpClient(ctx)
+				err = generateHTTPClient(ctx)
 				if err != nil {
 					return err
 				}
@@ -78,7 +78,7 @@ func generate(inputDir string, structs []model.Struct) error {
 	return nil
 }
 
-func generateHttpService(ctx generateContext) error {
+func generateHTTPService(ctx generateContext) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", ctx.service.PackageName, ToFirstUpper(ctx.service.Name)),
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/http%s.go", ctx.targetDir, ToFirstUpper(ctx.service.Name))),
@@ -94,7 +94,7 @@ func generateHttpService(ctx generateContext) error {
 	return nil
 }
 
-func generateHttpTestHelpers(ctx generateContext) error {
+func generateHTTPTestHelpers(ctx generateContext) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", ctx.service.PackageName, ToFirstUpper(ctx.service.Name)),
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/http%sHelpers_test.go", ctx.targetDir, ToFirstUpper(ctx.service.Name))),
@@ -110,7 +110,7 @@ func generateHttpTestHelpers(ctx generateContext) error {
 	return nil
 }
 
-func generateHttpTestService(ctx generateContext) error {
+func generateHTTPTestService(ctx generateContext) error {
 	// create this file within a subdirectoty
 	ctx.packageName = ctx.packageName + "TestLog"
 
@@ -131,7 +131,7 @@ func generateHttpTestService(ctx generateContext) error {
 	return nil
 }
 
-func generateHttpClient(ctx generateContext) error {
+func generateHTTPClient(ctx generateContext) error {
 	err := generationUtil.Generate(generationUtil.Info{
 		Src:            fmt.Sprintf("%s.%s", ctx.service.PackageName, ToFirstUpper(ctx.service.Name)),
 		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/httpClientFor%s.go", ctx.targetDir, ToFirstUpper(ctx.service.Name))),
