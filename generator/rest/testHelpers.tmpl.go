@@ -58,7 +58,7 @@ func newTestClient(ctx context.Context, testingT *testing.T, testCase *libtest.H
 {{if IsRestOperation . -}}
 
 type {{.Name}}TestRequest struct {
-	Url     string
+	URL     string
 	Headers map[string]string
 	{{if HasInput . }}Body     {{GetInputArgType . }}{{end}}
 	{{if IsRestOperationForm . }}Form     url.Values{{end}}
@@ -84,7 +84,7 @@ func {{.Name}}TestHelperWithoutHeaders(t *testing.T, c context.Context, tc *libt
 
 func {{.Name}}TestHelperWithHeaders(t *testing.T, c context.Context, tc *libtest.HTTPTestCase, url string{{if IsRestOperationForm . }}, form url.Values{{else if HasInput . }}, input {{GetInputArgType . }}{{end}}, headers map[string]string) ({{if IsRestOperationJSON . }}int{{if HasOutput . }}, {{GetOutputArgType . }}{{end}}, *errorh.Error{{else}}*httptest.ResponseRecorder{{end}}, error) {
 	request := {{.Name}}TestRequest{
-		Url:     url,
+		URL:     url,
 		Headers: headers,
 		{{if HasInput . }}Body:    input,{{end}}
 		{{if IsRestOperationForm .}}Form:    form,{{end}}
@@ -121,23 +121,23 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 		var requestPayload []byte
 		{{if HasUpload . -}}
 			{{.Name}}SetUpload(request.Body)
-			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
+			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.URL, nil)
 		{{else if IsRestOperationForm . -}}
-			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(request.Form.Encode()))
+			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.URL, strings.NewReader(request.Form.Encode()))
 			httpReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		{{else if HasInput . -}}
 			requestPayload, err = json.MarshalIndent(request.Body, "", "\t")
 			if err != nil {
 				tcl.t.Fatalf("Error marshalling request: %s", err)
 			}
-			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, strings.NewReader(string(requestPayload)))
+			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.URL, strings.NewReader(string(requestPayload)))
 		{{else -}}
-			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.Url, nil)
+			httpReq, err = http.NewRequest("{{GetRestOperationMethod . }}", request.URL, nil)
 		{{end -}}
 		if err != nil {
 			tcl.t.Fatalf("Error creating http-request: %s", err)
 		}
-		httpReq.RequestURI = request.Url
+		httpReq.RequestURI = request.URL
 		{{if HasUpload . -}}
 		{{else if HasInput . -}}
 			httpReq.Header.Set("Content-type", "application/json")
@@ -151,7 +151,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 		setCookieHook(httpReq, request.Headers)
 
 		// record request-part of test-case
-		tcl.testCase.WithRequest("{{GetRestOperationMethod . }}", request.Url, httpReq.Header, requestPayload)
+		tcl.testCase.WithRequest("{{GetRestOperationMethod . }}", request.URL, httpReq.Header, requestPayload)
 	}
 
 	// call server
