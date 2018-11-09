@@ -101,7 +101,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 			{{if IsPrimitiveArg . }}
 				{{if IsIntArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
-						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{.Name}}", true)
+						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{Uncapitalized .Name}}", true)
 						if err != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
@@ -110,7 +110,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 					{{end -}}
 				{{else if IsBoolArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
-						{{.Name}}, fieldError := httpparser.ExtractBool(r, "{{.Name}}", true)
+						{{.Name}}, fieldError := httpparser.ExtractBool(r, "{{Uncapitalized .Name}}", true)
 						if err != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
@@ -119,7 +119,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 					{{end -}}
 				{{else if IsDateArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
-						{{.Name}}, fieldError := httpparser.ExtractDate(r, "{{.Name}}", true)
+						{{.Name}}, fieldError := httpparser.ExtractDate(r, "{{Uncapitalized .Name}}", true)
 						if err != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
@@ -128,7 +128,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 					{{end -}}
 				{{else if IsStringArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
-						{{.Name}}, fieldError := httpparser.ExtractString(r, "{{.Name}}", true)
+						{{.Name}}, fieldError := httpparser.ExtractString(r, "{{Uncapitalized .Name}}", true)
 						if err != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
@@ -137,12 +137,12 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 					{{end -}}
 				{{else if IsStringSliceArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
-						{{.Name}}, fieldError := httpparser.ExtractStringSlice(r, "{{.Name}}", true)
+						{{.Name}}, fieldError := httpparser.ExtractStringSlice(r, "{{Uncapitalized .Name}}", true)
 						if err != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
-						{{.Name}}, _ := httpparser.ExtractStringSlice(r, "{{.Name}}", false)
+						{{.Name}}, _ := httpparser.ExtractStringSlice(r, "{{Uncapitalized .Name}}", false)
 					{{end -}}
 				{{else}}
 					Force compile error: Input arg {{.}} has unsupported primitive type

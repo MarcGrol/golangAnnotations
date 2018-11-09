@@ -208,6 +208,7 @@ var customTemplateFuncs = template.FuncMap{
 	"WithBackTicks":                         SurroundWithBackTicks,
 	"BackTick":                              BackTick,
 	"ToFirstUpper":                          ToFirstUpper,
+	"Uncapitalized":                         Uncapitalized,
 }
 
 func BackTick() string {
@@ -773,4 +774,22 @@ func ToFirstUpper(in string) string {
 	a := []rune(in)
 	a[0] = unicode.ToUpper(a[0])
 	return string(a)
+}
+
+func Uncapitalized(in string) string {
+	out := make([]rune, 0)
+	lastUpper := false
+	for _, r := range []rune(in) {
+		if unicode.IsUpper(r) {
+			if lastUpper {
+				r = unicode.ToLower(r)
+			} else {
+				lastUpper = true
+			}
+		} else {
+			lastUpper = false
+		}
+		out = append(out, r)
+	}
+	return string(out)
 }
