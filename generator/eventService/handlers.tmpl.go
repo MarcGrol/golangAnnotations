@@ -24,7 +24,7 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 	{{range GetEventServiceTopics . -}}
 	{
 		bus.Subscribe("{{.}}", subscriber, es.enqueueEventToBackground)
-		router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.handleHttpBackgroundEvent()).Methods("POST")
+		router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.handleHTTPBackgroundEvent()).Methods("POST")
 	}
 	{{end -}}
 }
@@ -34,19 +34,19 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}}, {{end -}}{{$evtName}}{{end -}}:
 
-			taskUrl := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
+			taskURL := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
 
-			asJson, err := json.Marshal(envlp)
+			asJSON, err := json.Marshal(envlp)
 			if err != nil {
-				msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskUrl)
+				msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskURL)
 				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 				return err
 			}
 
 			task := queue.Task{
 				Method:  "POST",
-				URL:     taskUrl,
-				Payload: asJson,
+				URL:     taskURL,
+				Payload: asJSON,
 			}
 
 			{{if IsAnyEventOperationDelayed . -}}
@@ -64,7 +64,7 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 
 			err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), task)
 			if err != nil {
-				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskUrl)
+				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskURL)
 				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 				return err
 			}
@@ -89,7 +89,7 @@ func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqu
 	}
 }
 
-func (es *{{$eventServiceName}}) handleHttpBackgroundEvent() http.HandlerFunc {
+func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := ctx.New.CreateContext(r)
 		rc := request.NewMinimalContext(c, r)

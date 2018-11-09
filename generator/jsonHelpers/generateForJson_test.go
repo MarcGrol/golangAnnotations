@@ -74,8 +74,8 @@ func TestGenerateForJson(t *testing.T) {
 	// check that generate code has 4 helper functions for MyStruct
 	data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/example_json.go"))
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), `func (r *ColorType) UnmarshalJSON(data []byte) error {`)
-	assert.Contains(t, string(data), `func (r ColorType) MarshalJSON() ([]byte, error) {`)
+	assert.Contains(t, string(data), `func (t *ColorType) UnmarshalJSON(data []byte) error {`)
+	assert.Contains(t, string(data), `func (t ColorType) MarshalJSON() ([]byte, error) {`)
 
 	assert.Contains(t, string(data), `func (data *ColoredThing) UnmarshalJSON(b []byte) error {`)
 	assert.Contains(t, string(data), `func (data ColoredThing) MarshalJSON() ([]byte, error) {`)

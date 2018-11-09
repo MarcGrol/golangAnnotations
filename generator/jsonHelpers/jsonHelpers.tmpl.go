@@ -68,16 +68,16 @@ func {{.Name}}EnumValuesAsString() []string {
 {{end -}}
 
 // MarshalJSON caters for readable enums with a proper default value
-func (r {{.Name}}) MarshalJSON() ([]byte, error) {
-	s, ok := _{{.Name}}ValueToName[r]
+func (t {{.Name}}) MarshalJSON() ([]byte, error) {
+	s, ok := _{{.Name}}ValueToName[t]
 	if !ok {
-		{{if HasDefaultValue .}}s = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", r){{end}}
+		{{if HasDefaultValue .}}s = _{{.Name}}ValueToName[{{GetDefaultValue .}}]{{else}}return nil, fmt.Errorf("invalid {{.Name}}: %d", t){{end}}
 	}
 	return json.Marshal(s)
 }
 
 // UnmarshalJSON caters for readable enums with a proper default value
-func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
+func (t *{{.Name}}) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return fmt.Errorf("{{.Name}} should be a string, got %s", data)
@@ -86,7 +86,7 @@ func (r *{{.Name}}) UnmarshalJSON(data []byte) error {
 	if !ok {
 		{{if HasDefaultValue .}}v = {{GetDefaultValue .}}{{else}}return fmt.Errorf("invalid {{.Name}} %q", s){{end}}
 	}
-	*r = v
+	*t = v
 	return nil
 }
 
