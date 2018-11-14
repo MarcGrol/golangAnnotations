@@ -106,7 +106,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
-						{{.Name}}, _ := httpparser.ExtractNumber(r, "{{.Name}}",false)
+						{{.Name}}, _ := httpparser.ExtractNumber(r, "{{Uncapitalized .Name}}",false)
 					{{end -}}
 				{{else if IsBoolArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
@@ -115,7 +115,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
-						{{.Name}}, _ := httpparser.ExtractBool(r, "{{.Name}}", false)
+						{{.Name}}, _ := httpparser.ExtractBool(r, "{{Uncapitalized .Name}}", false)
 					{{end -}}
 				{{else if IsDateArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
@@ -124,7 +124,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
-						{{.Name}}, _ := httpparser.ExtractDate(r, "{{.Name}}", false)
+						{{.Name}}, _ := httpparser.ExtractDate(r, "{{Uncapitalized .Name}}", false)
 					{{end -}}
 				{{else if IsStringArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
@@ -133,7 +133,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
-						{{.Name}}, _ := httpparser.ExtractString(r, "{{.Name}}", false)
+						{{.Name}}, _ := httpparser.ExtractString(r, "{{Uncapitalized .Name}}", false)
 					{{end -}}
 				{{else if IsStringSliceArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
