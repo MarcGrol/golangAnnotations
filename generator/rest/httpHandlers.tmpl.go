@@ -102,7 +102,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{if IsIntArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{Uncapitalized .Name}}", true)
-						if err != nil {
+						if fieldError != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
@@ -111,7 +111,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{else if IsBoolArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractBool(r, "{{Uncapitalized .Name}}", true)
-						if err != nil {
+						if fieldError != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
@@ -120,7 +120,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{else if IsDateArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractDate(r, "{{Uncapitalized .Name}}", true)
-						if err != nil {
+						if fieldError != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
@@ -129,7 +129,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{else if IsStringArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractString(r, "{{Uncapitalized .Name}}", true)
-						if err != nil {
+						if fieldError != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
@@ -138,7 +138,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{else if IsStringSliceArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractStringSlice(r, "{{Uncapitalized .Name}}", true)
-						if err != nil {
+						if fieldError != nil {
 							validationErrors = append(validationErrors, *fieldError)
 						}
 					{{else -}}
