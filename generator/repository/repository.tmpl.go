@@ -19,6 +19,7 @@ func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context
 	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
 	return {{LowerModelName .}}, err
 }
+
 {{end -}}
 
 {{if HasMethodFilterByMoment . -}}
@@ -26,6 +27,7 @@ func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, rc request.Contex
 	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByMoment{Moment: moment})
 	return {{LowerModelName .}}, err
 }
+
 {{end -}}
 
 func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
@@ -63,6 +65,7 @@ func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Cont
 
 	return envelopes, nil
 }
+
 {{end -}}
 
 {{if HasMethodFindStates . -}}
@@ -83,6 +86,7 @@ func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Cont
 	}
 	return states, nil
 	}
+
 {{end -}}
 
 {{if HasMethodExists . -}}
@@ -93,6 +97,7 @@ func Exists{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{Lo
 	}
 	return exists, nil
 }
+
 {{end -}}
 
 {{if HasMethodAllAggregateUIDs . -}}
@@ -103,6 +108,7 @@ func GetAll{{UpperModelName .}}UIDs(c context.Context, rc request.Context) ([]st
 	}
 		return {{LowerModelName .}}UIDs, nil
 	}
+
 {{end -}}
 
 {{if HasMethodGetAllAggregates . -}}
@@ -138,12 +144,14 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, 
 	}
 	return {{LowerModelName .}}s, {{LowerModelName .}}Map, nil
 }
+
 {{end -}}
 
 {{if HasMethodPurgeOnEventUIDs . -}}
 	func Purge{{UpperAggregateName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, eventUUIDs []string) error {
 	return eventStoreInstance.Purge(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID, eventUUIDs)
 }
+
 {{end -}}
 
 {{if HasMethodPurgeOnEventType . -}}
@@ -157,6 +165,7 @@ func PurgeAll{{UpperAggregateName .}}EnvelopesOnEventType(c context.Context, rc 
 	}
 	return done, nil
 }
+
 {{end -}}
 
 {{if HasMethodPurgeAll . -}}
@@ -167,5 +176,6 @@ func PurgeAll{{UpperAggregateName .}}Envelopes(c context.Context, rc request.Con
 	}
 	return done, nil
 }
+
 {{end -}}
 `
