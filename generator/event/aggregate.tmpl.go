@@ -116,11 +116,8 @@ func Anonymize{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
 				if err != nil {
 					return nil, err
 				}
-				{{if $event.IsSensitive}}
-				evt, err := Anonymize{{$aggr}}Event(evt)
-				if err != nil {
-					return nil, err
-				}
+				{{if $event.IsSensitive -}}
+					evt = evt.Anonymized()
 				{{end -}}
 				return evt, nil
 		{{end -}}
