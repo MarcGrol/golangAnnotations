@@ -25,7 +25,7 @@ func TestGenerateForEvents(t *testing.T) {
 	s := []model.Struct{
 		{
 			PackageName: "testData",
-			DocLines:    []string{`//@Event(aggregate = "Test")`},
+			DocLines:    []string{`//@Event(aggregate = "Test", issensitive = "true")`},
 			Name:        "MyStruct",
 			Fields: []model.Field{
 				{Name: "StringField", TypeName: "string"},
@@ -49,7 +49,7 @@ func TestGenerateForEvents(t *testing.T) {
 	assert.Contains(t, string(data), "func ApplyTestEvent(c context.Context, envlp envelope.Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func ApplyTestEvents(c context.Context, envelopes []envelope.Envelope, aggregateRoot TestAggregate) error {")
 	assert.Contains(t, string(data), "func UnWrapTestEvent(envlp *envelope.Envelope) (envelope.Event, error) {")
-	assert.Contains(t, string(data), "func UnWrapTestEvents(envelopes []envelope.Envelope) ([]envelope.Event, error) {")
+	assert.Contains(t, string(data), "func AnonymizeTestEvent(envlp *envelope.Envelope) (envelope.Event, error) {")
 
 	// check that generate code has 4 helper functions for MyStruct
 	data, err = ioutil.ReadFile(generationUtil.Prefixed("./testData/wrappers.go"))

@@ -16,11 +16,13 @@ import (
 type eventMap struct {
 	Events          map[string]event
 	IsAnyPersistent bool
+	IsAnySensitive  bool
 }
 
 type event struct {
 	Name         string
 	IsPersistent bool
+	IsSensitive  bool
 }
 
 type aggregateMap struct {
@@ -140,14 +142,19 @@ func getAggregates(structs []model.Struct) map[string]eventMap {
 				events = eventMap{
 					Events:          make(map[string]event),
 					IsAnyPersistent: false,
+					IsAnySensitive:  false,
 				}
 			}
 			evt := event{
 				Name:         s.Name,
 				IsPersistent: IsPersistentEvent(s),
+				IsSensitive:  IsSensitiveEvent(s),
 			}
 			if evt.IsPersistent {
 				events.IsAnyPersistent = true
+			}
+			if evt.IsSensitive {
+				events.IsAnySensitive = true
 			}
 			events.Events[s.Name] = evt
 			aggregates[GetAggregateName(s)] = events
@@ -292,6 +299,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsRootEvent":               IsRootEvent,
 	"IsPersistentEvent":         IsPersistentEvent,
 	"IsTransientEvent":          IsTransientEvent,
+	"IsSensitiveEvent":          IsSensitiveEvent,
 	"GetAggregateName":          GetAggregateName,
 	"GetAggregateNameLowerCase": GetAggregateNameLowerCase,
 	"HasValueForField":          hasValueForField,
@@ -345,6 +353,14 @@ func isTransient(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
 		return ann.Attributes[eventAnnotation.ParamIsTransient] == "true"
+	}
+	return false
+}
+
+func IsSensitiveEvent(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+		return ann.Attributes[eventAnnotation.ParamIsSensitive] == "true"
 	}
 	return false
 }

@@ -7,6 +7,7 @@ const (
 	ParamAggregate   = "aggregate"
 	ParamIsRootEvent = "isrootevent"
 	ParamIsTransient = "istransient"
+	ParamIsSensitive = "issensitive"
 )
 
 // Register makes the annotation-registry aware of this annotation
@@ -14,7 +15,7 @@ func Get() []annotation.AnnotationDescriptor {
 	return []annotation.AnnotationDescriptor{
 		{
 			Name:       TypeEvent,
-			ParamNames: []string{ParamAggregate, ParamIsRootEvent, ParamIsTransient},
+			ParamNames: []string{ParamAggregate, ParamIsRootEvent, ParamIsTransient, ParamIsSensitive},
 			Validator:  validateEventAnnotation,
 		},
 	}

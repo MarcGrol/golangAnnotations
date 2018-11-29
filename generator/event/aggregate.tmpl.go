@@ -87,6 +87,7 @@ func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggr
 	}
 	return err
 }
+
 {{end -}}
 
 // UnWrap{{$aggr}}Event extracts the event from its envelope
@@ -105,17 +106,29 @@ func UnWrap{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
 	}
 }
 
-// UnWrap{{$aggr}}Events extracts the events from multiple envelopes
-func UnWrap{{$aggr}}Events(envelopes []envelope.Envelope) ([]envelope.Event, error) {
-	events := make([]envelope.Event, 0, len(envelopes))
-	for _, envlp := range envelopes {
-		evt, err := UnWrap{{$aggr}}Event(&envlp)
-		if err != nil {
-			return nil, err
-		}
-		events = append(events, evt)
+{{if $events.IsAnySensitive -}}
+// Anonymize{{$aggr}}Event extracts and anonymizes the event from its envelope
+func Anonymize{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
+	switch envlp.EventTypeName {
+		{{range $aggregName, $event := $events.Events -}}
+			case {{$event.Name}}EventName:
+				evt, err := UnWrap{{$event.Name}}(envlp)
+				if err != nil {
+					return nil, err
+				}
+				{{if $event.IsSensitive}}
+				evt, err := Anonymize{{$aggr}}Event(evt)
+				if err != nil {
+					return nil, err
+				}
+				{{end -}}
+				return evt, nil
+		{{end -}}
+		default:
+		return nil, fmt.Errorf("Anonymize{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
-	return events, nil
 }
+
+{{end -}}
 {{end -}}
 `
