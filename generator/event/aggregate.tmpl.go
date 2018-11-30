@@ -6,6 +6,7 @@ package {{.PackageName}}
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 )
 
@@ -107,23 +108,34 @@ func UnWrap{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
 }
 
 {{if $events.IsAnySensitive -}}
-// Anonymize{{$aggr}}Event extracts and anonymizes the event from its envelope
-func Anonymize{{$aggr}}Event(envlp *envelope.Envelope) (envelope.Event, error) {
-	switch envlp.EventTypeName {
+// Anonymize{{$aggr}}Envelopes anonymizes the events wrapped by the envelopes
+func Anonymize{{$aggr}}Envelopes(envelopes []envelope.Envelope) ([]envelope.Envelope, error) {
+	anonymizedEnvelopes := make([]envelope.Envelope,0)
+	for _, envlp := range envelopes {
+		switch envlp.EventTypeName {
 		{{range $aggregName, $event := $events.Events -}}
-			case {{$event.Name}}EventName:
-				evt, err := UnWrap{{$event.Name}}(envlp)
-				if err != nil {
-					return nil, err
-				}
-				{{if $event.IsSensitive -}}
-					evt = evt.Anonymized()
-				{{end -}}
-				return evt, nil
+		case {{$event.Name}}EventName:
+		{{if $event.IsSensitive -}}
+			evt, err := UnWrap{{$event.Name}}(&envlp)
+			if err != nil {
+				return nil, err
+			}
+			evt = evt.Anonymized()
+			blob, err := json.Marshal(evt)
+			if err != nil {
+				return nil, err
+			}
+			envlp.EventData = string(blob)
+		{{else -}}
+			continue
+		{{end -}}
 		{{end -}}
 		default:
-		return nil, fmt.Errorf("Anonymize{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
+			return nil, fmt.Errorf("Anonymize{{$aggr}}Envelopes: Unexpected event %s", envlp.EventTypeName)
+		}
+		anonymizedEnvelopes = append(anonymizedEnvelopes, envlp)
 	}
+	return anonymizedEnvelopes, nil
 }
 
 {{end -}}

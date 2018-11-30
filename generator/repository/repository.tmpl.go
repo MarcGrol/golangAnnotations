@@ -120,11 +120,11 @@ func GetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, op
 func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, optOffset time.Time) ([]{{ModelPackageName .}}.{{UpperModelName .}}, map[string][]envelope.Envelope, error) {
 			{{LowerModelName .}}Map := map[string][]envelope.Envelope{}
 	err := eventStoreInstance.IterateWithOffset(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, optOffset, func(envlp envelope.Envelope) error {
-		envlps, exists := {{LowerModelName .}}Map[envlp.AggregateUID]
+		envelopes, exists := {{LowerModelName .}}Map[envlp.AggregateUID]
 		if !exists {
-			envlps = []envelope.Envelope{}
+			envelopes = []envelope.Envelope{}
 		}
-		{{LowerModelName .}}Map[envlp.AggregateUID] = append(envlps, envlp)
+		{{LowerModelName .}}Map[envlp.AggregateUID] = append(envelopes, envlp)
 		return nil
 	})
 	if err != nil {
