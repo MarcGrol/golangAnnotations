@@ -119,6 +119,7 @@ func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 			request.RequestUID(envlp.UUID), // pas a stable identifier that makes writing of resulting events idempotent
 			request.TaskRetryCount(retryCount),
 		)
+		rc.SetAuthUser(envlp.AdminUserUID)
 
 		err = es.handleEvent(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
