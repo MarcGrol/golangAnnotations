@@ -68,3 +68,11 @@ func (f Field) IsString() bool {
 func (f Field) IsStringSlice() bool {
 	return f.TypeName == "[]string"
 }
+
+func (f Field) IsDate() bool {
+	return f.DereferencedTypeName() == "mydate.MyDate"
+}
+
+func (f Field) IsDateSlice() bool {
+	return f.DereferencedTypeName() == "[]mydate.MyDate"
+}

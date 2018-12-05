@@ -327,7 +327,7 @@ func extractPackageName(node ast.Node) (string, bool) {
 
 func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.Struct {
 	if genDecl, ok := node.(*ast.GenDecl); ok {
-		// Continue parsing to see if it a struct
+		// Continue parsing to see if it is a struct
 		if mStruct := extractSpecsForStruct(genDecl.Specs, imports); mStruct != nil {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			mStruct.DocLines = extractComments(genDecl.Doc)

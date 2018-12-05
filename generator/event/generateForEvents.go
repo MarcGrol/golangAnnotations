@@ -3,6 +3,8 @@ package event
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"text/template"
 	"unicode"
 
@@ -79,6 +81,11 @@ func generate(inputDir string, structs []model.Struct) error {
 	}
 
 	err = generateWrappers(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = generateAnonymized(ctx)
 	if err != nil {
 		return err
 	}
@@ -183,6 +190,30 @@ func generateWrappers(ctx generateContext) error {
 	})
 	if err != nil {
 		log.Fatalf("Error generating wrappers for structures (%s)", err)
+		return err
+	}
+	return nil
+}
+
+func generateAnonymized(ctx generateContext) error {
+
+	if !containsAny(ctx.structs, IsSensitiveEvent) {
+		return nil
+	}
+
+	err := generationUtil.Generate(generationUtil.Info{
+		Src:            ctx.packageName,
+		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/anonymized.go", ctx.targetDir)),
+		TemplateName:   "anonymized",
+		TemplateString: anonymizedTemplate,
+		FuncMap:        customTemplateFuncs,
+		Data: structures{
+			PackageName: ctx.packageName,
+			Structs:     ctx.structs,
+		},
+	})
+	if err != nil {
+		log.Fatalf("Error generating anonymized for structures (%s)", err)
 		return err
 	}
 	return nil
@@ -300,10 +331,21 @@ var customTemplateFuncs = template.FuncMap{
 	"IsPersistentEvent":         IsPersistentEvent,
 	"IsTransientEvent":          IsTransientEvent,
 	"IsSensitiveEvent":          IsSensitiveEvent,
+	"IsSensitiveField":          IsSensitiveField,
 	"GetAggregateName":          GetAggregateName,
 	"GetAggregateNameLowerCase": GetAggregateNameLowerCase,
+	"EventIdentifier":           EventIdentifier,
+	"SliceFieldIdentifier":      SliceFieldIdentifier,
 	"HasValueForField":          hasValueForField,
 	"ValueForField":             valueForField,
+	"IsPointer":                 IsPointer,
+	"IsSlice":                   IsSlice,
+	"IsStringSlice":             IsStringSlice,
+	"IsPrimitive":               IsPrimitive,
+	"IsBool":                    IsBool,
+	"IsInt":                     IsInt,
+	"IsString":                  IsString,
+	"IsDate":                    IsDate,
 }
 
 func GetEvents(thecontext structures) []model.Struct {
@@ -333,10 +375,13 @@ func GetAggregateName(s model.Struct) string {
 func GetAggregateNameLowerCase(s model.Struct) string {
 	return toFirstLower(GetAggregateName(s))
 }
+
 func IsRootEvent(s model.Struct) bool {
-	annotations := annotation.NewRegistry(eventAnnotation.Get())
-	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
-		return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
+	if IsEvent(s) {
+		annotations := annotation.NewRegistry(eventAnnotation.Get())
+		if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+			return ann.Attributes[eventAnnotation.ParamIsRootEvent] == "true"
+		}
 	}
 	return false
 }
@@ -358,9 +403,27 @@ func isTransient(s model.Struct) bool {
 }
 
 func IsSensitiveEvent(s model.Struct) bool {
-	annotations := annotation.NewRegistry(eventAnnotation.Get())
-	if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
-		return ann.Attributes[eventAnnotation.ParamIsSensitive] == "true"
+	if IsEvent(s) {
+		annotations := annotation.NewRegistry(eventAnnotation.Get())
+		if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+			return ann.Attributes[eventAnnotation.ParamIsSensitive] == "true"
+		}
+	}
+	return false
+}
+
+var tagRegex = regexp.MustCompile(`(.*)=\"(.*)\"`)
+
+func IsSensitiveField(f model.Field) bool {
+	if strings.HasPrefix(f.Tag, "`") && strings.HasSuffix(f.Tag, "`") {
+		tags := strings.Split(f.Tag[1:len(f.Tag)-1], " ")
+		for _, tag := range tags {
+			if parts := tagRegex.FindStringSubmatch(tag); len(parts) == 3 {
+				if parts[1] == eventAnnotation.FieldTagSensitive {
+					return parts[2] == "true"
+				}
+			}
+		}
 	}
 	return false
 }
@@ -373,6 +436,7 @@ func hasValueForField(field model.Field) bool {
 }
 
 func valueForField(field model.Field) string {
+
 	if field.IsInt() || field.IsIntSlice() {
 		return valueForIntField(field)
 	}
@@ -381,9 +445,10 @@ func valueForField(field model.Field) string {
 		return valueForStringField(field)
 	}
 
-	if field.IsBool() || field.IsBoolSlice() {
-		return valueForBoolField(field)
+	if field.IsBool() {
+		return valueForBoolField()
 	}
+
 	return ""
 }
 
@@ -402,12 +467,54 @@ func valueForStringField(field model.Field) string {
 	return fmt.Sprintf("\"Example3%s\"", field.Name)
 }
 
-func valueForBoolField(field model.Field) string {
+func valueForBoolField() string {
 	return "true"
+}
+
+func EventIdentifier(s model.Struct) string {
+	return toFirstLower(s.Name)
+}
+
+func SliceFieldIdentifier(f model.Field) string {
+	name := strings.TrimPrefix(f.TypeName, "[]")
+	i := strings.LastIndex(name, ".")
+	return toFirstLower(name[i+1:])
 }
 
 func toFirstLower(in string) string {
 	a := []rune(in)
 	a[0] = unicode.ToLower(a[0])
 	return string(a)
+}
+
+func IsPointer(f model.Field) bool {
+	return f.IsPointer()
+}
+
+func IsSlice(f model.Field) bool {
+	return f.IsSlice()
+}
+
+func IsStringSlice(f model.Field) bool {
+	return f.IsStringSlice()
+}
+
+func IsPrimitive(f model.Field) bool {
+	return f.IsPrimitive()
+}
+
+func IsBool(f model.Field) bool {
+	return f.IsBool()
+}
+
+func IsInt(f model.Field) bool {
+	return f.IsInt()
+}
+
+func IsString(f model.Field) bool {
+	return f.IsString()
+}
+
+func IsDate(f model.Field) bool {
+	return f.IsDate()
 }

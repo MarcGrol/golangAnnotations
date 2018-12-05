@@ -3,11 +3,12 @@ package eventAnnotation
 import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
-	TypeEvent        = "Event"
-	ParamAggregate   = "aggregate"
-	ParamIsRootEvent = "isrootevent"
-	ParamIsTransient = "istransient"
-	ParamIsSensitive = "issensitive"
+	TypeEvent         = "Event"
+	ParamAggregate    = "aggregate"
+	ParamIsRootEvent  = "isrootevent"
+	ParamIsTransient  = "istransient"
+	ParamIsSensitive  = "issensitive"
+	FieldTagSensitive = "sensitive"
 )
 
 // Register makes the annotation-registry aware of this annotation

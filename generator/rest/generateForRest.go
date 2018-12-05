@@ -510,7 +510,7 @@ func asStringSlice(in []string) string {
 func HasInput(o model.Operation) bool {
 	if GetRestOperationMethod(o) == "POST" || GetRestOperationMethod(o) == "PUT" {
 		for _, arg := range o.InputArgs {
-			if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
+			if IsInputArg(arg) {
 				return true
 			}
 		}
@@ -563,7 +563,7 @@ func GetContextName(o model.Operation) string {
 
 func GetInputArgType(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
+		if IsInputArg(arg) {
 			return arg.DereferencedTypeName()
 		}
 	}
@@ -588,7 +588,7 @@ func IsQueryParam(o model.Operation, arg model.Field) bool {
 
 func GetInputArgName(o model.Operation) string {
 	for _, arg := range o.InputArgs {
-		if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
+		if IsInputArg(arg) {
 			return arg.Name
 		}
 	}
@@ -722,6 +722,13 @@ func HasUpload(o model.Operation) bool {
 	return false
 }
 
+func IsInputArg(arg model.Field) bool {
+	if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
+		return true
+	}
+	return false
+}
+
 func IsErrorArg(f model.Field) bool {
 	return f.TypeName == "error"
 }
@@ -763,11 +770,11 @@ func IsStringSliceArg(f model.Field) bool {
 }
 
 func IsDateArg(f model.Field) bool {
-	return f.DereferencedTypeName() == "mydate.MyDate"
+	return f.IsDate()
 }
 
 func IsDateSliceArg(f model.Field) bool {
-	return f.DereferencedTypeName() == "[]mydate.MyDate"
+	return f.IsDateSlice()
 }
 
 func ToFirstUpper(in string) string {
