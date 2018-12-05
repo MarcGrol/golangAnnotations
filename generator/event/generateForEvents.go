@@ -472,7 +472,7 @@ func valueForBoolField() string {
 }
 
 func EventIdentifier(s model.Struct) string {
-	return toFirstLower(s.Name)
+	return "e"
 }
 
 func SliceFieldIdentifier(f model.Field) string {
