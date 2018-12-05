@@ -412,7 +412,7 @@ func IsSensitiveEvent(s model.Struct) bool {
 	return false
 }
 
-var tagRegex = regexp.MustCompile(`(.*)=\"(.*)\"`)
+var tagRegex = regexp.MustCompile(`(.*)\:\"(.*)\"`)
 
 func IsSensitiveField(f model.Field) bool {
 	if strings.HasPrefix(f.Tag, "`") && strings.HasSuffix(f.Tag, "`") {
