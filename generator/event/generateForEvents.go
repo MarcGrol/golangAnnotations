@@ -116,7 +116,6 @@ func generate(inputDir string, structs []model.Struct) error {
 func generateAggregates(ctx generateContext) error {
 
 	aggregates := getAggregates(ctx.structs)
-
 	if len(aggregates) == 0 {
 		return nil
 	}
@@ -197,7 +196,7 @@ func generateWrappers(ctx generateContext) error {
 
 func generateAnonymized(ctx generateContext) error {
 
-	if !containsAny(ctx.structs, IsSensitiveEvent) {
+	if !containsAny(ctx.structs, IsSensitiveEventOrEventValue) {
 		return nil
 	}
 
@@ -325,27 +324,28 @@ func generateHandlerInterface(ctx generateContext) error {
 }
 
 var customTemplateFuncs = template.FuncMap{
-	"GetEvents":                 GetEvents,
-	"IsEvent":                   IsEvent,
-	"IsRootEvent":               IsRootEvent,
-	"IsPersistentEvent":         IsPersistentEvent,
-	"IsTransientEvent":          IsTransientEvent,
-	"IsSensitiveEvent":          IsSensitiveEvent,
-	"IsSensitiveField":          IsSensitiveField,
-	"GetAggregateName":          GetAggregateName,
-	"GetAggregateNameLowerCase": GetAggregateNameLowerCase,
-	"EventIdentifier":           EventIdentifier,
-	"SliceFieldIdentifier":      SliceFieldIdentifier,
-	"HasValueForField":          hasValueForField,
-	"ValueForField":             valueForField,
-	"IsPointer":                 IsPointer,
-	"IsSlice":                   IsSlice,
-	"IsStringSlice":             IsStringSlice,
-	"IsPrimitive":               IsPrimitive,
-	"IsBool":                    IsBool,
-	"IsInt":                     IsInt,
-	"IsString":                  IsString,
-	"IsDate":                    IsDate,
+	"GetEvents":                    GetEvents,
+	"IsEvent":                      IsEvent,
+	"IsRootEvent":                  IsRootEvent,
+	"IsPersistentEvent":            IsPersistentEvent,
+	"IsTransientEvent":             IsTransientEvent,
+	"IsSensitiveEvent":             IsSensitiveEvent,
+	"IsSensitiveEventOrEventValue": IsSensitiveEventOrEventValue,
+	"IsSensitiveField":             IsSensitiveField,
+	"GetAggregateName":             GetAggregateName,
+	"GetAggregateNameLowerCase":    GetAggregateNameLowerCase,
+	"EventIdentifier":              EventIdentifier,
+	"SliceFieldIdentifier":         SliceFieldIdentifier,
+	"HasValueForField":             hasValueForField,
+	"ValueForField":                valueForField,
+	"IsPointer":                    IsPointer,
+	"IsSlice":                      IsSlice,
+	"IsStringSlice":                IsStringSlice,
+	"IsPrimitive":                  IsPrimitive,
+	"IsBool":                       IsBool,
+	"IsInt":                        IsInt,
+	"IsString":                     IsString,
+	"IsDate":                       IsDate,
 }
 
 func GetEvents(thecontext structures) []model.Struct {
@@ -361,6 +361,12 @@ func GetEvents(thecontext structures) []model.Struct {
 func IsEvent(s model.Struct) bool {
 	annotations := annotation.NewRegistry(eventAnnotation.Get())
 	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent)
+	return ok
+}
+
+func IsEventValue(s model.Struct) bool {
+	annotations := annotation.NewRegistry(eventAnnotation.Get())
+	_, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEventValue)
 	return ok
 }
 
@@ -402,10 +408,24 @@ func isTransient(s model.Struct) bool {
 	return false
 }
 
+func IsSensitiveEventOrEventValue(s model.Struct) bool {
+	return IsSensitiveEvent(s) || IsSensitiveEventData(s)
+}
+
 func IsSensitiveEvent(s model.Struct) bool {
 	if IsEvent(s) {
 		annotations := annotation.NewRegistry(eventAnnotation.Get())
 		if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEvent); ok {
+			return ann.Attributes[eventAnnotation.ParamIsSensitive] == "true"
+		}
+	}
+	return false
+}
+
+func IsSensitiveEventData(s model.Struct) bool {
+	if IsEventValue(s) {
+		annotations := annotation.NewRegistry(eventAnnotation.Get())
+		if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEventValue); ok {
 			return ann.Attributes[eventAnnotation.ParamIsSensitive] == "true"
 		}
 	}
