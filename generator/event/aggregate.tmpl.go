@@ -120,8 +120,7 @@ func Anonymize{{$aggr}}Envelopes(envelopes []envelope.Envelope) ([]envelope.Enve
 			if err != nil {
 				return nil, err
 			}
-			evt = evt.Anonymized()
-			blob, err := json.Marshal(evt)
+			blob, err := json.Marshal(evt.Anonymized())
 			if err != nil {
 				return nil, err
 			}

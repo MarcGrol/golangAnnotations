@@ -335,6 +335,7 @@ var customTemplateFuncs = template.FuncMap{
 	"GetAggregateName":            GetAggregateName,
 	"GetAggregateNameLowerCase":   GetAggregateNameLowerCase,
 	"EventIdentifier":             EventIdentifier,
+	"FieldIdentifier":             FieldIdentifier,
 	"SliceFieldIdentifier":        SliceFieldIdentifier,
 	"HasValueForField":            hasValueForField,
 	"ValueForField":               valueForField,
@@ -493,6 +494,12 @@ func valueForBoolField() string {
 
 func EventIdentifier(s model.Struct) string {
 	return "e"
+}
+
+func FieldIdentifier(f model.Field) string {
+	name := f.Name
+	i := strings.LastIndex(name, ".")
+	return toFirstLower(name[i+1:])
 }
 
 func SliceFieldIdentifier(f model.Field) string {

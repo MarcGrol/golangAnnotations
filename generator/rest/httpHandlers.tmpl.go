@@ -98,7 +98,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 
 		{{range .InputArgs -}}
 
-			{{if IsPrimitiveArg . }}
+			{{if IsPrimitiveOrDateArg . }}
 				{{if IsIntArg . -}}
 					{{if IsInputArgMandatory $oper . -}}
 						{{.Name}}, fieldError := httpparser.ExtractNumber(r, "{{Uncapitalized .Name}}", true)

@@ -190,7 +190,7 @@ var customTemplateFuncs = template.FuncMap{
 	"HasOutput":                             HasOutput,
 	"HasMetaOutput":                         HasMetaOutput,
 	"IsMetaCallback":                        IsMetaCallback,
-	"IsPrimitiveArg":                        IsPrimitiveArg,
+	"IsPrimitiveOrDateArg":                  IsPrimitiveOrDateArg,
 	"IsIntArg":                              IsIntArg,
 	"IsBoolArg":                             IsBoolArg,
 	"IsStringArg":                           IsStringArg,
@@ -723,7 +723,7 @@ func HasUpload(o model.Operation) bool {
 }
 
 func IsInputArg(arg model.Field) bool {
-	if !IsPrimitiveArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
+	if !IsPrimitiveOrDateArg(arg) && !IsContextArg(arg) && !IsRequestContextArg(arg) {
 		return true
 	}
 	return false
@@ -749,8 +749,8 @@ func IsMetaCallbackArg(f model.Field) bool {
 	return f.TypeName == "errorh.MetaCallback"
 }
 
-func IsPrimitiveArg(f model.Field) bool {
-	return f.IsPrimitive() || f.IsPrimitiveSlice() || IsDateArg(f) || IsDateSliceArg(f)
+func IsPrimitiveOrDateArg(f model.Field) bool {
+	return f.IsPrimitive() || f.IsPrimitiveSlice() || f.IsDate() || f.IsDateSlice()
 }
 
 func IsBoolArg(f model.Field) bool {
@@ -771,10 +771,6 @@ func IsStringSliceArg(f model.Field) bool {
 
 func IsDateArg(f model.Field) bool {
 	return f.IsDate()
-}
-
-func IsDateSliceArg(f model.Field) bool {
-	return f.IsDateSlice()
 }
 
 func ToFirstUpper(in string) string {

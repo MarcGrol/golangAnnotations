@@ -7,8 +7,8 @@ package {{.PackageName}}
 {{range .Structs -}}
 	{{if IsSensitiveEventOrEventPart . -}}
 
-// Anonymizes {{if IsEvent .}}event {{end -}}{{.Name}}: wipes all data marked as sensitive
-func ({{EventIdentifier .}} *{{.Name}}) Anonymized() *{{.Name}} {
+// Anonymizes {{if IsEvent .}}event{{else}}event-part{{end}} {{.Name}}: wipes all data marked as sensitive
+func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 	{{$evt := EventIdentifier . -}}
 	{{range .Fields -}}
 		{{if IsSensitiveField . -}}
@@ -23,7 +23,14 @@ func ({{EventIdentifier .}} *{{.Name}}) Anonymized() *{{.Name}} {
 					Force compile error: field {{.Name}} has unsupported primitive type
 				{{end -}}
 			{{else if IsPointer . -}}
-				{{$evt}}.{{.Name}} = nil
+				{{if IsDate . -}}
+					{{$evt}}.{{.Name}} = nil
+				{{else -}}
+					if {{$evt}}.{{.Name}} != nil {
+						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
+						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
+					}
+				{{end -}}
 			{{else if IsStringSlice . -}}
 				{{$evt}}.{{.Name}} = []string{}
 			{{else if IsSlice . -}}
