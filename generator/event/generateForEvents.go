@@ -410,7 +410,7 @@ func isTransient(s model.Struct) bool {
 }
 
 func IsSensitiveEventOrEventPart(s model.Struct) bool {
-	return IsSensitiveEvent(s) || IsSensitiveEventData(s)
+	return IsSensitiveEvent(s) || IsSensitiveEventPart(s)
 }
 
 func IsSensitiveEvent(s model.Struct) bool {
@@ -423,7 +423,7 @@ func IsSensitiveEvent(s model.Struct) bool {
 	return false
 }
 
-func IsSensitiveEventData(s model.Struct) bool {
+func IsSensitiveEventPart(s model.Struct) bool {
 	if IsEventPart(s) {
 		annotations := annotation.NewRegistry(eventAnnotation.Get())
 		if ann, ok := annotations.ResolveAnnotationByName(s.DocLines, eventAnnotation.TypeEventPart); ok {
