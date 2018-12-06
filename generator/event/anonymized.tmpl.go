@@ -12,7 +12,18 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 	{{$evt := EventIdentifier . -}}
 	{{range .Fields -}}
 		{{if IsSensitiveField . -}}
-			{{if IsPrimitive . -}}
+			{{if IsPointer . -}}
+				{{if IsPrimitive . -}}
+					{{$evt}}.{{.Name}} = nil
+				{{else if IsDate . -}}
+					{{$evt}}.{{.Name}} = nil
+				{{else -}}
+					if {{$evt}}.{{.Name}} != nil {
+						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
+						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
+					}
+				{{end -}}
+			{{else if IsPrimitive . -}}
 				{{if IsInt . -}}
 					{{$evt}}.{{.Name}} = 0
 				{{else if IsBool . -}}
@@ -22,15 +33,6 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 				{{else -}}
 					Force compile error: field {{.Name}} has unsupported primitive type
 				{{end -}}
-			{{else if IsPointer . -}}
-				{{if IsDate . -}}
-					{{$evt}}.{{.Name}} = nil
-				{{else -}}
-					if {{$evt}}.{{.Name}} != nil {
-						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
-						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
-					}
-				{{end -}}
 			{{else if IsStringSlice . -}}
 				{{$evt}}.{{.Name}} = []string{}
 			{{else if IsSlice . -}}
@@ -38,7 +40,11 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 			{{else if IsDate . -}}
 				{{$evt}}.{{.Name}} = mydate.MyDate{}
 			{{else -}}
-				{{$evt}}.{{.Name}} = {{$evt}}.{{.Name}}.Anonymized()
+				{{if .Name -}}
+					{{$evt}}.{{.Name}} = {{$evt}}.{{.Name}}.Anonymized()
+				{{else -}}
+					{{$evt}}.{{.TypeName}} = {{$evt}}.{{.TypeName}}.Anonymized()
+				{{end -}}
 			{{end -}}
 		{{else -}}
 			{{if IsStringSlice . -}}

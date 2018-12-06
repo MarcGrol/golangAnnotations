@@ -46,7 +46,7 @@ func (f Field) IsPrimitiveSlice() bool {
 }
 
 func (f Field) IsBool() bool {
-	return f.TypeName == "bool"
+	return f.TypeName == "bool" || f.TypeName == "*bool"
 }
 
 func (f Field) IsBoolSlice() bool {
@@ -54,7 +54,7 @@ func (f Field) IsBoolSlice() bool {
 }
 
 func (f Field) IsInt() bool {
-	return f.TypeName == "int"
+	return f.TypeName == "int" || f.TypeName == "*int"
 }
 
 func (f Field) IsIntSlice() bool {
@@ -62,7 +62,7 @@ func (f Field) IsIntSlice() bool {
 }
 
 func (f Field) IsString() bool {
-	return f.TypeName == "string"
+	return f.TypeName == "string" || f.TypeName == "*string"
 }
 
 func (f Field) IsStringSlice() bool {
@@ -74,5 +74,5 @@ func (f Field) IsDate() bool {
 }
 
 func (f Field) IsDateSlice() bool {
-	return f.DereferencedTypeName() == "[]mydate.MyDate"
+	return f.TypeName == "[]mydate.MyDate"
 }
