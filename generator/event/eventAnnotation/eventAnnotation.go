@@ -4,7 +4,7 @@ import "github.com/MarcGrol/golangAnnotations/generator/annotation"
 
 const (
 	TypeEvent         = "Event"
-	TypeEventValue    = "EventValue"
+	TypeEventPart     = "EventPart"
 	ParamAggregate    = "aggregate"
 	ParamIsRootEvent  = "isrootevent"
 	ParamIsTransient  = "istransient"
@@ -21,7 +21,7 @@ func Get() []annotation.AnnotationDescriptor {
 			Validator:  validateEventAnnotation,
 		},
 		{
-			Name:       TypeEventValue,
+			Name:       TypeEventPart,
 			ParamNames: []string{ParamIsSensitive},
 			Validator:  validateEventAnnotation,
 		},
@@ -33,7 +33,7 @@ func validateEventAnnotation(annot annotation.Annotation) bool {
 	case TypeEvent:
 		val, hasAggr := annot.Attributes[ParamAggregate]
 		return hasAggr && val != ""
-	case TypeEventValue:
+	case TypeEventPart:
 		return true
 	}
 	return false

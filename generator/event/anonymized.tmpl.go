@@ -5,7 +5,7 @@ const anonymizedTemplate = `// Generated automatically by golangAnnotations: do 
 package {{.PackageName}}
 
 {{range .Structs -}}
-	{{if IsSensitiveEventOrEventValue . -}}
+	{{if IsSensitiveEventOrEventPart . -}}
 
 // Anonymizes {{if IsEvent .}}event {{end -}}{{.Name}}: wipes all data marked as sensitive
 func ({{EventIdentifier .}} *{{.Name}}) Anonymized() *{{.Name}} {
