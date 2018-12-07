@@ -14,11 +14,6 @@ import (
 
 {{ $service := . }}
 
-var (
-	preLogicHook  = func(c context.Context, w http.ResponseWriter, r *http.Request) {}
-	postLogicHook = func(c context.Context, w http.ResponseWriter, r *http.Request, rc request.Context) {}
-)
-
 // HTTPHandler registers endpoint in new router
 func (ts *{{.Name}}) HTTPHandler() http.Handler {
 	router := mux.NewRouter().StrictSlash(true)
@@ -52,9 +47,6 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 
 		{{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
-			preLogicHook(c, w, r)
-		{{else -}}
-			preLogicHook(nil, w, r)
 		{{end -}}
 
 		rc := {{ $extractRequestContextMethod }}(c, r)
@@ -209,12 +201,6 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				errorh.HandleHTTPError(c, rc, err, w, r)
 				return
 			}
-		{{end -}}
-
-		{{if NeedsContext $oper}}
-			postLogicHook(c, w, r, rc)
-		{{else -}}
-			postLogicHook(nil, w, r, rc)
 		{{end -}}
 
 		// write OK response body
