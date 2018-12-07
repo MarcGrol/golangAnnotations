@@ -332,6 +332,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsSensitiveEvent":            IsSensitiveEvent,
 	"IsSensitiveEventOrEventPart": IsSensitiveEventOrEventPart,
 	"IsSensitiveField":            IsSensitiveField,
+	"IsDeepSensitiveField":        IsDeepSensitiveField,
 	"GetAggregateName":            GetAggregateName,
 	"GetAggregateNameLowerCase":   GetAggregateNameLowerCase,
 	"EventIdentifier":             EventIdentifier,
@@ -347,6 +348,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsInt":                       IsInt,
 	"IsString":                    IsString,
 	"IsDate":                      IsDate,
+	"IsCustom":                    IsCustom,
 }
 
 func GetEvents(thecontext structures) []model.Struct {
@@ -436,17 +438,25 @@ func IsSensitiveEventPart(s model.Struct) bool {
 var tagRegex = regexp.MustCompile(`(.*)\:\"(.*)\"`)
 
 func IsSensitiveField(f model.Field) bool {
+	return getSensitiveTag(f) == "true"
+}
+
+func IsDeepSensitiveField(f model.Field) bool {
+	return getSensitiveTag(f) == "deep"
+}
+
+func getSensitiveTag(f model.Field) string {
 	if strings.HasPrefix(f.Tag, "`") && strings.HasSuffix(f.Tag, "`") {
 		tags := strings.Split(f.Tag[1:len(f.Tag)-1], " ")
 		for _, tag := range tags {
 			if parts := tagRegex.FindStringSubmatch(tag); len(parts) == 3 {
 				if parts[1] == eventAnnotation.FieldTagSensitive {
-					return parts[2] == "true"
+					return parts[2]
 				}
 			}
 		}
 	}
-	return false
+	return ""
 }
 
 func hasValueForField(field model.Field) bool {
@@ -493,7 +503,10 @@ func valueForBoolField() string {
 }
 
 func EventIdentifier(s model.Struct) string {
-	return "e"
+	if IsEvent(s) {
+		return "e"
+	}
+	return "ep"
 }
 
 func FieldIdentifier(f model.Field) string {
@@ -544,4 +557,8 @@ func IsString(f model.Field) bool {
 
 func IsDate(f model.Field) bool {
 	return f.IsDate()
+}
+
+func IsCustom(f model.Field) bool {
+	return f.IsCustom()
 }

@@ -45,34 +45,45 @@ func (f Field) IsPrimitiveSlice() bool {
 	return f.IsBoolSlice() || f.IsIntSlice() || f.IsStringSlice()
 }
 
+const (
+	type_bool   = "bool"
+	type_int    = "int"
+	type_string = "string"
+	type_date   = "mydate.MyDate"
+)
+
 func (f Field) IsBool() bool {
-	return f.TypeName == "bool" || f.TypeName == "*bool"
+	return f.DereferencedTypeName() == type_bool
 }
 
 func (f Field) IsBoolSlice() bool {
-	return f.TypeName == "[]bool"
+	return f.TypeName == "[]"+type_bool
 }
 
 func (f Field) IsInt() bool {
-	return f.TypeName == "int" || f.TypeName == "*int"
+	return f.DereferencedTypeName() == type_int
 }
 
 func (f Field) IsIntSlice() bool {
-	return f.TypeName == "[]int"
+	return f.TypeName == "[]"+type_int
 }
 
 func (f Field) IsString() bool {
-	return f.TypeName == "string" || f.TypeName == "*string"
+	return f.DereferencedTypeName() == type_string
 }
 
 func (f Field) IsStringSlice() bool {
-	return f.TypeName == "[]string"
+	return f.TypeName == "[]"+type_string
 }
 
 func (f Field) IsDate() bool {
-	return f.DereferencedTypeName() == "mydate.MyDate"
+	return f.DereferencedTypeName() == type_date
 }
 
 func (f Field) IsDateSlice() bool {
-	return f.TypeName == "[]mydate.MyDate"
+	return f.TypeName == "[]"+type_date
+}
+
+func (f Field) IsCustom() bool {
+	return !f.IsPrimitive() && !f.IsPrimitiveSlice() && !f.IsDate() && !f.IsDateSlice()
 }

@@ -13,30 +13,19 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 	{{range .Fields -}}
 		{{if IsSensitiveField . -}}
 			{{if IsPointer . -}}
-				{{if IsPrimitive . -}}
-					{{$evt}}.{{.Name}} = nil
-				{{else if IsDate . -}}
-					{{$evt}}.{{.Name}} = nil
-				{{else -}}
-					if {{$evt}}.{{.Name}} != nil {
-						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
-						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
-					}
-				{{end -}}
+				{{$evt}}.{{.Name}} = nil
+			{{else if IsSlice . -}}
+				{{$evt}}.{{.Name}} = {{.TypeName}}{}
 			{{else if IsPrimitive . -}}
-				{{if IsInt . -}}
-					{{$evt}}.{{.Name}} = 0
-				{{else if IsBool . -}}
+				{{if IsBool . -}}
 					{{$evt}}.{{.Name}} = false
+				{{else if IsInt . -}}
+					{{$evt}}.{{.Name}} = 0
 				{{else if IsString . -}}
 					{{$evt}}.{{.Name}} = ""
 				{{else -}}
 					Force compile error: field {{.Name}} has unsupported primitive type
 				{{end -}}
-			{{else if IsStringSlice . -}}
-				{{$evt}}.{{.Name}} = []string{}
-			{{else if IsSlice . -}}
-				{{$evt}}.{{.Name}} = {{.TypeName}}{}
 			{{else if IsDate . -}}
 				{{$evt}}.{{.Name}} = mydate.MyDate{}
 			{{else -}}
@@ -46,12 +35,20 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 					{{$evt}}.{{.TypeName}} = {{$evt}}.{{.TypeName}}.Anonymized()
 				{{end -}}
 			{{end -}}
-		{{else -}}
-			{{if IsStringSlice . -}}
+		{{else if IsDeepSensitiveField . -}}
+			{{if IsPointer . -}}
+				{{if IsCustom . -}}
+					if {{$evt}}.{{.Name}} != nil {
+						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
+						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
+					}
+				{{end -}}
 			{{else if IsSlice . -}}
-				for idx, {{SliceFieldIdentifier .}} := range {{$evt}}.{{.Name}} {
-					{{$evt}}.{{.Name}}[idx] = {{SliceFieldIdentifier .}}.Anonymized()
-				}
+				{{if IsCustom . -}}
+					for idx, {{SliceFieldIdentifier .}} := range {{$evt}}.{{.Name}} {
+						{{$evt}}.{{.Name}}[idx] = {{SliceFieldIdentifier .}}.Anonymized()
+					}
+				{{end -}}
 			{{end -}}
 		{{end -}}
 	{{end -}}
