@@ -41,6 +41,7 @@ var (
 	}
 	return t
 }
+
 {{end -}}
 
 func (t {{.Name}}) String() string {
@@ -48,8 +49,7 @@ func (t {{.Name}}) String() string {
 	return v
 }
 
-{{if HasAlternativeName $enum -}}
-{{else -}}
+{{if not (HasAlternativeName $enum) -}}
 func {{.Name}}EnumValues() []{{.Name}} {
 	return []{{.Name}}{
 	{{range .EnumLiterals -}}
@@ -65,6 +65,7 @@ func {{.Name}}EnumValuesAsString() []string {
 	}
 	return values
 }
+
 {{end -}}
 
 // MarshalJSON caters for readable enums with a proper default value
