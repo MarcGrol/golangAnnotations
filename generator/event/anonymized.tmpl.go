@@ -50,6 +50,8 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 					}
 				{{end -}}
 			{{end -}}
+		{{else if IsCustomSensitiveField . -}}
+			{{$evt}}.{{.Name}} = Anonymized{{.Name}}({{$evt}}.{{.Name}})
 		{{end -}}
 	{{end -}}
 	return {{$evt}}

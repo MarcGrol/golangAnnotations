@@ -333,6 +333,7 @@ var customTemplateFuncs = template.FuncMap{
 	"IsSensitiveEventOrEventPart": IsSensitiveEventOrEventPart,
 	"IsSensitiveField":            IsSensitiveField,
 	"IsDeepSensitiveField":        IsDeepSensitiveField,
+	"IsCustomSensitiveField":      IsCustomSensitiveField,
 	"GetAggregateName":            GetAggregateName,
 	"GetAggregateNameLowerCase":   GetAggregateNameLowerCase,
 	"EventIdentifier":             EventIdentifier,
@@ -443,6 +444,10 @@ func IsSensitiveField(f model.Field) bool {
 
 func IsDeepSensitiveField(f model.Field) bool {
 	return getSensitiveTag(f) == "deep"
+}
+
+func IsCustomSensitiveField(f model.Field) bool {
+	return getSensitiveTag(f) == "custom"
 }
 
 func getSensitiveTag(f model.Field) string {
