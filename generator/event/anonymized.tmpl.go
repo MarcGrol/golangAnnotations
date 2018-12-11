@@ -42,12 +42,16 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 						{{FieldIdentifier .}} := {{$evt}}.{{.Name}}.Anonymized()
 						{{$evt}}.{{.Name}} = &{{FieldIdentifier .}}
 					}
+				{{else}}
+					Force compile error: field {{.Name}} cannot be "deep sensitive" (not supported)
 				{{end -}}
 			{{else if IsSlice . -}}
 				{{if IsCustom . -}}
 					for idx, {{SliceFieldIdentifier .}} := range {{$evt}}.{{.Name}} {
 						{{$evt}}.{{.Name}}[idx] = {{SliceFieldIdentifier .}}.Anonymized()
 					}
+				{{else}}
+					Force compile error: field {{.Name}} cannot be "deep sensitive" (not supported)
 				{{end -}}
 			{{else}}
 				Force compile error: field {{.Name}} cannot be "deep sensitive" (not supported)
