@@ -24,7 +24,7 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 				{{else if IsString . -}}
 					{{$evt}}.{{.Name}} = ""
 				{{else -}}
-					Force compile error: field {{.Name}} has unsupported primitive type
+					Force compile error: field {{.Name}} cannot be "sensitive" (not supported)
 				{{end -}}
 			{{else if IsDate . -}}
 				{{$evt}}.{{.Name}} = mydate.MyDate{}
@@ -49,6 +49,8 @@ func ({{EventIdentifier .}} {{.Name}}) Anonymized() {{.Name}} {
 						{{$evt}}.{{.Name}}[idx] = {{SliceFieldIdentifier .}}.Anonymized()
 					}
 				{{end -}}
+			{{else}}
+				Force compile error: field {{.Name}} cannot be "deep sensitive" (not supported)
 			{{end -}}
 		{{else if IsCustomSensitiveField . -}}
 			{{$evt}}.{{.Name}} = Anonymized{{.Name}}({{$evt}}.{{.Name}})
