@@ -5,7 +5,6 @@ examples/event/
 examples/rest/gen_httpTestTourService.go
 examples/rest/gen_httpTourService.go
 examples/rest/gen_httpTourServiceHelpers_test.go
-examples/rest/gen_httpClientForTourService.go
 examples/rest/restTestLog/
 examples/store/gen_structExampleEventStore.go
 generator/rest/testData/

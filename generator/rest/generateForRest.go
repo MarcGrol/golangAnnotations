@@ -68,10 +68,6 @@ func generate(inputDir string, structs []model.Struct) error {
 				if err != nil {
 					return err
 				}
-				err = generateHTTPClient(ctx)
-				if err != nil {
-					return err
-				}
 			}
 		}
 	}
@@ -126,23 +122,6 @@ func generateHTTPTestService(ctx generateContext) error {
 	})
 	if err != nil {
 		log.Fatalf("Error generating testHandler for service %s: %s", ctx.service.Name, err)
-		return err
-	}
-	return nil
-}
-
-func generateHTTPClient(ctx generateContext) error {
-	err := generationUtil.Generate(generationUtil.Info{
-		Src:            fmt.Sprintf("%s.%s", ctx.service.PackageName, ToFirstUpper(ctx.service.Name)),
-		TargetFilename: generationUtil.Prefixed(fmt.Sprintf("%s/httpClientFor%s.go", ctx.targetDir, ToFirstUpper(ctx.service.Name))),
-		TemplateName:   "http-client",
-		TemplateString: httpClientTemplate,
-		FuncMap:        customTemplateFuncs,
-		Data:           ctx.service,
-	})
-
-	if err != nil {
-		log.Fatalf("Error generating httpClient for service %s: %s", ctx.service.Name, err)
 		return err
 	}
 	return nil

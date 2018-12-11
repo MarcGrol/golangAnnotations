@@ -79,20 +79,6 @@ func TestGenerateForWeb(t *testing.T) {
 		}
 	}
 
-	{
-		{
-			// check that generated files exists
-			_, err := os.Stat(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
-			assert.NoError(t, err)
-		}
-		{
-			// check that generate code has 4 helper functions for MyStruct
-			data, err := ioutil.ReadFile(generationUtil.Prefixed("./testData/httpClientForMyService.go"))
-			assert.NoError(t, err)
-			assert.Contains(t, string(data), "func (c *HTTPClient) Doit(ctx context.Context, url string, cookie *http.Cookie, requestUID string, timeout time.Duration) (int, *errorh.Error, error) {")
-		}
-	}
-
 }
 
 func TestIsRestService(t *testing.T) {
