@@ -154,6 +154,14 @@ func IsJSONEnumStripped(e model.Enum) bool {
 	return false
 }
 
+func IsJSONEnumLiteral(e model.Enum) bool {
+	annotations := annotation.NewRegistry(jsonAnnotation.Get())
+	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
+		return ann.Attributes[jsonAnnotation.ParamLiteral] == "true"
+	}
+	return false
+}
+
 func IsJSONEnumTolerant(e model.Enum) bool {
 	annotations := annotation.NewRegistry(jsonAnnotation.Get())
 	if ann, ok := annotations.ResolveAnnotationByName(e.DocLines, jsonAnnotation.TypeEnum); ok {
@@ -202,22 +210,25 @@ func fixedLitName(lit model.EnumLiteral) string {
 func getAlternativeName(e model.Enum, lit model.EnumLiteral) string {
 	name := fixedLitName(lit)
 	if IsJSONEnumStripped(e) {
-		return lowerInitial(name)
+		return lowerInitialIfNeeded(e, name)
 	}
 	base := GetJSONEnumBase(e)
-	return lowerInitial(strings.TrimPrefix(name, base))
+	return lowerInitialIfNeeded(e, strings.TrimPrefix(name, base))
 }
 
 func getPreferredName(e model.Enum, lit model.EnumLiteral) string {
 	name := fixedLitName(lit)
 	if IsJSONEnumStripped(e) {
 		base := GetJSONEnumBase(e)
-		return lowerInitial(strings.TrimPrefix(name, base))
+		return lowerInitialIfNeeded(e, strings.TrimPrefix(name, base))
 	}
-	return lowerInitial(name)
+	return lowerInitialIfNeeded(e, name)
 }
 
-func lowerInitial(s string) string {
+func lowerInitialIfNeeded(e model.Enum, s string) string {
+	if IsJSONEnumLiteral(e) {
+		return s
+	}
 	a := []rune(s)
 	a[0] = unicode.ToLower(a[0])
 	return string(a)

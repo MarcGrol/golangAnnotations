@@ -6,6 +6,7 @@ const (
 	TypeEnum      = "JsonEnum"
 	TypeStruct    = "JsonStruct"
 	ParamStripped = "stripped"
+	ParamLiteral  = "literal"
 	ParamTolerant = "tolerant"
 	ParamBase     = "base"
 	ParamDefault  = "default"
@@ -15,7 +16,7 @@ func Get() []annotation.AnnotationDescriptor {
 	return []annotation.AnnotationDescriptor{
 		{
 			Name:       TypeEnum,
-			ParamNames: []string{ParamStripped, ParamTolerant, ParamBase, ParamDefault},
+			ParamNames: []string{ParamStripped, ParamLiteral, ParamTolerant, ParamBase, ParamDefault},
 			Validator:  validateEnumAnnotation,
 		},
 		{
