@@ -45,6 +45,26 @@ func (f Field) IsPrimitiveSlice() bool {
 	return f.IsBoolSlice() || f.IsIntSlice() || f.IsStringSlice()
 }
 
+func (f Field) IsMap() bool {
+	return strings.HasPrefix(f.TypeName, "map[")
+}
+
+func (f Field) SplitMapTypeNames() (string, string) {
+	if f.IsMap() {
+		depth := 1
+		for i, c := range f.TypeName[4:] {
+			if c == '[' {
+				depth++
+			} else if c == ']' {
+				if depth--; depth == 0 {
+					return f.TypeName[4:i], f.TypeName[i+1:]
+				}
+			}
+		}
+	}
+	return "", ""
+}
+
 const (
 	type_bool   = "bool"
 	type_int    = "int"
