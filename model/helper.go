@@ -61,7 +61,7 @@ func (f Field) SplitMapTypeNames() (string, string) {
 				depth++
 			} else if c == ']' {
 				if depth--; depth == 0 {
-					return f.TypeName[4:i], f.TypeName[i+1:]
+					return f.TypeName[4 : 4+i], f.TypeName[5+i:]
 				}
 			}
 		}
