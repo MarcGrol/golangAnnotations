@@ -33,6 +33,10 @@ func (f Field) IsPointer() bool {
 	return strings.HasPrefix(f.TypeName, "*")
 }
 
+func (f Field) SliceElementTypeName() string {
+	return strings.TrimPrefix(f.TypeName, "[]")
+}
+
 func (f Field) IsSlice() bool {
 	return strings.HasPrefix(f.TypeName, "[]")
 }

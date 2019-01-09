@@ -508,7 +508,7 @@ func FieldIdentifier(f model.Field) string {
 }
 
 func SliceFieldIdentifier(f model.Field) string {
-	name := strings.TrimPrefix(f.TypeName, "[]")
+	name := f.SliceElementTypeName()
 	i := strings.LastIndex(name, ".")
 	return toFirstLower(name[i+1:])
 }
