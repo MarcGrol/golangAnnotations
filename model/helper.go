@@ -87,3 +87,18 @@ func (f Field) IsDateSlice() bool {
 func (f Field) IsCustom() bool {
 	return !f.IsPrimitive() && !f.IsPrimitiveSlice() && !f.IsDate() && !f.IsDateSlice()
 }
+
+var tagRegex = regexp.MustCompile(`(.*)\:\"(.*)\"`)
+
+func (f Field) GetTagMap() map[string]string {
+	tagMap := make(map[string]string)
+	if strings.HasPrefix(f.Tag, "`") && strings.HasSuffix(f.Tag, "`") {
+		tags := strings.Split(f.Tag[1:len(f.Tag)-1], " ")
+		for _, tag := range tags {
+			if parts := tagRegex.FindStringSubmatch(tag); len(parts) == 3 {
+				tagMap[parts[1]] = parts[2]
+			}
+		}
+	}
+	return tagMap
+}

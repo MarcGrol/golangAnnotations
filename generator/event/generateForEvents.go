@@ -3,7 +3,6 @@ package event
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"text/template"
 	"unicode"
@@ -436,8 +435,6 @@ func IsSensitiveEventPart(s model.Struct) bool {
 	return false
 }
 
-var tagRegex = regexp.MustCompile(`(.*)\:\"(.*)\"`)
-
 func IsSensitiveField(f model.Field) bool {
 	return getSensitiveTag(f) == "true"
 }
@@ -451,17 +448,7 @@ func IsCustomSensitiveField(f model.Field) bool {
 }
 
 func getSensitiveTag(f model.Field) string {
-	if strings.HasPrefix(f.Tag, "`") && strings.HasSuffix(f.Tag, "`") {
-		tags := strings.Split(f.Tag[1:len(f.Tag)-1], " ")
-		for _, tag := range tags {
-			if parts := tagRegex.FindStringSubmatch(tag); len(parts) == 3 {
-				if parts[1] == eventAnnotation.FieldTagSensitive {
-					return parts[2]
-				}
-			}
-		}
-	}
-	return ""
+	return f.GetTagMap()[eventAnnotation.FieldTagSensitive]
 }
 
 func hasValueForField(field model.Field) bool {
