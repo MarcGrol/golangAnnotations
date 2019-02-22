@@ -184,7 +184,7 @@ func (tcl *testClient) {{.Name}}(request {{.Name}}TestRequest) {{.Name}}TestResp
 		{{if IsRestOperationJSON . -}}
 			{{if HasOutput . -}}
 
-		       if httpResp.Code == http.StatusTemporaryRedirect {
+		       if httpResp.Code == http.StatusFound || httpResp.Code == http.StatusTemporaryRedirect {
 			       return {{.Name}}TestResponse{
 				       StatusCode: httpResp.Code,
 				       HeaderMap:  httpResp.Result().Header,
