@@ -123,6 +123,7 @@ func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 
 		err = es.handleEvent(c, rc, envlp.AggregateName, envlp)
 		if err != nil {
+			// TODO should store last failed attempt
 			errorh.HandleHTTPError(c, rc, err, w, r)
 			return
 		}
