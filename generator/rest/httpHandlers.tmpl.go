@@ -45,6 +45,8 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 
+		{{GetSwagger2 $oper $service}}
+
 		{{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)
 		{{end -}}
