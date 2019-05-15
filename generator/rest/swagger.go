@@ -18,22 +18,32 @@ func GetSwagger2(o model.Operation, s model.Struct) string {
 
 	params := getParams(o)
 	//headerParams := getHeaderParams(o)
-	//bodyparams := getBodyParams(o)
+	bodyParams := getBodyParams(o)
 
-	if len(params) > 0 {
+	if len(params) > 0 || len(bodyParams) > 0 {
 		lines = append(lines, "parameters:")
-		lines = append(lines, params...)
+		if len(params) > 0 {
+			lines = append(lines, params...)
+		}
+		if len(bodyParams) > 0 {
+			lines = append(lines, bodyParams...)
+		}
 	}
 
 	responses := getResponses(o)
+	errorResponses := getErrorResponses(o)
 
-	// responses:
-	//   '200':
-	//     description: {{$oper.Name}} response
-	// 	   schema:
-	// 	     type: object
-	//       items:
-	// 		   "$ref": "#/definitions/{{GetOutputArgType .}}"
+	if len(responses) > 0 || len(errorResponses) > 0 {
+		lines = append(lines, "responses:")
+		if len(responses) > 0 {
+			lines = append(lines, "  '200':")
+			lines = append(lines, responses...)
+		}
+		if len(errorResponses) > 0 {
+			lines = append(lines, "  '400':")
+			lines = append(lines, errorResponses...)
+		}
+	}
 
 	for i := range lines {
 		lines[i] = fmt.Sprintf("// %s", lines[i])
@@ -59,16 +69,41 @@ func getParams(o model.Operation) []string {
 	return lines
 }
 
+func getBodyParams(o model.Operation) []string {
+	lines := []string{}
+	if HasInput(o) {
+		lines = append(lines, "  - in: body")
+		lines = append(lines, fmt.Sprintf("    name: %s", GetInputArgType(o)))
+		lines = append(lines, fmt.Sprintf("    description: %s description", GetInputArgType(o)))
+		lines = append(lines, "    schema:")
+		lines = append(lines, fmt.Sprintf(`      "$ref": "#/definitions/%s"`, GetInputArgType(o)))
+	}
+	return lines
+}
+
 func getResponses(o model.Operation) []string {
 	lines := []string{}
 
-	lines = append(lines, "responses:")
-	lines = append(lines, "  '200':")
-	lines = append(lines, fmt.Sprintf("    description: %s response", o.Name))
-	lines = append(lines, "    schema:")
-	lines = append(lines, "      type: object")
-	lines = append(lines, "      properties:")
-	lines = append(lines, "")
+	for _, arg := range o.OutputArgs {
+		if !IsErrorArg(arg) && !IsMetaCallbackArg(arg) {
+			lines = append(lines, fmt.Sprintf("    description: %s response", o.Name))
+			lines = append(lines, "    schema:")
+			lines = append(lines, fmt.Sprintf(`      "$ref": "#/definitions/%s"`, arg.DereferencedTypeName()))
+		}
+	}
+	return lines
+}
+
+func getErrorResponses(o model.Operation) []string {
+	lines := []string{}
+
+	for _, arg := range o.OutputArgs {
+		if IsErrorArg(arg) {
+			lines = append(lines, fmt.Sprintf("    description: %s response", o.Name))
+			lines = append(lines, "    schema:")
+			lines = append(lines, `      "$ref": "#/definitions/Error"`)
+		}
+	}
 	return lines
 }
 
