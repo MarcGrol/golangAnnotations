@@ -74,6 +74,8 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 
 		{{else if HasInput . -}}
 
+			{{GetSwagger2Input .}}
+
 			// read and parse request body
 			var {{GetInputArgName . }} {{GetInputArgType . }}
 			err = json.NewDecoder(r.Body).Decode(&{{GetInputArgName . }})

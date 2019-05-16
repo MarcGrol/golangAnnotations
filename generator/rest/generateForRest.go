@@ -189,6 +189,7 @@ var customTemplateFuncs = template.FuncMap{
 	"ToFirstUpper":                          ToFirstUpper,
 	"Uncapitalized":                         Uncapitalized,
 	"GetSwagger2":                           GetSwagger2,
+	"GetSwagger2Input":                      GetSwagger2Input,
 }
 
 func BackTick() string {
