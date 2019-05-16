@@ -51,27 +51,6 @@ func GetSwagger2(o model.Operation, s model.Struct) string {
 	return strings.Join(lines, "\n")
 }
 
-func GetSwagger2Input(o model.Operation) string {
-	lines := []string{}
-
-	if HasInput(o) {
-		packageName, typeName := getInputArg(o).SplitTypeName()
-		lines = append(lines, fmt.Sprintf("// swagger:model %s", strings.Replace(GetInputArgType(o), ".", "-", -1)))
-		lines = append(lines, fmt.Sprintf(fmt.Sprintf("type swagger%s%s %s", packageName, typeName, GetInputArgType(o))))
-	}
-
-	return strings.Join(lines, "\n")
-}
-
-func getInputArg(o model.Operation) model.Field {
-	for _, arg := range o.InputArgs {
-		if IsInputArg(arg) {
-			return arg
-		}
-	}
-	return model.Field{}
-}
-
 func getParams(o model.Operation) []string {
 	lines := []string{}
 
