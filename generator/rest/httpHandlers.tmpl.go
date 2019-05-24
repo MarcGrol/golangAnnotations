@@ -40,12 +40,12 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 	{{if IsRestOperation $oper -}}
 		{{if IsRestOperationGenerated . -}}
 
+{{GetSwagger2 $oper $service}}
+
 // {{$oper.Name}} does the http handling for business logic method service.{{$oper.Name}}
 func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
-
-		{{GetSwagger2 $oper $service}}
 
 		{{if NeedsContext $oper -}}
 			{{GetContextName $oper}} := ctx.New.CreateContext(r)

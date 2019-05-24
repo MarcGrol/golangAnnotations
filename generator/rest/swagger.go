@@ -9,7 +9,14 @@ import (
 func GetSwagger2(o model.Operation, s model.Struct) string {
 	lines := []string{}
 
-	swaggerRoute := fmt.Sprintf("swagger:operation %s %s%s %s", GetRestOperationMethod(o), GetRestServicePath(s), GetRestOperationPath(o), o.Name)
+	tag := GetRestServicePath(s)
+	if strings.Contains(tag, "/_ah/") {
+		tag = "ah-admin"
+	} else {
+		tag = strings.Replace(tag[1:], "/", "-", -1)
+	}
+
+	swaggerRoute := fmt.Sprintf("swagger:operation %s %s%s %s %s", GetRestOperationMethod(o), GetRestServicePath(s), GetRestOperationPath(o), tag, o.Name)
 	lines = append(lines, swaggerRoute)
 	lines = append(lines, "")
 	lines = append(lines, "Some description")
@@ -30,6 +37,12 @@ func GetSwagger2(o model.Operation, s model.Struct) string {
 		}
 	}
 
+	returnMimeType := getReturnMimeTypes(o)
+	if returnMimeType != "" {
+		lines = append(lines, "produces:")
+		lines = append(lines, fmt.Sprintf("  - %s", returnMimeType))
+	}
+
 	responses := getResponses(o)
 	errorResponses := getErrorResponses(o)
 
@@ -48,7 +61,9 @@ func GetSwagger2(o model.Operation, s model.Struct) string {
 	for i := range lines {
 		lines[i] = fmt.Sprintf("// %s", lines[i])
 	}
-	return strings.Join(lines, "\n")
+	result := strings.Join(lines, "\n")
+
+	return result
 }
 
 func getParams(o model.Operation) []string {
@@ -81,14 +96,28 @@ func getBodyParams(o model.Operation) []string {
 	return lines
 }
 
+func getReturnMimeTypes(o model.Operation) string {
+	return GetContentType(o)
+}
+
 func getResponses(o model.Operation) []string {
 	lines := []string{}
 
 	for _, arg := range o.OutputArgs {
 		if !IsErrorArg(arg) && !IsMetaCallbackArg(arg) {
+			_, typeName := arg.SplitTypeName()
 			lines = append(lines, fmt.Sprintf("    description: %s response", o.Name))
 			lines = append(lines, "    schema:")
-			lines = append(lines, fmt.Sprintf(`      "$ref": "#/definitions/%s"`, strings.Replace(arg.DereferencedTypeName(), ".", "-", -1)))
+			if IsRestOperationJSON(o) {
+				if arg.IsCustom() {
+					lines = append(lines, fmt.Sprintf(`      "$ref": "#/definitions/%s"`, typeName))
+				} else {
+					lines = append(lines, fmt.Sprintf(`      type: %s`, getSwaggerType(arg.TypeName)))
+				}
+			} else {
+				lines = append(lines, `      type: string`)
+			}
+			return lines // only return the first return argument
 		}
 	}
 	return lines
