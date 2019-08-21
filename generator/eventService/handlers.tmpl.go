@@ -156,6 +156,8 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 					myerrorhandling.HandleEventClearError(c, rc, topic, envlp, fmt.Sprintf("As subscriber '%s': Retry %d of '%s' succeeded", subscriber, rc.GetTaskRetryCount(), envlp.NiceName()))
 				}
 
+				mylog.New().Debug(c, "Subscriber '%s' handled event '%s' directly", subscriber, envlp.NiceName())
+
 				return nil
 			}
 		}
