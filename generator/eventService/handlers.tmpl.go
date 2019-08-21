@@ -23,59 +23,66 @@ func (es *{{$eventServiceName}}) SubscribeToEvents(router *mux.Router) {
 	{{ $serviceName := GetEventServiceSelfName $service }}
 	{{range GetEventServiceTopics . -}}
 	{
-		bus.Subscribe("{{.}}", subscriber, es.enqueueEventToBackground)
+		bus.Subscribe("{{.}}", subscriber, es.handleOrEnqueueEvent)
 		router.HandleFunc("/tasks/{{ $serviceName }}/{{.}}/{eventTypeName}", es.handleHTTPBackgroundEvent()).Methods("POST")
 	}
 	{{end -}}
 }
 
-func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error {
+func (es *{{$eventServiceName}}) handleOrEnqueueEvent(c context.Context, rc request.Context, topic string, envlp envelope.Envelope) error {
 	const subscriber = "{{GetEventServiceSelfName .}}"
 	switch envlp.EventTypeName {
 		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}}, {{end -}}{{$evtName}}{{end -}}:
 
-			taskURL := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
-
-			asJSON, err := json.Marshal(envlp)
-			if err != nil {
-				msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskURL)
-				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
-				return err
+			// Cloud Tasks emulator not available for local development server, handle event immediately 
+			if environ.GetEnvironment(c).GetKind(c) == environ.EnvKind_dev {
+				return es.handleEvent(c, rc, topic, envlp)
 			}
-
-			task := queue.Task{
-				Method:  "POST",
-				URL:     taskURL,
-				Payload: asJSON,
-			}
-
-			{{if IsAnyEventOperationDelayed . -}}
-			var delay time.Duration
-			var eta time.Time
-			switch envlp.EventTypeName {
-			{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
-			case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
-				delay, eta = get{{GetInputArgType $oper}}DelayOrETA(c, rc, envlp)
-			{{end -}}{{end -}}
-			}
-			task.Delay = delay
-			task.ETA = eta
-			{{end -}}
-
-			err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), task)
-			if err != nil {
-				msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskURL)
-				myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
-				return err
-			}
-
-			mylog.New().Debug(c, "Subscriber '%s' enqueued task on topic '%s' with event '%s'", subscriber, topic, envlp.NiceName())
-
-			return nil
+			return es.enqueueEventToBackground(c, rc, topic, envlp, subscriber)
 	}
 	return nil
 }
 
+func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc request.Context, topic string, envlp envelope.Envelope, subscriber string) error {
+	taskURL := fmt.Sprintf("/tasks/{{GetEventServiceSelfName .}}/%s/%s", topic, envlp.EventTypeName)
+
+	asJSON, err := json.Marshal(envlp)
+	if err != nil {
+		msg := fmt.Sprintf("Error marshalling payload for url '%s'", taskURL)
+		myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
+		return err
+	}
+
+	task := queue.Task{
+		Method:  "POST",
+		URL:     taskURL,
+		Payload: asJSON,
+	}
+
+	{{if IsAnyEventOperationDelayed . -}}
+	var delay time.Duration
+	var eta time.Time
+	switch envlp.EventTypeName {
+	{{range $oper := .Operations -}}{{if IsEventOperationDelayed $oper -}}
+	case {{GetInputArgPackage $oper}}.{{GetInputArgType $oper}}EventName:
+		delay, eta = get{{GetInputArgType $oper}}DelayOrETA(c, rc, envlp)
+	{{end -}}{{end -}}
+	}
+	task.Delay = delay
+	task.ETA = eta
+	{{end -}}
+
+	err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), task)
+	if err != nil {
+		msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskURL)
+		myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
+		return err
+	}
+
+	mylog.New().Debug(c, "Subscriber '%s' enqueued task on topic '%s' with event '%s'", subscriber, topic, envlp.NiceName())
+
+	return nil
+}
 
 func (es *{{$eventServiceName}}) getProcessTypeFor(envlp envelope.Envelope) myqueue.ProcessType {
 	switch envlp.EventTypeName {
