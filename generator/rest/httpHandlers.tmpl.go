@@ -175,17 +175,6 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		})
 		{{end -}}
 
-		for _, envlp := range rc.GetEnvelopes() {
-			// publish an event so subscribers can act on them:
-			mylog.New().Warning(c, "Error writing json-response: %s", err)
-			err = bus.Publish(c, rc, envlp)
-			if err != nil {
-				// Note: return an error when one if these publish actions fails
-				errorh.HandleHTTPError(c, rc, err, w, r)
-				return
-			}
-		}
-
 		{{if HasMetaOutput . -}}
 			if meta != nil {
 				{{if IsMetaCallback . -}}
@@ -205,6 +194,16 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		if err != nil {
 			errorh.HandleHTTPError(c, rc, err, w, r)
 			return
+		}
+
+		for _, envlp := range rc.GetEnvelopes() {
+			// publish an event so subscribers can act on them:
+			err = bus.Publish(c, rc, envlp)
+			if err != nil {
+				// Note: return an error when one if these publish actions fails
+				errorh.HandleHTTPError(c, rc, err, w, r)
+				return
+			}
 		}
 
 	   {{if HasRestOperationAfter . -}}
