@@ -72,14 +72,14 @@ func (es *{{$eventServiceName}}) enqueueEventToBackground(c context.Context, rc 
 	task.ETA = eta
 	{{end -}}
 
-	err = myqueue.AddTask(c, es.getProcessTypeFor(envlp), task)
+	err = myqueue.AddTask(c, rc, es.getProcessTypeFor(envlp), task)
 	if err != nil {
 		msg := fmt.Sprintf("Error enqueuing task to url '%s'", taskURL)
 		myerrorhandling.HandleEventError(c, rc, topic, envlp, msg, err)
 		return err
 	}
 
-	mylog.New().Debug(c, "Subscriber '%s' enqueued task on topic '%s' with event '%s'", subscriber, topic, envlp.NiceName())
+	mylog.New().Debug(c, rc, "Subscriber '%s' enqueued task on topic '%s' with event '%s'", subscriber, topic, envlp.NiceName())
 
 	return nil
 }
@@ -107,7 +107,7 @@ func (es *{{$eventServiceName}}) handleHTTPBackgroundEvent() http.HandlerFunc {
 		}
 
 		if retryCount > 0 && !environ.GetEnvironment(c).RetryFailedEvents(c) {
-			mylog.New().Info(c, "Abort retry scheme after %d rertries because of env-setting", retryCount)
+			mylog.New().Info(c, rc, "Abort retry scheme after %d rertries because of env-setting", retryCount)
 			return
 		}
 
@@ -156,7 +156,7 @@ func (es *{{$eventServiceName}}) handleEvent(c context.Context, rc request.Conte
 					myerrorhandling.HandleEventClearError(c, rc, topic, envlp, fmt.Sprintf("As subscriber '%s': Retry %d of '%s' succeeded", subscriber, rc.GetTaskRetryCount(), envlp.NiceName()))
 				}
 
-				mylog.New().Debug(c, "Subscriber '%s' handled event '%s' directly", subscriber, envlp.NiceName())
+				mylog.New().Debug(c, rc, "Subscriber '%s' handled event '%s' directly", subscriber, envlp.NiceName())
 
 				return nil
 			}

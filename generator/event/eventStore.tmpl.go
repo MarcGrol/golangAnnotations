@@ -13,7 +13,7 @@ import "context"
 func StoreAndApplyEvent{{.Name}}(c context.Context, rc request.Context, aggregateRoot {{.PackageName}}.{{GetAggregateName .}}Aggregate, evt {{.PackageName}}.{{.Name}}) error {
 	err := StoreEvent{{.Name}}(c, rc, &evt)
 	if err == nil {
-		aggregateRoot.Apply{{.Name}}(c, evt)
+		aggregateRoot.Apply{{.Name}}(c, rc, evt)
 	}
 	return err
 }

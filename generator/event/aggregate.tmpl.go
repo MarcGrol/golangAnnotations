@@ -36,16 +36,16 @@ type {{$aggr}}Aggregate interface {
 	eventMetaData.MetaDataSetter
 	{{range $aggregName, $event := $events.Events -}}
 		{{if $event.IsPersistent -}}
-			Apply{{$event.Name}}(c context.Context, evt {{$event.Name}})
+			Apply{{$event.Name}}(c context.Context, rc request.Context, evt {{$event.Name}})
 		{{end -}}
 	{{end -}}
 }
 
 {{if $events.IsAnyPersistent -}}
 // Apply{{$aggr}}Event applies a single event to aggregate {{$aggr}}
-func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Event(c context.Context, rc request.Context, envlp envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	if aggregateRoot.IsEventProcessed(envlp.UUID) {
-		 mylog.New().Error(c, request.NewEmptyContext(), "Event %+v already processed", envlp)
+		 mylog.New().Error(c, rc, "Event %+v already processed", envlp)
 		 return nil
 	}
 
@@ -56,10 +56,10 @@ func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRo
 			if err != nil {
 				return err
 			}
-			aggregateRoot.Apply{{$event.Name}}(c, *evt)
+			aggregateRoot.Apply{{$event.Name}}(c, rc, *evt)
 		{{end -}}{{end -}}
 		default:
-		mylog.New().Error(c, request.NewEmptyContext(), "Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
+		mylog.New().Error(c, rc, "Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 		return fmt.Errorf("Apply{{$aggr}}Event: Unexpected event %s", envlp.EventTypeName)
 	}
 
@@ -78,10 +78,10 @@ func Apply{{$aggr}}Event(c context.Context, envlp envelope.Envelope, aggregateRo
 }
 
 // Apply{{$aggr}}Events applies multiple events to aggregate {{$aggr}}
-func Apply{{$aggr}}Events(c context.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
+func Apply{{$aggr}}Events(c context.Context, rc request.Context, envelopes []envelope.Envelope, aggregateRoot {{$aggr}}Aggregate) error {
 	var err error
 	for _, envlp := range envelopes {
-		err = Apply{{$aggr}}Event(c, envlp, aggregateRoot)
+		err = Apply{{$aggr}}Event(c, rc, envlp, aggregateRoot)
 		if err != nil {
 			break
 		}

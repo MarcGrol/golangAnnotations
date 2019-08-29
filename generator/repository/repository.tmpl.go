@@ -46,7 +46,7 @@ func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{Lo
 	}
 
 	{{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
-	err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, envelopes, {{LowerModelName .}})
+	err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, rc, envelopes, {{LowerModelName .}})
 	if err != nil {
 		return nil, nil, errorh.NewInternalErrorf(0, "Failed to apply %d events for {{LowerModelName .}} with uid %s: %s", len(envelopes), {{LowerModelName .}}UID, err)
 	}
@@ -78,7 +78,7 @@ func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Cont
 	states := make([]{{ModelPackageName .}}.{{UpperModelName .}}, 0, len(envelopes))
 	{{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
 	for _, envlp := range envelopes {
-		err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Event(c, envlp, {{LowerModelName .}})
+		err = {{GetPackageName .}}.Apply{{UpperAggregateName .}}Event(c, rc, envlp, {{LowerModelName .}})
 		if err != nil {
 			return nil, errorh.NewInternalErrorf(0, "Failed to apply '%s' for {{LowerModelName .}} with uid %s: %s", envlp.EventTypeName, {{LowerModelName .}}UID, err)
 		}
@@ -139,7 +139,7 @@ func DoGetAllRecent{{UpperModelName .}}s(c context.Context, rc request.Context, 
 		})
 
 		{{LowerModelName .}} := {{ModelPackageName .}}.New{{UpperModelName .}}()
-		{{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, {{LowerAggregateName .}}Envelopes, {{LowerModelName .}})
+		{{GetPackageName .}}.Apply{{UpperAggregateName .}}Events(c, rc, {{LowerAggregateName .}}Envelopes, {{LowerModelName .}})
 		{{LowerModelName .}}s = append({{LowerModelName .}}s, *{{LowerModelName .}})
 	}
 	return {{LowerModelName .}}s, {{LowerModelName .}}Map, nil

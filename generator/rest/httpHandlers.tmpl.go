@@ -180,7 +180,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 				{{if IsMetaCallback . -}}
 					metaErr := meta(c, w, r)
 				{{else -}}
-					metaErr := service.{{$oper.Name}}HandleMetaData(c, w, meta)
+					metaErr := service.{{$oper.Name}}HandleMetaData(c, rc, w, meta)
 				{{end -}}
 				if metaErr != nil {
 					if err != nil {
@@ -207,7 +207,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		}
 
 	   {{if HasRestOperationAfter . -}}
-			err = service.{{$oper.Name}}HandleAfter(c, r.Method, r.URL, {{GetInputArgName . }}, result)
+			err = service.{{$oper.Name}}HandleAfter(c, rc, r.Method, r.URL, {{GetInputArgName . }}, result)
 			if err != nil {
 				errorh.HandleHTTPError(c, rc, err, w, r)
 				return
@@ -222,19 +222,19 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 			{{if HasOutput . -}}
 				err = json.NewEncoder(w).Encode(result)
 				if err != nil {
-					mylog.New().Warning(c, "Error writing json-response: %s", err)
+					mylog.New().Warning(c, rc, "Error writing json-response: %s", err)
 				}
 			{{end -}}
 		{{else if IsRestOperationHTML . -}}
 			{{if HasOutput . -}}
 				err = service.{{$oper.Name}}WriteHTML(w, result)
 				if err != nil {
-					mylog.New().Warning(c, "Error writing html-response: %s", err)
+					mylog.New().Warning(c, rc, "Error writing html-response: %s", err)
 				}
 			{{else -}}
 				err = service.{{$oper.Name}}WriteHTML(w)
 				if err != nil {
-					mylog.New().Warning(c, "Error writing html-response: %s", err)
+					mylog.New().Warning(c, rc, "Error writing html-response: %s", err)
 				}
 			{{end -}}
 		{{else if IsRestOperationCSV . -}}
