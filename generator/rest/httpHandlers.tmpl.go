@@ -46,7 +46,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		var err error
 
 		{{if NeedsContext $oper -}}
-			{{GetContextName $oper}} := ctx.New().CreateContext(r)
+			{{GetContextName $oper}} := ctx.New.CreateContext(r)
 		{{end -}}
 
 		rc := {{ $extractRequestContextMethod }}(c, r)
@@ -198,7 +198,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 
 		for _, envlp := range rc.GetEnvelopes() {
 			// publish an event so subscribers can act on them:
-			err = bus.New().Publish(c, rc, envlp)
+			err = bus.Publish(c, rc, envlp)
 			if err != nil {
 				// Note: return an error when one if these publish actions fails
 				errorh.HandleHTTPError(c, rc, err, w, r)
@@ -263,7 +263,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		{{if NeedsContext $oper -}}
-			{{GetContextName $oper}} := ctx.New().CreateContext(r)
+			{{GetContextName $oper}} := ctx.New.CreateContext(r)
 		{{end -}}
 		service.{{$oper.Name}}({{GetInputParamString . }})
 	}
