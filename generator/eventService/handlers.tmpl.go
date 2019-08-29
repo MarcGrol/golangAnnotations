@@ -35,7 +35,7 @@ func (es *{{$eventServiceName}}) handleOrEnqueueEvent(c context.Context, rc requ
 		case {{range $idxOper, $evtName := GetFullEventNames .}}{{if $idxOper}}, {{end -}}{{$evtName}}{{end -}}:
 
 			// Cloud Tasks emulator not available for local development server, handle event immediately 
-			if environ.GetEnvironment(c).GetKind(c) == environ.EnvKind_dev {
+			if devmode.IsDevMode() {
 				return es.handleEvent(c, rc, topic, envlp)
 			}
 			return es.enqueueEventToBackground(c, rc, topic, envlp, subscriber)
