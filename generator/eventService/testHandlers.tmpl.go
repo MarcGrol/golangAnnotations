@@ -1,8 +1,6 @@
 package eventService
 
-const testHandlersTemplate = `// +build !appengine
-
-// Generated automatically by golangAnnotations: do not edit manually
+const testHandlersTemplate = `// Generated automatically by golangAnnotations: do not edit manually
 
 package {{.PackageName}}
 
