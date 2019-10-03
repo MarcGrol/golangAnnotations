@@ -251,7 +251,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		{{else if IsRestOperationNoContent . -}}
 			w.WriteHeader(http.StatusNoContent)
 		{{else if IsRestOperationCustom . -}}
-			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, w, r, result)
+			service.{{$oper.Name}}HandleResult({{GetContextName $oper }}, rc, w, r, result)
 		{{else -}}
 			errorh.NewInternalErrorf(0, "Not implemented")
 		{{end -}}
