@@ -4,34 +4,38 @@ const repositoryTemplate = `// Generated automatically by golangAnnotations: do 
 
 package {{.PackageName}}
 
-import "context"
+import (
+	"context"
+
+	"cloud.google.com/go/datastore"
+)
 
 {{if HasMethodFind . -}}
 var Find{{UpperModelName .}}OnUID = DefaultFind{{UpperModelName .}}OnUID
 
-func DefaultFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
-	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.AcceptAll)
+func DefaultFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, tx, {{LowerModelName .}}UID, envelope.AcceptAll)
 	return {{LowerModelName .}}, err
 }
 
 {{if HasMethodFilterByEvent . -}}
-func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, {{LowerModelName .}}UID string, metadata eventMetaData.Metadata) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
-	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
+func Find{{UpperModelName .}}OnUIDAndEvent(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string, metadata eventMetaData.Metadata) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, tx, {{LowerModelName .}}UID, envelope.FilterByEventUID{EventUID: metadata.UUID})
 	return {{LowerModelName .}}, err
 }
 
 {{end -}}
 
 {{if HasMethodFilterByMoment . -}}
-func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, rc request.Context, {{LowerModelName .}}UID string, moment time.Time) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
-	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, {{LowerModelName .}}UID, envelope.FilterByMoment{Moment: moment})
+func Find{{UpperModelName .}}OnUIDAndMoment(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string, moment time.Time) (*{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+	{{LowerModelName .}}, _, err := DoFind{{UpperModelName .}}OnUID(c, rc, tx, {{LowerModelName .}}UID, envelope.FilterByMoment{Moment: moment})
 	return {{LowerModelName .}}, err
 }
 
 {{end -}}
 
-func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
-	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
+func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string, envelopeFilter envelope.EnvelopeFilter) (*{{ModelPackageName .}}.{{UpperModelName .}}, []envelope.Envelope, error) {
+	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, tx, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -53,8 +57,8 @@ func DoFind{{UpperModelName .}}OnUID(c context.Context, rc request.Context, {{Lo
 	return {{LowerModelName .}}, envelopes, nil
 }
 
-func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]envelope.Envelope, error) {
-	envelopes, err := eventStoreInstance.Search(c, rc, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID)
+func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string) ([]envelope.Envelope, error) {
+	envelopes, err := eventStoreInstance.Search(c, rc, tx, {{GetPackageName .}}.{{AggregateNameConst .}}, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, errorh.NewInternalErrorf(0, "Failed to fetch events for {{LowerModelName .}} with uid %s: %s", {{LowerModelName .}}UID, err)
 	}
@@ -69,8 +73,8 @@ func doFind{{UpperModelName .}}EnvelopesOnUID(c context.Context, rc request.Cont
 {{end -}}
 
 {{if HasMethodFindStates . -}}
-	func Find{{UpperModelName .}}StatesOnUID(c context.Context, rc request.Context, {{LowerModelName .}}UID string) ([]{{ModelPackageName .}}.{{UpperModelName .}}, error) {
-	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, {{LowerModelName .}}UID)
+	func Find{{UpperModelName .}}StatesOnUID(c context.Context, rc request.Context, tx *datastore.Transaction, {{LowerModelName .}}UID string) ([]{{ModelPackageName .}}.{{UpperModelName .}}, error) {
+	envelopes, err := doFind{{UpperModelName .}}EnvelopesOnUID(c, rc, tx, {{LowerModelName .}}UID)
 	if err != nil {
 		return nil, err
 	}

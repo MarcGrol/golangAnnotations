@@ -5,9 +5,10 @@ const httpHandlersTemplate = `// Generated automatically by golangAnnotations: d
 package {{.PackageName}}
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
+
+	"cloud.google.com/go/datastore"
 
 	"github.com/gorilla/mux"
 )
@@ -158,7 +159,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 			{{.}}
 		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
-		err = eventStore.RunInTransaction(c, rc, func(c context.Context) error {
+		err = eventStore.RunInTransaction(c, rc, func(tx *datastore.Transaction) error {
 		{{end -}}
 		{{if HasMetaOutput . -}}
 			result, meta, err = service.{{$oper.Name}}({{GetInputParamString . }})
