@@ -169,6 +169,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 		{{end -}}
 		{{if IsRestOperationTransactional $service . -}}
 			if err != nil {
+				mylog.New().Debug(c, rc, "Error calling {{$oper.Name}}: %s", err)
 				rc.Set(request.ClearEnvelopes())
 				return err
 			}
