@@ -1,5 +1,6 @@
 .cover
 .idea
+*.iml
 
 examples/event/
 examples/rest/gen_httpTestTourService.go
