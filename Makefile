@@ -42,7 +42,6 @@ check:
 	@echo "Perform static analysis"
 	@echo "---------------------"
 	$(GO) vet ./...
-	$(GO) vet --shadow ./...
 
 test: clean check
 	@echo "---------------------"

@@ -35,7 +35,7 @@ func (ts *{{.Name}}) HTTPHandlerWithRouter(router *mux.Router) *mux.Router {
 }
 
 {{ $extractRequestContextMethod := GetExtractRequestContextMethod . }}
-{{ $noValidation := IsRestServiceNoValidation . }}
+{{ $requiresRoleValidation := DoesRestServiceRequireRoleValidation . }}
 
 {{range $idxOper, $oper := .Operations}}
 	{{if IsRestOperation $oper -}}
@@ -52,7 +52,7 @@ func {{$oper.Name}}(service *{{$service.Name}}) http.HandlerFunc {
 
 		rc := {{ $extractRequestContextMethod }}(c, r)
 
-		{{if (not $noValidation) and (HasRequestContext $oper) -}}
+		{{if and ($requiresRoleValidation) (HasRequestContext $oper) -}}
 
 			err = validateRequestContext(c, rc, {{GetRestOperationRolesString $oper}})
 			if err != nil {

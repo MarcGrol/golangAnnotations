@@ -132,7 +132,7 @@ var customTemplateFuncs = template.FuncMap{
 	"ExtractImports":                        ExtractImports,
 	"GetRestServicePath":                    GetRestServicePath,
 	"GetExtractRequestContextMethod":        GetExtractRequestContextMethod,
-	"IsRestServiceNoValidation":             IsRestServiceNoValidation,
+	"DoesRestServiceRequireRoleValidation":  DoesRestServiceRequireRoleValidation,
 	"IsRestOperation":                       IsRestOperation,
 	"IsRestOperationNoWrap":                 IsRestOperationNoWrap,
 	"IsRestOperationGenerated":              IsRestOperationGenerated,
@@ -247,6 +247,10 @@ func IsRestServiceNoValidation(s model.Struct) bool {
 		return ann.Attributes[restAnnotation.ParamNoValidation] == "true"
 	}
 	return false
+}
+
+func DoesRestServiceRequireRoleValidation(s model.Struct) bool {
+	return !IsRestServiceNoValidation(s)
 }
 
 func IsRestServiceNoTest(s model.Struct) bool {
