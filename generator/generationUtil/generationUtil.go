@@ -70,17 +70,16 @@ func DetermineTargetPath(inputDir string, packageName string) (string, error) {
 	}
 
 	goPath := os.Getenv("GOPATH")
-	if goPath == "" {
-		return "", fmt.Errorf("GOPATH not set")
-	}
+	if goPath != "" {
+		// Perform some additional check when still using GOPATH
+		workDir, err := os.Getwd()
+		if err != nil {
+			return "", fmt.Errorf("Error getting working dir:%s", err)
+		}
 
-	workDir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("Error getting working dir:%s", err)
-	}
-
-	if !strings.Contains(workDir, goPath) {
-		return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
+		if !strings.Contains(workDir, goPath) {
+			return "", fmt.Errorf("Code %s lives outside GOPATH:%s", workDir, goPath)
+		}
 	}
 
 	baseDir := path.Base(inputDir)
