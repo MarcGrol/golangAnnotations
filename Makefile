@@ -1,8 +1,3 @@
-GO := $(shell which go)
-GO_VERSION := $(shell $(GO) version)
- 
-GOLANG_ANNOT_ROOT := $(shell echo "${GOPATH}/src/github.com/MarcGrol/golangAnnotations")
-
 all: gen test install
 
 help:
@@ -21,7 +16,7 @@ generate:
 	@echo "----------------------"
 	@echo "Generating source-code"
 	@echo "----------------------"
-	$(GO) generate ./...
+	go generate ./...
 
 imports:
 	@echo "------------------"
@@ -41,41 +36,41 @@ check:
 	@echo "---------------------"
 	@echo "Perform static analysis"
 	@echo "---------------------"
-	$(GO) vet ./...
+	go vet ./...
 
 test: clean check
 	@echo "---------------------"
 	@echo "Running backend tests"
 	@echo "---------------------"
-	$(GO) test ./...                        # run unit tests
+	go test ./...                        # run unit tests
 	make format
 
 citest:
 	@echo "---------------------"
 	@echo "Running backend tests"
 	@echo "---------------------"
-	$(GO) get -u golang.org/x/tools/cmd/goimports
-	$(GO) generate -tags ci  ./...
+	go get -u golang.org/x/tools/cmd/goimports
+	go generate -tags ci  ./...
 	make imports
-	$(GO) test -tags ci ./...                        # run unit tests
+	go test -tags ci ./...                        # run unit tests
 	make format
 
 coverage:
 	@echo "----------------"
 	@echo "Running coverage"
 	@echo "----------------"
-	$(GOLANG_ANNOT_ROOT)/scripts/coverage.sh --html
+	./scripts/coverage.sh --html
 
 clean:
 	find . -name 'gen_*.go' -exec rm -rfv {} +
 	rm -rf ./examples/rest/restTestLog/ ./generator/rest/testData/ ./generator/event/testDataStore/
-	$(GO) clean ./...
+	go clean ./...
 
 install: clean
 	@echo "----------------------------"
-	@echo "Installing for $(GO_VERSION)"
+	@echo "Installing"
 	@echo "----------------------------"
-	$(GO) install ./...
+	go install ./...
 
 .PHONY:
 	help deps gen check test citest coverage install clean all
