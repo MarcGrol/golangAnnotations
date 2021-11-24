@@ -2,7 +2,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/MarcGrol/golangAnnotations/badge.svg)](https://coveralls.io/github/MarcGrol/golangAnnotations)
 [![BCH compliance](https://bettercodehub.com/edge/badge/MarcGrol/golangAnnotations?branch=master)](https://bettercodehub.com/)
 [![Maintainability](https://api.codeclimate.com/v1/badges/ec16a2ec356e87ccfbaf/maintainability)](https://codeclimate.com/github/MarcGrol/golangAnnotations/maintainability)
-[![CodeScene Code Health](https://codescene.io/projects/1411/status-badges/code-health)](https://codescene.io/projects/1411)
 
 [Detailed explanation](https://github.com/MarcGrol/golangAnnotations/wiki)
 
