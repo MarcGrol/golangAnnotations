@@ -2,7 +2,9 @@ package ast
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/MarcGrol/golangAnnotations/generator/annotation"
@@ -12,10 +14,13 @@ import (
 )
 
 type Generator struct {
+	targetFilename string
 }
 
-func NewGenerator() generator.Generator {
-	return &Generator{}
+func NewGenerator(targetFilename string) generator.Generator {
+	return &Generator{
+		targetFilename: targetFilename,
+	}
 }
 
 func (eg *Generator) GetAnnotations() []annotation.AnnotationDescriptor {
@@ -28,10 +33,18 @@ func (eg *Generator) Generate(inputDir string, parsedSources model.ParsedSources
 	if err != nil {
 		panic(err)
 	}
-	targetFilename := generationUtil.Prefixed(inputDir + "/" + "ast.json")
-	err = ioutil.WriteFile(targetFilename, marshalled, 0644)
-	if err != nil {
-		panic(err)
+
+	if eg.targetFilename != "" {
+		filenamePath := generationUtil.Prefixed(inputDir + "/" + eg.targetFilename)
+		err = ioutil.WriteFile(filenamePath, marshalled, 0644)
+		if err != nil {
+			return fmt.Errorf("Error writing json-ast to file:%s", err)
+		}
+	} else {
+		_, err = os.Stdout.Write(marshalled)
+		if err != nil {
+			return fmt.Errorf("Error writing json-ast to stdout:%s", err)
+		}
 	}
 
 	return nil
