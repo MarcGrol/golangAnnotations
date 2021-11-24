@@ -1,0 +1,984 @@
+{
+	"structs": [
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "ParsedSources",
+			"fields": [
+				{
+					"name": "Structs",
+					"typeName": "[]Struct",
+					"tag": "`json:\"structs,omitempty\"`"
+				},
+				{
+					"name": "Operations",
+					"typeName": "[]Operation",
+					"tag": "`json:\"operations,omitempty\"`"
+				},
+				{
+					"name": "Interfaces",
+					"typeName": "[]Interface",
+					"tag": "`json:\"interfaces,omitempty\"`"
+				},
+				{
+					"name": "Typedefs",
+					"typeName": "[]Typedef",
+					"tag": "`json:\"typedefs,omitempty\"`"
+				},
+				{
+					"name": "Enums",
+					"typeName": "[]Enum",
+					"tag": "`json:\"enums,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Operation",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName,omitempty\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename,omitempty\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "RelatedStruct",
+					"typeName": "*Field",
+					"tag": "`json:\"relatedStruct,omitempty\"`",
+					"commentLines": [
+						"// optional"
+					]
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "InputArgs",
+					"typeName": "[]Field",
+					"tag": "`json:\"inputArgs,omitempty\"`"
+				},
+				{
+					"name": "OutputArgs",
+					"typeName": "[]Field",
+					"tag": "`json:\"outputArgs,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "[]string",
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Struct",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Fields",
+					"typeName": "[]Field",
+					"tag": "`json:\"fields,omitempty\"`"
+				},
+				{
+					"name": "Operations",
+					"typeName": "[]*Operation",
+					"tag": "`json:\"operations,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "[]string",
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Interface",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Methods",
+					"typeName": "[]Operation",
+					"tag": "`json:\"methods,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "[]string",
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Field",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName,omitempty\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name,omitempty\"`"
+				},
+				{
+					"name": "TypeName",
+					"typeName": "string",
+					"tag": "`json:\"typeName,omitempty\"`"
+				},
+				{
+					"name": "Tag",
+					"typeName": "string",
+					"tag": "`json:\"tag,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "[]string",
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			],
+			"operations": [
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "SplitTypeName",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						},
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "EmptyInstance",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "DereferencedTypeName",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsPointer",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "SliceElementTypeName",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsPrimitive",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsPrimitiveSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsMap",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "SplitMapTypeNames",
+					"outputArgs": [
+						{
+							"typeName": "string"
+						},
+						{
+							"typeName": "string"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsBool",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsBoolSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsInt",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsIntSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsString",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsStringSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsDate",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsDateSlice",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "IsCustom",
+					"outputArgs": [
+						{
+							"typeName": "bool"
+						}
+					]
+				},
+				{
+					"packageName": "model",
+					"filename": "helper.go",
+					"relatedStruct": {
+						"name": "f",
+						"typeName": "Field"
+					},
+					"name": "GetTagMap",
+					"outputArgs": [
+						{
+							"typeName": "map[string]string"
+						}
+					]
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Typedef",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Type",
+					"typeName": "string",
+					"tag": "`json:\"type,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Enum",
+			"fields": [
+				{
+					"name": "PackageName",
+					"typeName": "string",
+					"tag": "`json:\"packageName\"`"
+				},
+				{
+					"name": "Filename",
+					"typeName": "string",
+					"tag": "`json:\"filename\"`"
+				},
+				{
+					"name": "DocLines",
+					"typeName": "[]string",
+					"tag": "`json:\"docLines,omitempty\"`"
+				},
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name,omitempty\"`"
+				},
+				{
+					"name": "EnumLiterals",
+					"typeName": "[]EnumLiteral",
+					"tag": "`json:\"enumLiterals,omitempty\"`"
+				},
+				{
+					"name": "CommentLines",
+					"typeName": "[]string",
+					"tag": "`json:\"commentLines,omitempty\"`"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "EnumLiteral",
+			"fields": [
+				{
+					"name": "Name",
+					"typeName": "string",
+					"tag": "`json:\"name\"`"
+				},
+				{
+					"name": "Value",
+					"typeName": "string",
+					"tag": "`json:\"value,omitempty\"`"
+				}
+			]
+		}
+	],
+	"operations": [
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "SplitTypeName",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				},
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "EmptyInstance",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "DereferencedTypeName",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsPointer",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "SliceElementTypeName",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsPrimitive",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsPrimitiveSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsMap",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "SplitMapTypeNames",
+			"outputArgs": [
+				{
+					"typeName": "string"
+				},
+				{
+					"typeName": "string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsBool",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsBoolSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsInt",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsIntSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsString",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsStringSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsDate",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsDateSlice",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "IsCustom",
+			"outputArgs": [
+				{
+					"typeName": "bool"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "helper.go",
+			"relatedStruct": {
+				"name": "f",
+				"typeName": "Field"
+			},
+			"name": "GetTagMap",
+			"outputArgs": [
+				{
+					"typeName": "map[string]string"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "parser.go",
+			"name": "Parse",
+			"inputArgs": [
+				{
+					"name": "filename",
+					"typeName": "string"
+				}
+			],
+			"outputArgs": [
+				{
+					"typeName": "ParsedSources"
+				},
+				{
+					"typeName": "error"
+				}
+			]
+		},
+		{
+			"packageName": "model",
+			"filename": "parser_test.go",
+			"name": "TestReadFile",
+			"inputArgs": [
+				{
+					"name": "t",
+					"typeName": "*testing.T"
+				}
+			]
+		}
+	],
+	"typedefs": [
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "ParsedSources"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Operation"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Struct"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Interface"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Field"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Typedef"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "Enum"
+		},
+		{
+			"packageName": "model",
+			"filename": "model.go",
+			"docLines": [
+				"// @JsonStruct()"
+			],
+			"name": "EnumLiteral"
+		}
+	]
+}

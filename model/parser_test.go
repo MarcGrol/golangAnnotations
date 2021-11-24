@@ -7,7 +7,7 @@ import (
 )
 
 func TestReadFile(t *testing.T) {
-	parsedSources, err := Parse("./gen_ast.json")
+	parsedSources, err := Parse("./example_ast.json")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, parsedSources.Structs)
 
