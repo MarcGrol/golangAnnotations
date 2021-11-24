@@ -41,7 +41,7 @@ func main() {
 
 func runAllGenerators(inputDir string, parsedSources model.ParsedSources) {
 	for name, g := range map[string]generator.Generator{
-		"ast":           ast.NewGenerator(),
+		"ast":           ast.NewGenerator("ast.json"),
 		"event":         event.NewGenerator(),
 		"event-service": eventService.NewGenerator(),
 		"json-helpers":  jsonHelpers.NewGenerator(),
