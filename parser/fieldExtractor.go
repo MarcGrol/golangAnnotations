@@ -10,20 +10,20 @@ import (
 	"github.com/MarcGrol/golangAnnotations/model"
 )
 
-func extractFieldList(fieldList *ast.FieldList, imports map[string]string) []model.Field {
+func extractFieldList(fieldList *ast.FieldList, imports map[string]string, commentMap ast.CommentMap) []model.Field {
 	mFields := make([]model.Field, 0)
 	if fieldList != nil {
 		for _, field := range fieldList.List {
-			mFields = append(mFields, extractFields(field, imports)...)
+			mFields = append(mFields, extractFields(field, imports, commentMap)...)
 		}
 	}
 	return mFields
 }
 
-func extractFields(field *ast.Field, imports map[string]string) []model.Field {
+func extractFields(field *ast.Field, imports map[string]string, commentMap ast.CommentMap) []model.Field {
 	mFields := make([]model.Field, 0)
 	if field != nil {
-		if mField := extractField(field, imports); mField != nil {
+		if mField := extractField(field, imports, commentMap); mField != nil {
 			if len(field.Names) == 0 {
 				mFields = append(mFields, *mField)
 			} else {
@@ -38,15 +38,26 @@ func extractFields(field *ast.Field, imports map[string]string) []model.Field {
 	return mFields
 }
 
-func extractField(field *ast.Field, imports map[string]string) *model.Field {
+func extractField(field *ast.Field, imports map[string]string, commentMap ast.CommentMap) *model.Field {
 	if fieldType := processExpression(field.Type, imports); fieldType != nil {
+		comments := extractComments(field.Comment)
+
+		// Fallback to comments extracted by CommentMap
+		if len(comments) == 0{
+			if commentMap[field] != nil && commentMap != nil{
+				for _, commentGroup := range commentMap[field]{
+					comments = append(comments, extractComments(commentGroup)...)
+				}
+			}
+		}
+
 		return &model.Field{
 			PackageName:  fieldType.PackageName,
 			DocLines:     extractComments(field.Doc),
 			Name:         fieldType.Name,
 			TypeName:     fieldType.TypeName,
 			Tag:          extractTag(field.Tag),
-			CommentLines: extractComments(field.Comment),
+			CommentLines: comments,
 		}
 	}
 	return nil
@@ -165,7 +176,7 @@ func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression 
 	if funcType, ok := fieldType.(*ast.FuncType); ok {
 		params := make([]string, 0)
 		for _, param := range funcType.Params.List {
-			if paramField := extractField(param, imports); paramField != nil {
+			if paramField := extractField(param, imports, nil); paramField != nil {
 				formattedParam := paramField.TypeName
 				if paramField.Name != "" {
 					formattedParam = fmt.Sprintf("%s %s", paramField.Name, paramField.TypeName)
@@ -192,7 +203,7 @@ func processFuncType(fieldType ast.Expr, imports map[string]string) *Expression 
 func processInterfaceType(fieldType ast.Expr, imports map[string]string) *Expression {
 	if interfaceType, ok := fieldType.(*ast.InterfaceType); ok {
 		methods := make([]string, 0)
-		for _, method := range extractFieldList(interfaceType.Methods, imports) {
+		for _, method := range extractFieldList(interfaceType.Methods, imports, nil) {
 			methods = append(methods, fmt.Sprintf("%s%s", method.Name, method.TypeName))
 		}
 		typeName := fmt.Sprintf("interface{%s}", strings.Join(methods, ","))

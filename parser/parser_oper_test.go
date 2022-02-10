@@ -25,6 +25,7 @@ func TestStructOperationsInDir(t *testing.T) {
 			assert.Equal(t, 3, len(o.InputArgs))
 
 			assert.Equal(t, "ctx", o.InputArgs[0].Name)
+			assert.Equal(t, "// ctx", o.InputArgs[0].CommentLines[0])
 			assert.Equal(t, "context.Context", o.InputArgs[0].TypeName)
 			assert.False(t, o.InputArgs[0].IsSlice())
 

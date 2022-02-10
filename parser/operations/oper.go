@@ -15,7 +15,9 @@ type Service struct {
 }
 
 // docline for getPersons
-func (s *Service) getPersons(ctx context.Context, data map[string]string, slice []string) ([]Person, error) {
+func (s *Service) getPersons(
+	// ctx
+	ctx context.Context, data map[string]string, slice []string) ([]Person, error) {
 	return []Person{
 		{Name: "Marc"},
 		{Name: "Eva"},
