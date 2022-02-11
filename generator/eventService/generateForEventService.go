@@ -8,11 +8,11 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/MarcGrol/golangAnnotations/generator"
-	"github.com/MarcGrol/golangAnnotations/generator/annotation"
-	"github.com/MarcGrol/golangAnnotations/generator/eventService/eventServiceAnnotation"
-	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
-	"github.com/MarcGrol/golangAnnotations/model"
+	"github.com/f0rt/golangAnnotations/generator"
+	"github.com/f0rt/golangAnnotations/generator/annotation"
+	"github.com/f0rt/golangAnnotations/generator/eventService/eventServiceAnnotation"
+	"github.com/f0rt/golangAnnotations/generator/generationUtil"
+	"github.com/f0rt/golangAnnotations/model"
 )
 
 type Generator struct {

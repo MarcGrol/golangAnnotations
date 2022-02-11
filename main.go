@@ -6,15 +6,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/MarcGrol/golangAnnotations/generator"
-	"github.com/MarcGrol/golangAnnotations/generator/ast"
-	"github.com/MarcGrol/golangAnnotations/generator/event"
-	"github.com/MarcGrol/golangAnnotations/generator/eventService"
-	"github.com/MarcGrol/golangAnnotations/generator/jsonHelpers"
-	"github.com/MarcGrol/golangAnnotations/generator/repository"
-	"github.com/MarcGrol/golangAnnotations/generator/rest"
-	"github.com/MarcGrol/golangAnnotations/model"
-	"github.com/MarcGrol/golangAnnotations/parser"
+	"github.com/f0rt/golangAnnotations/generator"
+	"github.com/f0rt/golangAnnotations/generator/ast"
+	"github.com/f0rt/golangAnnotations/generator/event"
+	"github.com/f0rt/golangAnnotations/generator/eventService"
+	"github.com/f0rt/golangAnnotations/generator/jsonHelpers"
+	"github.com/f0rt/golangAnnotations/generator/repository"
+	"github.com/f0rt/golangAnnotations/generator/rest"
+	"github.com/f0rt/golangAnnotations/model"
+	"github.com/f0rt/golangAnnotations/parser"
 )
 
 const (
