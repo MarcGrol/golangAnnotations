@@ -64,7 +64,7 @@ This first implementation provides the following kind of annotations:
 
 ## How to use http-server related annotations ("jax-rs"-like)?
 
-A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. Observe that [./examples/rest/tourService.go](./examples/rest/tourService.go) is used as input.
+A regular golang struct definition with our own "RestService" and "RestOperation"-annotations. Observe that [./examples/rest/tourService.go](./examples/myrest/tourService.go) is used as input.
 
     // @RestService( path = "/api" )
     type Service struct {
