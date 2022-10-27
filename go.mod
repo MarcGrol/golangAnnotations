@@ -1,4 +1,4 @@
-module github.com/f0rt/golangAnnotations
+module github.com/MarcGrol/golangAnnotations
 
 go 1.16
 

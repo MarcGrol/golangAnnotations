@@ -3,7 +3,7 @@ package generationUtil
 import (
 	"testing"
 
-	"github.com/f0rt/golangAnnotations/generator"
+	"github.com/MarcGrol/golangAnnotations/generator"
 	"github.com/stretchr/testify/assert"
 )
 

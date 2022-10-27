@@ -7,8 +7,8 @@ import (
 	"os"
 	"path"
 
-	"github.com/f0rt/golangAnnotations/generator/rest"
-	"github.com/f0rt/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/generator/rest"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 func main() {

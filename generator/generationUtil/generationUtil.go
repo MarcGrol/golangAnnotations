@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/f0rt/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 func GetPackageNameForStructs(structs []model.Struct) (string, error) {

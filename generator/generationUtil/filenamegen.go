@@ -3,7 +3,7 @@ package generationUtil
 import (
 	"path"
 
-	"github.com/f0rt/golangAnnotations/generator"
+	"github.com/MarcGrol/golangAnnotations/generator"
 )
 
 func Prefixed(filenamePath string) string {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/f0rt/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -7,11 +7,11 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/f0rt/golangAnnotations/generator"
-	"github.com/f0rt/golangAnnotations/generator/annotation"
-	"github.com/f0rt/golangAnnotations/generator/generationUtil"
-	"github.com/f0rt/golangAnnotations/generator/repository/repositoryAnnotation"
-	"github.com/f0rt/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/generator"
+	"github.com/MarcGrol/golangAnnotations/generator/annotation"
+	"github.com/MarcGrol/golangAnnotations/generator/generationUtil"
+	"github.com/MarcGrol/golangAnnotations/generator/repository/repositoryAnnotation"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 type Generator struct {

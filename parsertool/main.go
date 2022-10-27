@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/f0rt/golangAnnotations/generator"
-	"github.com/f0rt/golangAnnotations/generator/ast"
-	"github.com/f0rt/golangAnnotations/parser"
+	"github.com/MarcGrol/golangAnnotations/generator"
+	"github.com/MarcGrol/golangAnnotations/generator/ast"
+	"github.com/MarcGrol/golangAnnotations/parser"
 )
 
 func main() {

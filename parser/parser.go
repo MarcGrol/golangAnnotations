@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/f0rt/golangAnnotations/model"
+	"github.com/MarcGrol/golangAnnotations/model"
 )
 
 var debugAstOfSources = false
@@ -27,7 +27,7 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 	if debugAstOfSources {
 		dumpFilesInDir(dirName)
 	}
-	packages, fileset, err := parseDir(dirName, includeRegex, excludeRegex)
+	packages, err := parseDir(dirName, includeRegex, excludeRegex)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
 		return model.ParsedSources{}, err
@@ -37,7 +37,7 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 		Imports: map[string]string{},
 	}
 	for _, aPackage := range packages {
-		parsePackage(aPackage, v, fileset)
+		parsePackage(aPackage, v)
 	}
 
 	embedOperationsInStructs(v)
@@ -53,7 +53,7 @@ func (p *myParser) ParseSourceDir(dirName string, includeRegex string, excludeRe
 	}, nil
 }
 
-func parsePackage(aPackage *ast.Package, v *astVisitor, fileSet *token.FileSet) {
+func parsePackage(aPackage *ast.Package, v *astVisitor) {
 	for _, fileEntry := range sortedFileEntries(aPackage.Files) {
 		v.CurrentFilename = fileEntry.key
 
@@ -68,7 +68,6 @@ func parsePackage(aPackage *ast.Package, v *astVisitor, fileSet *token.FileSet) 
 			}
 		}
 		if appEngineOnly {
-			v.commentMap = ast.NewCommentMap(fileSet, &fileEntry.file, fileEntry.file.Comments)
 			ast.Walk(v, &fileEntry.file)
 		}
 	}
@@ -104,10 +103,8 @@ func doParseFile(srcFilename string) (*astVisitor, error) {
 		log.Printf("error parsing src-file %s: %s", srcFilename, err.Error())
 		return nil, err
 	}
-	commentsMap := ast.NewCommentMap(fileSet, file, file.Comments)
 	v := &astVisitor{
 		Imports: map[string]string{},
-		commentMap: commentsMap,
 	}
 	v.CurrentFilename = srcFilename
 	ast.Walk(v, file)
@@ -175,7 +172,7 @@ func embedTypedefDocLinesInEnum(visitor *astVisitor) {
 	}
 }
 
-func parseDir(dirName string, includeRegex string, excludeRegex string) (map[string]*ast.Package,*token.FileSet,  error) {
+func parseDir(dirName string, includeRegex string, excludeRegex string) (map[string]*ast.Package, error) {
 	var includePattern = regexp.MustCompile(includeRegex)
 	var excludePattern = regexp.MustCompile(excludeRegex)
 
@@ -188,10 +185,10 @@ func parseDir(dirName string, includeRegex string, excludeRegex string) (map[str
 	}, parser.ParseComments)
 	if err != nil {
 		log.Printf("error parsing dir %s: %s", dirName, err.Error())
-		return packageMap, fileSet, err
+		return packageMap, err
 	}
 
-	return packageMap, fileSet, nil
+	return packageMap, nil
 }
 
 func dumpFile(srcFilename string) {
@@ -233,7 +230,6 @@ type astVisitor struct {
 	Interfaces      []model.Interface
 	Typedefs        []model.Typedef
 	Enums           []model.Enum
-	commentMap 		ast.CommentMap
 }
 
 func (v *astVisitor) Visit(node ast.Node) ast.Visitor {
@@ -274,7 +270,7 @@ func (v *astVisitor) extractGenDeclImports(node ast.Node) {
 }
 
 func (v *astVisitor) parseAsStruct(node ast.Node) {
-	if mStruct := extractGenDeclForStruct(node, v.Imports, v.commentMap); mStruct != nil {
+	if mStruct := extractGenDeclForStruct(node, v.Imports); mStruct != nil {
 		mStruct.PackageName = v.PackageName
 		mStruct.Filename = v.CurrentFilename
 		v.Structs = append(v.Structs, *mStruct)
@@ -299,7 +295,7 @@ func (v *astVisitor) parseAsEnum(node ast.Node) {
 
 func (v *astVisitor) parseAsInterFace(node ast.Node) {
 	// if interfaces, get its methods
-	if mInterface := extractInterface(node, v.Imports, v.commentMap); mInterface != nil {
+	if mInterface := extractInterface(node, v.Imports); mInterface != nil {
 		mInterface.PackageName = v.PackageName
 		mInterface.Filename = v.CurrentFilename
 		v.Interfaces = append(v.Interfaces, *mInterface)
@@ -308,7 +304,7 @@ func (v *astVisitor) parseAsInterFace(node ast.Node) {
 
 func (v *astVisitor) parseAsOperation(node ast.Node) {
 	// if mOperation, get its signature
-	if mOperation := extractOperation(node, v.Imports, v.commentMap); mOperation != nil {
+	if mOperation := extractOperation(node, v.Imports); mOperation != nil {
 		mOperation.PackageName = v.PackageName
 		mOperation.Filename = v.CurrentFilename
 		v.Operations = append(v.Operations, *mOperation)
@@ -329,10 +325,10 @@ func extractPackageName(node ast.Node) (string, bool) {
 
 // ------------------------------------------------------ STRUCT -------------------------------------------------------
 
-func extractGenDeclForStruct(node ast.Node, imports map[string]string, commentMap ast.CommentMap) *model.Struct {
+func extractGenDeclForStruct(node ast.Node, imports map[string]string) *model.Struct {
 	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it is a struct
-		if mStruct := extractSpecsForStruct(genDecl.Specs, imports, commentMap); mStruct != nil {
+		if mStruct := extractSpecsForStruct(genDecl.Specs, imports); mStruct != nil {
 			// Docline of struct (that could contain annotations) appear far before the details of the struct
 			mStruct.DocLines = extractComments(genDecl.Doc)
 			return mStruct
@@ -341,13 +337,13 @@ func extractGenDeclForStruct(node ast.Node, imports map[string]string, commentMa
 	return nil
 }
 
-func extractSpecsForStruct(specs []ast.Spec, imports map[string]string, commentMap ast.CommentMap) *model.Struct {
+func extractSpecsForStruct(specs []ast.Spec, imports map[string]string) *model.Struct {
 	if len(specs) >= 1 {
 		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
 			if structType, ok := typeSpec.Type.(*ast.StructType); ok {
 				return &model.Struct{
 					Name:   typeSpec.Name.Name,
-					Fields: extractFieldList(structType.Fields, imports, commentMap),
+					Fields: extractFieldList(structType.Fields, imports),
 				}
 			}
 		}
@@ -438,10 +434,10 @@ func extractEnumTypeName(specs []ast.Spec) (string, bool) {
 
 // ----------------------------------------------------- INTERFACE -----------------------------------------------------
 
-func extractInterface(node ast.Node, imports map[string]string, commentMap ast.CommentMap) *model.Interface {
+func extractInterface(node ast.Node, imports map[string]string) *model.Interface {
 	if genDecl, ok := node.(*ast.GenDecl); ok {
 		// Continue parsing to see if it an interface
-		if mInterface := extractSpecsForInterface(genDecl.Specs, imports, commentMap); mInterface != nil {
+		if mInterface := extractSpecsForInterface(genDecl.Specs, imports); mInterface != nil {
 			// Docline of interface (that could contain annotations) appear far before the details of the struct
 			mInterface.DocLines = extractComments(genDecl.Doc)
 			return mInterface
@@ -450,13 +446,13 @@ func extractInterface(node ast.Node, imports map[string]string, commentMap ast.C
 	return nil
 }
 
-func extractSpecsForInterface(specs []ast.Spec, imports map[string]string, commentMap ast.CommentMap) *model.Interface {
+func extractSpecsForInterface(specs []ast.Spec, imports map[string]string) *model.Interface {
 	if len(specs) >= 1 {
 		if typeSpec, ok := specs[0].(*ast.TypeSpec); ok {
 			if interfaceType, ok := typeSpec.Type.(*ast.InterfaceType); ok {
 				return &model.Interface{
 					Name:    typeSpec.Name.Name,
-					Methods: extractInterfaceMethods(interfaceType.Methods, imports, commentMap),
+					Methods: extractInterfaceMethods(interfaceType.Methods, imports),
 				}
 			}
 		}
@@ -464,7 +460,7 @@ func extractSpecsForInterface(specs []ast.Spec, imports map[string]string, comme
 	return nil
 }
 
-func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string, commentMap ast.CommentMap) []model.Operation {
+func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string) []model.Operation {
 	methods := make([]model.Operation, 0)
 	for _, field := range fieldList.List {
 		if len(field.Names) > 0 {
@@ -472,8 +468,8 @@ func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string
 				methods = append(methods, model.Operation{
 					DocLines:   extractComments(field.Doc),
 					Name:       field.Names[0].Name,
-					InputArgs:  extractFieldList(funcType.Params, imports, commentMap),
-					OutputArgs: extractFieldList(funcType.Results, imports, commentMap),
+					InputArgs:  extractFieldList(funcType.Params, imports),
+					OutputArgs: extractFieldList(funcType.Results, imports),
 				})
 			}
 		}
@@ -483,14 +479,14 @@ func extractInterfaceMethods(fieldList *ast.FieldList, imports map[string]string
 
 // ----------------------------------------------------- OPERATION -----------------------------------------------------
 
-func extractOperation(node ast.Node, imports map[string]string, commentMap ast.CommentMap) *model.Operation {
+func extractOperation(node ast.Node, imports map[string]string) *model.Operation {
 	if funcDecl, ok := node.(*ast.FuncDecl); ok {
 		mOperation := model.Operation{
 			DocLines: extractComments(funcDecl.Doc),
 		}
 
 		if funcDecl.Recv != nil {
-			fields := extractFieldList(funcDecl.Recv, imports, commentMap)
+			fields := extractFieldList(funcDecl.Recv, imports)
 			if len(fields) >= 1 {
 				mOperation.RelatedStruct = &(fields[0])
 			}
@@ -501,11 +497,11 @@ func extractOperation(node ast.Node, imports map[string]string, commentMap ast.C
 		}
 
 		if funcDecl.Type.Params != nil {
-			mOperation.InputArgs = extractFieldList(funcDecl.Type.Params, imports, commentMap)
+			mOperation.InputArgs = extractFieldList(funcDecl.Type.Params, imports)
 		}
 
 		if funcDecl.Type.Results != nil {
-			mOperation.OutputArgs = extractFieldList(funcDecl.Type.Results, imports, commentMap)
+			mOperation.OutputArgs = extractFieldList(funcDecl.Type.Results, imports)
 		}
 		return &mOperation
 	}
